@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Posts on @goldeneggg</title>
+    <link>https://goldeneggg.github.io/post/index.xml</link>
+    <description>Recent content in Posts on @goldeneggg</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>ja-jp</language>
+    <copyright>Fuminori Sakamoto</copyright>
+    <lastBuildDate>Sun, 21 May 2017 12:54:19 +0900</lastBuildDate>
+    <atom:link href="https://goldeneggg.github.io/post/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Github Pages &amp; Hugo でブログ公開するまで</title>
+      <link>https://goldeneggg.github.io/2017/05/21/hugo_github_pages/</link>
+      <pubDate>Sun, 21 May 2017 12:54:19 +0900</pubDate>
+      
+      <guid>https://goldeneggg.github.io/2017/05/21/hugo_github_pages/</guid>
+      <description>
+
+&lt;p&gt;ブログサービスを使わずブログを公開するというのが初めての作業だったので、備忘も兼ねてメモしておく。&lt;/p&gt;
+
+&lt;h2 id=&#34;github-pages用のリポジトリを作成&#34;&gt;Github Pages用のリポジトリを作成&lt;/h2&gt;
+
+&lt;p&gt;Github Pages にブログを公開するに辺り、まずは &lt;a href=&#34;https://help.github.com/articles/configuring-a-publishing-source-for-github-pages/&#34;&gt;こちらの公式の記事&lt;/a&gt;を参考に&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;pages&lt;/code&gt; というリポジトリ - 記事のソースファイル置き場&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;ACCOUNT名.github.io&lt;/code&gt; というリポジトリ - Github Pages 公開用リポジトリ
+
+&lt;ul&gt;
+&lt;li&gt;私の場合 &lt;code&gt;ACCOUNT名&lt;/code&gt; は &lt;code&gt;goldeneggg&lt;/code&gt; になる。&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;という2つのリポジトリを作成した。pagesリポジトリで作成したコンテンツのビルド成果物を goldeneggg.github.io リポジトリに出力→pushして公開する、という流れを想定している。&lt;/p&gt;
+
+&lt;h2 id=&#34;hugoの導入&#34;&gt;Hugoの導入&lt;/h2&gt;
+
+&lt;p&gt;サイトジェネレータの選定だが、Go製の &lt;a href=&#34;https://github.com/spf13/hugo&#34;&gt;hugo&lt;/a&gt; が&lt;a href=&#34;http://deeeet.com/writing/2014/12/25/hugo/&#34; title=&#34;deeeetさんの記事&#34;&gt;生成処理が速い&lt;/a&gt;という評判だったのと、個人的にGoが好き という理由であまり深くは考えずHugoを使う事にした。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;# brew か go get でインストール
+
+$ brew install hugo
+
+## Or
+
+$ go get -u -v github.com/spf13/hugo
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;hugoの初期設定&#34;&gt;Hugoの初期設定&lt;/h2&gt;
+
+&lt;ol&gt;
+&lt;li&gt;最初に作成した Github Pages 用のリポジトリを &lt;code&gt;git clone&lt;/code&gt; する&lt;/li&gt;
+&lt;li&gt;cloneしたディレクトリに&lt;code&gt;cd&lt;/code&gt;し、&lt;code&gt;hugo new site .&lt;/code&gt; する。これで雛形となるディレクトリ群が生成される&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-sh&#34;&gt;$ git clone git@github.com:goldeneggg/goldeneggg.github.io.git
+
+$ cd goldeneggg.github.io
+$ hugo new site .
+
+# 確認
+$ tree
+.
+├── archetypes
+├── config.toml
+├── content
+├── data
+├── layouts
+├── static
+└── themes
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;config-toml-の設定&#34;&gt;&lt;code&gt;config.toml&lt;/code&gt; の設定&lt;/h2&gt;
+
+&lt;p&gt;自分の場合はこんな感じ&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;googleAnalytics は導入したくなったら修正&lt;/li&gt;
+&lt;li&gt;baseurl Github Pages公開の際のドメインを指定。 &lt;strong&gt;末尾の &lt;code&gt;/&lt;/code&gt; を忘れずに&lt;/strong&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-toml&#34;&gt;languageCode = &amp;quot;ja-jp&amp;quot;
+title = &amp;quot;@goldeneggg&amp;quot;
+baseurl = &amp;quot;https://goldeneggg.github.io/&amp;quot;
+theme = &amp;quot;ghostwriter&amp;quot;
+copyright = &amp;quot;Fuminori Sakamoto&amp;quot;
+#googleAnalytics = &amp;quot;XXX&amp;quot;
+
+[Author]
+    name = &amp;quot;@golden_eggg&amp;quot;
+
+[Taxonomies]
+    tag = &amp;quot;tags&amp;quot;
+
+[Params]
+    intro = true
+    headline = &amp;quot;@goldeneggg&amp;quot;
+    github = &amp;quot;https://github.com/goldeneggg&amp;quot;
+    twitter = &amp;quot;https://twitter.com/golden_eggg&amp;quot;
+    email = &amp;quot;jpshadowapps@gmail.com&amp;quot;
+    opengraph = true
+
+[Permalinks]
+    post = &amp;quot;/:year/:month/:day/:slug/&amp;quot;
+
+[[menu.main]]
+    name = &amp;quot;Post&amp;quot;
+    url = &amp;quot;/&amp;quot;
+    weight = 1
+
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;記事用のmarkdown作成&#34;&gt;記事用のmarkdown作成&lt;/h2&gt;
+
+&lt;ol&gt;
+&lt;li&gt;記事のmarkdownファイルを &lt;code&gt;hugo new &amp;lt;markdownファイル名&amp;gt;&lt;/code&gt; で生成する&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;hugo new&lt;/code&gt; で生成したmarkdownを適宜編集&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-sh&#34;&gt;$ hugo new post/YYYY-MM-DD_PAGENAME.md
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;記事用のmarkdownの書き方&#34;&gt;記事用のmarkdownの書き方&lt;/h3&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;+++&lt;/code&gt; で囲まれた上部はメタ情報
+
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;title&lt;/code&gt; を修正&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;slug&lt;/code&gt; を追加（これで公開時のURLがファイル名ではなくこのslugになる）&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;tags&lt;/code&gt; を追加（記事のカテゴリタグ）&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-markdown&#34;&gt;+++
+date = &amp;quot;2017-01-15T23:29:55+09:00&amp;quot;
+title = &amp;quot;テスト&amp;quot;
+draft = true
+slug = &amp;quot;hoge&amp;quot;
+tags = [&amp;quot;test&amp;quot;]
+
++++
+
+SOME CONTENTS
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;ローカルで内容確認&#34;&gt;ローカルで内容確認&lt;/h2&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-sh&#34;&gt;$ hugo server -D -w
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;↑して、 &lt;a href=&#34;http://localhost:1313&#34;&gt;http://localhost:1313&lt;/a&gt; にアクセス&lt;/p&gt;
+
+&lt;h2 id=&#34;テーマの導入&#34;&gt;テーマの導入&lt;/h2&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-sh&#34;&gt;$ git submodule add &amp;lt;THEME_REPOS&amp;gt; themes/&amp;lt;THEME_NAME&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;このページでは&lt;a href=&#34;https://github.com/jbub/ghostwriter&#34;&gt;jbub/ghostwriter: A port of ghostwriter theme to Hugo.&lt;/a&gt;を使っている&lt;/p&gt;
+
+&lt;h2 id=&#34;コードハイライト&#34;&gt;コードハイライト&lt;/h2&gt;
+
+&lt;p&gt;特に固有の設定などは不要で、問題無くハイライトできていそう&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-ruby&#34;&gt;module Hoge
+  def hoge
+    &amp;quot;hogehoge&amp;quot;
+  end
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;ビルド&#34;&gt;ビルド&lt;/h2&gt;
+
+&lt;p&gt;ここでは記事公開用に作成している goldeneggg.github.io リポジトリのローカルrootディレクトリに成果物をビルド・出力する&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-sh&#34;&gt;# 同じディレクトリ階層に公開用リポジトリDIRが存在する という前提で
+$ hugo -d ../goldeneggg.github.io -v
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;githubにpush-公開&#34;&gt;githubにpush・公開&lt;/h2&gt;
+
+&lt;p&gt;公開用リポジトリのmasterブランチへのpushを行うだけで公開される&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-sh&#34;&gt;$ cd ../goldeneggg.github.io
+$ git push origin master
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;所感&#34;&gt;所感&lt;/h2&gt;
+
+&lt;p&gt;Hugo + Github Pages で自分が行った作業手順を纏めてみたが、Github Pagesがwatchしていない内に随分と進化していてほとんどつまづく事無く公開まで辿り着けた。公開手順はもっと簡略化の余地がありそうだが、今日は一旦ここまで。&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>
