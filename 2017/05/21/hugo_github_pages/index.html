@@ -8,10 +8,10 @@
 Github Pages用のリポジトリを作成 Github Pages にブログを公開するに辺り、まずは こちらの公式の記事を参考に
  pages というリポジトリ - 記事のソースファイル置き場 ACCOUNT名.github.io というリポジトリ - Github Pages 公開用リポジトリ  私の場合 ACCOUNT名 は goldeneggg になる。   という2つのリポジトリを作成した。pagesリポジトリで作成したコンテンツのビルド成果物を goldeneggg.github.io リポジトリに出力→pushして公開する、という流れを想定している。
 Hugoの導入 サイトジェネレータの選定だが、Go製の hugo が生成処理が速いという評判だったのと、個人的にGoが好き という理由であまり深くは考えずHugoを使う事にした。
-# brew か go get でインストール $ brew install hugo ## Or $ go get -u -v github.com/spf13/hugo  Hugoの初期設定  最初に作成した Github Pages 用のリポジトリを git clone する cloneしたディレクトリにcdし、hugo new site . する。これで雛形となるディレクトリ群が生成される  $ git clone git@github.">
+# brew か go get でインストール $ brew install hugo ## Or $ go get -u -v github.com/spf13/hugo  Hugoの初期設定  最初に作成した 記事のソースファイル置き場 用のリポジトリを git clone する cloneしたディレクトリにcdし、hugo new site . する。これで雛形となるディレクトリ群が生成される  $ git clone git@github.">
         <meta name="HandheldFriendly" content="True">
         <meta name="MobileOptimized" content="320">
-        <meta name="generator" content="Hugo 0.19-DEV" />
+        <meta name="generator" content="Hugo 0.22-DEV" />
         <meta name="robots" content="index,follow">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta property="og:title" content="Github Pages &amp; Hugo でブログ公開するまで">
@@ -19,7 +19,7 @@ Hugoの導入 サイトジェネレータの選定だが、Go製の hugo が生�
 Github Pages用のリポジトリを作成 Github Pages にブログを公開するに辺り、まずは こちらの公式の記事を参考に
  pages というリポジトリ - 記事のソースファイル置き場 ACCOUNT名.github.io というリポジトリ - Github Pages 公開用リポジトリ  私の場合 ACCOUNT名 は goldeneggg になる。   という2つのリポジトリを作成した。pagesリポジトリで作成したコンテンツのビルド成果物を goldeneggg.github.io リポジトリに出力→pushして公開する、という流れを想定している。
 Hugoの導入 サイトジェネレータの選定だが、Go製の hugo が生成処理が速いという評判だったのと、個人的にGoが好き という理由であまり深くは考えずHugoを使う事にした。
-# brew か go get でインストール $ brew install hugo ## Or $ go get -u -v github.com/spf13/hugo  Hugoの初期設定  最初に作成した Github Pages 用のリポジトリを git clone する cloneしたディレクトリにcdし、hugo new site . する。これで雛形となるディレクトリ群が生成される  $ git clone git@github.">
+# brew か go get でインストール $ brew install hugo ## Or $ go get -u -v github.com/spf13/hugo  Hugoの初期設定  最初に作成した 記事のソースファイル置き場 用のリポジトリを git clone する cloneしたディレクトリにcdし、hugo new site . する。これで雛形となるディレクトリ群が生成される  $ git clone git@github.">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://goldeneggg.github.io/2017/05/21/hugo_github_pages/">
         <link rel="stylesheet" href="https://goldeneggg.github.io/dist/styles.css">
@@ -128,13 +128,13 @@ $ go get -u -v github.com/spf13/hugo
 <h2 id="hugoの初期設定">Hugoの初期設定</h2>
 
 <ol>
-<li>最初に作成した Github Pages 用のリポジトリを <code>git clone</code> する</li>
+<li>最初に作成した 記事のソースファイル置き場 用のリポジトリを <code>git clone</code> する</li>
 <li>cloneしたディレクトリに<code>cd</code>し、<code>hugo new site .</code> する。これで雛形となるディレクトリ群が生成される</li>
 </ol>
 
-<pre><code class="language-sh">$ git clone git@github.com:goldeneggg/goldeneggg.github.io.git
+<pre><code class="language-sh">$ git clone git@github.com:goldeneggg/pages.git
 
-$ cd goldeneggg.github.io
+$ cd pages
 $ hugo new site .
 
 # 確認
