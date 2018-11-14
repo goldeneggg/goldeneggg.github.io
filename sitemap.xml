@@ -3,36 +3,47 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
-    <loc>https://goldeneggg.github.io/2017/05/21/hugo_github_pages/</loc>
+    <loc>https://horizoon.jp/blog/hugo_github_pages/</loc>
     <lastmod>2017-05-21T12:54:19+09:00</lastmod>
   </url>
   
   <url>
-    <loc>https://goldeneggg.github.io/</loc>
+    <loc>https://horizoon.jp/</loc>
+    <lastmod>2017-05-21T12:54:19+09:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://horizoon.jp/blog/</loc>
+    <lastmod>2017-05-21T12:54:19+09:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://horizoon.jp/about/</loc>
+  </url>
+  
+  <url>
+    <loc>https://horizoon.jp/categories/</loc>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://horizoon.jp/tags/github/</loc>
     <lastmod>2017-05-21T12:54:19+09:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>https://goldeneggg.github.io/tags/github/</loc>
+    <loc>https://horizoon.jp/tags/hugo/</loc>
     <lastmod>2017-05-21T12:54:19+09:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>https://goldeneggg.github.io/tags/hugo/</loc>
-    <lastmod>2017-05-21T12:54:19+09:00</lastmod>
-    <priority>0</priority>
+    <loc>https://horizoon.jp/projects/</loc>
   </url>
   
   <url>
-    <loc>https://goldeneggg.github.io/post/</loc>
-    <lastmod>2017-05-21T12:54:19+09:00</lastmod>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>https://goldeneggg.github.io/tags/</loc>
+    <loc>https://horizoon.jp/tags/</loc>
     <lastmod>2017-05-21T12:54:19+09:00</lastmod>
     <priority>0</priority>
   </url>
