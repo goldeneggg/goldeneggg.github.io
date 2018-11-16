@@ -2,26 +2,26 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Hugo on horizoon</title>
-    <link>http://horizoon.jp/tags/hugo/</link>
+    <link>https://horizoon.jp/tags/hugo/</link>
     <description>Recent content in Hugo on horizoon</description>
     <generator>Hugo -- gohugo.io</generator>
     <copyright>&amp;copy; Fuminori Sakamoto 2018</copyright>
     <lastBuildDate>Sun, 21 May 2017 12:54:19 +0900</lastBuildDate>
     
-	<atom:link href="http://horizoon.jp/tags/hugo/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="https://horizoon.jp/tags/hugo/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
       <title>Github Pages &amp; Hugo でブログ公開するまで</title>
-      <link>http://horizoon.jp/blog/hugo_github_pages/</link>
+      <link>https://horizoon.jp/blog/hugo_github_pages/</link>
       <pubDate>Sun, 21 May 2017 12:54:19 +0900</pubDate>
       
-      <guid>http://horizoon.jp/blog/hugo_github_pages/</guid>
+      <guid>https://horizoon.jp/blog/hugo_github_pages/</guid>
       <description>ブログサービスを使わずブログを公開するというのが初めての作業だったので、備忘も兼ねてメモしておく。
 Github Pages用のリポジトリを作成 Github Pages にブログを公開するに辺り、まずは こちらの公式の記事を参考に
  pages というリポジトリ - 記事のソースファイル置き場 ACCOUNT名.github.io というリポジトリ - Github Pages 公開用リポジトリ  私の場合 ACCOUNT名 は goldeneggg になる。   という2つのリポジトリを作成した。pagesリポジトリで作成したコンテンツのビルド成果物を goldeneggg.github.io リポジトリに出力→pushして公開する、という流れを想定している。
 Hugoの導入 サイトジェネレータの選定だが、Go製の hugo が生成処理が速いという評判だったのと、個人的にGoが好き という理由であまり深くは考えずHugoを使う事にした。
-# brew か go get でインストール  $ brew install hugo ## Or  $ go get -u -v github.com/spf13/hugo Hugoの初期設定  最初に作成した 記事のソースファイル置き場 用のリポジトリを git clone する cloneしたディレクトリにcdし、hugo new site . する。これで雛形となるディレクトリ群が生成される  $ git clone git@github.</description>
+# brew か go get でインストール $ brew install hugo ## Or $ go get -u -v github.com/spf13/hugo Hugoの初期設定  最初に作成した 記事のソースファイル置き場 用のリポジトリを git clone する cloneしたディレクトリにcdし、hugo new site . する。これで雛形となるディレクトリ群が生成される  $ git clone git@github.</description>
     </item>
     
   </channel>
