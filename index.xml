@@ -40,5 +40,26 @@ Hugoの導入 サイトジェネレータの選定だが、Go製の hugo が生�
 # brew か go get でインストール $ brew install hugo ## Or $ go get -u -v github.com/spf13/hugo Hugoの初期設定  最初に作成した 記事のソースファイル置き場 用のリポジトリを git clone する cloneしたディレクトリにcdし、hugo new site . する。これで雛形となるディレクトリ群が生成される  $ git clone git@github.</description>
     </item>
     
+    <item>
+      <title>About</title>
+      <link>https://horizoon.jp/about/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://horizoon.jp/about/</guid>
+      <description>WEB、特にサーバーサイド寄りのシステムエンジニア。
+兼、東南アジアの熱気とカオス（と現地で飲むビール）をこよなく愛する エアポート投稿おじさん バックパッカー。
+Career Path  大阪工業大学・情報科学部・情報システム学科 卒 SIer - 3年6ヶ月 WEB系SES - 7年9ヶ月 グリー - 3年4ヶ月 フリー(eが3つの方) - 3年8ヶ月 フリー  技術そのものも好きですが、決済や金融/fintechといったお金にまつわる分野の経験・知見が多めです。
+Detail レジュメを こちらのgist にupしております。</description>
+    </item>
+    
+    <item>
+      <title>Projects</title>
+      <link>https://horizoon.jp/projects/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://horizoon.jp/projects/</guid>
+      <description>Coming soon Coming soon&amp;hellip;</description>
+    </item>
+    
   </channel>
 </rss>

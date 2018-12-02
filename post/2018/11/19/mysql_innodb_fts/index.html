@@ -1,200 +1,67 @@
 <!DOCTYPE html>
-<html lang="en-us">
+<html lang="">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  
-  <meta name="generator" content="Hugo 0.51" />
-  <meta name="author" content="horizoon">
 
-  
-  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-  <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Merriweather:400,700%7cOpen&#43;Sans:400,400italic,700%7cRoboto&#43;Mono%25!%28EXTRA%20*hugolib.PageOutput=Page%28/post/mysql_innodb_fts.md%29%29">
-  <link rel="stylesheet" href="/styles.css">
-  
-  <link rel="stylesheet" href="/css/monokai.css">
-  
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
 
-  
-    <script>
-      window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
-      ga('create', 'UA-129776715-1', 'auto');
-      
-      ga('require', 'eventTracker');
-      ga('require', 'outboundLinkTracker');
-      ga('require', 'urlChangeTracker');
-      ga('send', 'pageview');
-    </script>
-    <script async src="//www.google-analytics.com/analytics.js"></script>
-    <script async src="//cdnjs.cloudflare.com/ajax/libs/autotrack/2.4.1/autotrack.js"></script>
-  
 
-  
-  <link rel="alternate" href="https://horizoon.jp/index.xml" type="application/rss+xml" title="horizoon">
-  <link rel="feed" href="https://horizoon.jp/index.xml" type="application/rss+xml" title="horizoon">
-  
 
-  <link rel="apple-touch-icon" sizes="180x180" href="/img/favicon/apple-touch-icon.png">
-  <link rel="icon" type="image/png" sizes="32x32" href="/img/favicon/favicon-32x32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="/img/favicon/favicon-16x16.png">
-  <link rel="manifest" href="/img/favicon/site.webmanifest">
-  <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
-  <meta name="msapplication-TileColor" content="#da532c">
-  <meta name="theme-color" content="#ffffff">
 
-  <link rel="manifest" href="/site.webmanifest">
-  <link rel="icon" type="image/png" href="/img/icon.png">
-  <link rel="apple-touch-icon" type="image/png" href="/img/icon-192.png">
+<base href="https://horizoon.jp">
 
-  <link rel="canonical" href="https://horizoon.jp/post/2018/11/19/mysql_innodb_fts/">
+<title>horizoon</title>
 
-  <meta property="twitter:card" content="summary_large_image">
-  
-  <meta property="og:site_name" content="horizoon">
-  <meta property="og:url" content="https://horizoon.jp/post/2018/11/19/mysql_innodb_fts/">
-  <meta property="og:title" content="MySQL5.7 InnoDB のN-gram全文検索を検証＆サービス導入した | horizoon">
-  <meta property="og:locale" content="en-us">
-  
-  <meta property="article:published_time" content="2018-11-19T03:21:36&#43;09:00">
-  
-  <meta property="article:modified_time" content="2018-11-19T03:21:36&#43;09:00">
-  
+<meta name="generator" content="Hugo 0.51" />
 
-  <title>MySQL5.7 InnoDB のN-gram全文検索を検証＆サービス導入した | horizoon</title>
 
-  
-<script type="application/javascript">
-var doNotTrack = false;
-if (!doNotTrack) {
-	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
-	ga('create', 'UA-129776715-1', 'auto');
-	
-	ga('send', 'pageview');
-}
-</script>
-<script async src='https://www.google-analytics.com/analytics.js'></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css">
 
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:300,400|Roboto+Slab:400,700|Roboto:300,300i,400,400i,500,500i,700,700i">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.0/css/all.css">
+<link rel="stylesheet" href="https://horizoon.jp/css/main.css">
+
+
+
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="/favicon-32x32.png" sizes="32x32">
+<link rel="icon" type="image/png" href="/favicon-16x16.png" sizes="16x16">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+<meta name="theme-color" content="#ffffff">
 
 </head>
-<body>
-
-<style type="text/css">
-
-.masthead-hero {
-  background-image: url("https://horizoon.jp/img/hero.jpg");
-}
-</style>
-
-<div class="masthead-hero"></div>
+<body lang="">
+<div class="container">
 
 
-<div id="main" role="main">
-  <div class="sidebar sticky" itemprop="author" itemscope itemtype="http://schema.org/Person">
-  <div class="author-avatar">
-    <a href="/">
-      <img src="/img/portrait.jpg" alt="horizoon" itemprop="image">
-    </a>
-  </div>
-  <div class="author-content">
-    <h3 class="author-name" itemprop="name">horizoon</h3>
-    <p class="author-bio" itemprop="description">Fuminori Sakamoto</p>
-  </div>
-  <div class="author-urls-wrapper">
-    <ul class="author-urls social-icons" aria-hidden="true">
-      <li itemprop="homeLocation" itemscope itemtype="http://schema.org/Place">
-        <span itemprop="name">Japan</span>
-      </li>
-      
-      <li>
-        <a itemprop="sameAs" href="mailto:jpshadowapps@gmail.com" target="_blank" rel="noopener noreferrer">
-          <i class="fa fa-envelope"></i>
-          jpshadowapps@gmail.com
-        </a>
-      </li>
-      
-      <li>
-        <a itemprop="sameAs" href="//gist.github.com/goldeneggg/b10744a776a04b66b77df7485e6fdf2b" target="_blank" rel="noopener noreferrer">
-          <i class="fa fa-file"></i>
-          Resume(Japanese)
-        </a>
-      </li>
-      
-      <li>
-        <a itemprop="sameAs" href="//linkedin.com/in/horizoon-sakamoto" target="_blank" rel="noopener noreferrer">
-          <i class="fa fa-linkedin"></i>
-          LinkedIn
-        </a>
-      </li>
-      
-      <li>
-        <a itemprop="sameAs" href="//github.com/goldeneggg" target="_blank" rel="noopener noreferrer">
-          <i class="fa fa-github"></i>
-          Github
-        </a>
-      </li>
-      
-      <li>
-        <a itemprop="sameAs" href="//facebook.com/fuminori.sakamoto" target="_blank" rel="noopener noreferrer">
-          <i class="fa fa-facebook"></i>
-          Facebook
-        </a>
-      </li>
-      
-      <li>
-        <a itemprop="sameAs" href="//flickr.com/photos/porkandchicken" target="_blank" rel="noopener noreferrer">
-          <i class="fa fa-flickr"></i>
-          Flickr
-        </a>
-      </li>
-      
-    </ul>  
-  </div>
-</div>
-
-  <article class="page">
-		<div class="page_container">
-			<section class="page_content">
-				<div class="navbar-hero">
-	<nav>
-		<a href="/">Home</a>&nbsp&nbsp•&nbsp&nbsp
-		<a href="/projects">Projects</a>&nbsp&nbsp•&nbsp&nbsp
-		<a href="/post">Blog</a>&nbsp&nbsp•&nbsp&nbsp
-		<a href="/about">About</a>
-	</nav>
-</div>
-
-				<article class="post" itemscope itemtype="http://schema.org/Article">
-  <div class="post-container">
-    <h1 itemprop="name"><a href="https://horizoon.jp/post/2018/11/19/mysql_innodb_fts/">MySQL5.7 InnoDB のN-gram全文検索を検証＆サービス導入した</a></h1>
-
-    
-      
-
-<div class="post-metadata">
-
-  <span class="post-date">
-    
-    <time datetime="2018-11-19 03:21:36 &#43;0900 JST" itemprop="datePublished dateModified">
-      2018-11-19
-    </time>
-  </span>
-
+<header class="row text-left title">
+  <h1 class="title">MySQL5.7 InnoDB のN-gram全文検索を検証＆サービス導入した</h1>
+</header>
+<section id="category-pane" class="row meta">
   
-
-</div>
-
+  <div class="col-md-12">
+    <h6 class="text-left meta">
+        PUBLISHED ON 2018-11-19 
+      
+    </h6>
+  </div>
+  
+</section>
+<section id="content-pane" class="row">
+  <div class="col-md-12 text-justify content">
     
 
-    <div class="post-style" itemprop="articleBody">
-      
-      
+<p>※ この記事は<a href="https://medium.com/@golden_eggg/mysql5-7-innodb-%E3%81%AEn-gram%E5%85%A8%E6%96%87%E6%A4%9C%E7%B4%A2%E3%82%92%E6%A4%9C%E8%A8%BC-%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9%E5%B0%8E%E5%85%A5%E3%81%97%E3%81%9F-a3d733480605">以前Mediumで公開した記事</a> の転載です</p>
 
-<p>※ この記事は<a href="https://medium.com/@golden_eggg/mysql5-7-innodb-%E3%81%AEn-gram%E5%85%A8%E6%96%87%E6%A4%9C%E7%B4%A2%E3%82%92%E6%A4%9C%E8%A8%BC-%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9%E5%B0%8E%E5%85%A5%E3%81%97%E3%81%9F-a3d733480605" target="_blank">以前Mediumで公開した記事</a> の転載です</p>
+<p>MySQL5.7・InnoDB・N-gram という環境下で全文検索の挙動やパフォーマンスについて検証を行った。FULLTEXT INDEXは以前はMyISAMでしか利用できなかったが、 <a href="http://y-ken.hatenablog.com/entry/mysql-casual-talks-vol4-innodb-fts">5.6.4からInnoDBでのサポートが始まっていた</a>。</p>
 
-<p>MySQL5.7・InnoDB・N-gram という環境下で全文検索の挙動やパフォーマンスについて検証を行った。FULLTEXT INDEXは以前はMyISAMでしか利用できなかったが、 <a href="http://y-ken.hatenablog.com/entry/mysql-casual-talks-vol4-innodb-fts" target="_blank">5.6.4からInnoDBでのサポートが始まっていた</a>。</p>
-
-<p>InnoDBの全文検索は5.7、特に<a href="https://dev.mysql.com/doc/refman/5.7/en/fulltext-search-ngram.html" target="_blank">5.7.6以降でいわゆるCJK（中国語・日本語・韓国語）がN-gramで標準サポート</a>され始め、 <a href="http://mysqlserverteam.com/innodb-%E5%85%A8%E6%96%87%E6%A4%9C%E7%B4%A2-n-gram-parser/" target="_blank">CREATE TABLE文で簡単にパーサーを指定できる構文のサポート</a>、 設定やクエリの組立で考えないといけない事が減った事で導入障壁がかなり下がっている。 ※4.1と5.0でサービス導入経験がある私の個人的な比較感想です。</p>
+<p>InnoDBの全文検索は5.7、特に<a href="https://dev.mysql.com/doc/refman/5.7/en/fulltext-search-ngram.html">5.7.6以降でいわゆるCJK（中国語・日本語・韓国語）がN-gramで標準サポート</a>され始め、 <a href="http://mysqlserverteam.com/innodb-%E5%85%A8%E6%96%87%E6%A4%9C%E7%B4%A2-n-gram-parser/">CREATE TABLE文で簡単にパーサーを指定できる構文のサポート</a>、 設定やクエリの組立で考えないといけない事が減った事で導入障壁がかなり下がっている。 ※4.1と5.0でサービス導入経験がある私の個人的な比較感想です。</p>
 
 <p>FULLTEXT INDEXも他のINDEXと同様にデータ更新・削除の際にINDEXのrebuildが走るので更新時の負荷には注意が必要で、FULLTEXT INDEXの場合は「rebuild負荷が列に含まれる単語数に比例する」「rebuildでの断片化が起こりやすい」という固有の注意点もあり、「件数が多い」「FULLTEXT INDEXを貼ったカラムの更新頻度が激しい」という条件が揃ったテーブルへの導入は十分な検証の上で実施した方が良さそう。</p>
 
@@ -202,7 +69,7 @@ if (!doNotTrack) {
 
 <h2 id="やること">やること</h2>
 
-<p><a href="http://www.houjin-bangou.nta.go.jp/download/zenken/#csv-unicode" target="_blank">国税庁が公開している法人番号データ</a>を使って検証してみる。データ件数が100万件強程度になるように東京・大阪・海外 の3種類をマージしたデータを使った。用意したデータとテーブルについては<a href="https://github.com/practice-goldeneggg/mysql-innodb-fts" target="_blank">githubにupしている</a>。charsetをutf8mb4にしているのは、utf8だと登録時にエラーになる文字を含んだ法人が複数存在する為。collationはデフォルトであるuft8mb4_general_ciを使用する。</p>
+<p><a href="http://www.houjin-bangou.nta.go.jp/download/zenken/#csv-unicode">国税庁が公開している法人番号データ</a>を使って検証してみる。データ件数が100万件強程度になるように東京・大阪・海外 の3種類をマージしたデータを使った。用意したデータとテーブルについては<a href="https://github.com/practice-goldeneggg/mysql-innodb-fts">githubにupしている</a>。charsetをutf8mb4にしているのは、utf8だと登録時にエラーになる文字を含んだ法人が複数存在する為。collationはデフォルトであるuft8mb4_general_ciを使用する。</p>
 <div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="o">&gt;</span> <span class="k">show</span> <span class="k">collation</span> <span class="k">like</span> <span class="s1">&#39;utf8mb4%&#39;</span> <span class="err">\</span><span class="k">G</span><span class="p">;</span>
 <span class="o">***************************</span> <span class="mi">1</span><span class="p">.</span> <span class="k">row</span> <span class="o">***************************</span>
 <span class="k">Collation</span><span class="p">:</span> <span class="n">utf8mb4_general_ci</span>
@@ -303,7 +170,7 @@ if (!doNotTrack) {
 <li>FULLTEXT INDEXを使っての部分一致</li>
 </ul>
 
-<p>の2パターンで比較してみる。<a href="https://dev.mysql.com/doc/refman/5.7/en/fulltext-search.html" target="_blank">全文検索モード</a>については、検索対象が固有名詞で自然言語による曖昧検索を行うと検索結果に含まれるノイズが増えそう＝法人番号社名検索という用途には不向き という判断で、<a href="https://dev.mysql.com/doc/refman/5.7/en/fulltext-boolean.html" target="_blank">BOOLEAN MODE</a>で厳密にマッチする検索を行う。</p>
+<p>の2パターンで比較してみる。<a href="https://dev.mysql.com/doc/refman/5.7/en/fulltext-search.html">全文検索モード</a>については、検索対象が固有名詞で自然言語による曖昧検索を行うと検索結果に含まれるノイズが増えそう＝法人番号社名検索という用途には不向き という判断で、<a href="https://dev.mysql.com/doc/refman/5.7/en/fulltext-boolean.html">BOOLEAN MODE</a>で厳密にマッチする検索を行う。</p>
 
 <p>まず name, en_name の2カラムを対象に &ldquo;コード&rdquo; という文字列でLIKE検索(2カラム分のLIKE条件をORで結合）と全文検索の結果を比較してみると、前者が約1.2sec、後者が約0.2secと、全文検索によってパフォーマンスが良くなった。</p>
 <div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="n">mysql</span><span class="o">&gt;</span> <span class="k">EXPLAIN</span> <span class="k">SELECT</span> <span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span> <span class="k">FROM</span> <span class="n">corporate_nums</span> <span class="k">WHERE</span> <span class="n">name</span> <span class="k">LIKE</span> <span class="s1">&#39;%コード%&#39;</span> <span class="k">or</span> <span class="n">en_name</span> <span class="k">LIKE</span> <span class="s1">&#39;%コード%&#39;</span><span class="p">;</span>
@@ -369,68 +236,79 @@ if (!doNotTrack) {
 <li>FULLTEXT INDEXでもカバリングインデックスとしては使えない（FULLTEXT INDEXはN-gramで分けられた単語だけが登録され、実際の値はINDEXには登録されない）</li>
 </ul>
 
-    </div>
-
-    
-      
-
-    
-
-    
-      
-<div class="share-box" aria-hidden="true">
-  <ul class="share">
-    <li>
-      <a class="twitter"
-         href="https://twitter.com/intent/tweet?text=MySQL5.7%20InnoDB%20%e3%81%aeN-gram%e5%85%a8%e6%96%87%e6%a4%9c%e7%b4%a2%e3%82%92%e6%a4%9c%e8%a8%bc%ef%bc%86%e3%82%b5%e3%83%bc%e3%83%93%e3%82%b9%e5%b0%8e%e5%85%a5%e3%81%97%e3%81%9f&amp;url=https%3a%2f%2fhorizoon.jp%2fpost%2f2018%2f11%2f19%2fmysql_innodb_fts%2f"
-         target="_blank" rel="noopener noreferrer">
-        <i class="fa fa-twitter"></i>
-      </a>
-    </li>
-    <li>
-      <a class="facebook"
-         href="https://www.facebook.com/sharer.php?u=https%3a%2f%2fhorizoon.jp%2fpost%2f2018%2f11%2f19%2fmysql_innodb_fts%2f"
-         target="_blank" rel="noopener noreferrer">
-        <i class="fa fa-facebook"></i>
-      </a>
-    </li>
-    <li>
-      <a class="linkedin"
-         href="https://www.linkedin.com/shareArticle?mini=true&amp;url=https%3a%2f%2fhorizoon.jp%2fpost%2f2018%2f11%2f19%2fmysql_innodb_fts%2f&amp;title=MySQL5.7%20InnoDB%20%e3%81%aeN-gram%e5%85%a8%e6%96%87%e6%a4%9c%e7%b4%a2%e3%82%92%e6%a4%9c%e8%a8%bc%ef%bc%86%e3%82%b5%e3%83%bc%e3%83%93%e3%82%b9%e5%b0%8e%e5%85%a5%e3%81%97%e3%81%9f"
-         target="_blank" rel="noopener noreferrer">
-        <i class="fa fa-linkedin"></i>
-      </a>
-    </li>
-    <li>
-      <a class="email"
-         href="mailto:?subject=MySQL5.7%20InnoDB%20%e3%81%aeN-gram%e5%85%a8%e6%96%87%e6%a4%9c%e7%b4%a2%e3%82%92%e6%a4%9c%e8%a8%bc%ef%bc%86%e3%82%b5%e3%83%bc%e3%83%93%e3%82%b9%e5%b0%8e%e5%85%a5%e3%81%97%e3%81%9f&amp;body=https%3a%2f%2fhorizoon.jp%2fpost%2f2018%2f11%2f19%2fmysql_innodb_fts%2f">
-        <i class="fa fa-envelope"></i>
-      </a>
-    </li>
-  </ul>
-</div>
-
-
-    
-
-    
-      
-
-    
-
   </div>
-</article>
-			</section>
-		</div>
-	</article>
-</div> 
+</section>
+<section id="tag-pane" class="row meta">
+  
+  <div class="col-md-12">
+    <h6 class="text-right meta">
+      
+    </h6>
+  </div>
+  
+</section>
 
-<div class="page_footer">
-	<p>&copy; Fuminori Sakamoto 2018. Powered by <a href="http://gohugo.io/">Hugo</a> and <a href="https://github.com/jhu247/minimal-academic">Minimal Academic</a>.</p>
+
+
+
+
+
+
+
+<section id="menu-pane" class="row menu text-center">
+  
+  
+  <span><a class="menu-item" href="https://horizoon.jp/post/2017/05/21/hugo_github_pages/">&lt; prev | </a></span>
+  
+  
+  <span><a class="menu-item" href="/post">post</a></span>
+  
+  
+  
+  <h4 class="text-center"><a class="menu-item" href="https://horizoon.jp">home</a></h4>
+</section>
+
+
+
+<footer class="row text-center footer">
+  <hr />
+  
+  <h6 class="text-center copyright">© 2018. Fuminori Sakamoto. <a href="http://creativecommons.org/licenses/by/3.0/">Some Rights Reserved</a>.</h6>
+  
+  <h6 class="text-center powered">Powered by <a href="https://gohugo.io/">Hugo</a> &amp; <a href="https://github.com/shenoybr/hugo-goa">Goa</a>.</h6>
+  
+  
+</footer>
+
 </div>
-    
-    
 
 
-  </body>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  
+
+<script type="text/javascript">
+hljs.initHighlightingOnLoad();
+</script>
+
+
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-129776715-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script src="js/main.js"></script>
+</body>
 </html>
+
+
