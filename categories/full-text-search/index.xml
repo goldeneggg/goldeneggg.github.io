@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>horizoon</title>
-    <link>https://horizoon.jp/</link>
-    <description>Recent content on horizoon</description>
+    <title>Full Text Search on horizoon</title>
+    <link>https://horizoon.jp/categories/full-text-search/</link>
+    <description>Recent content in Full Text Search on horizoon</description>
     <generator>Hugo -- gohugo.io</generator>
     <copyright>&amp;copy; Fuminori Sakamoto 2018</copyright>
     <lastBuildDate>Mon, 19 Nov 2018 03:21:36 +0900</lastBuildDate>
     
-	<atom:link href="https://horizoon.jp/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="https://horizoon.jp/categories/full-text-search/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
@@ -25,42 +25,6 @@ FULLTEXT INDEXも他のINDEXと同様にデータ更新・削除の際にINDEX�
 やること 国税庁が公開している法人番号データを使って検証してみる。データ件数が100万件強程度になるように東京・大阪・海外 の3種類をマージしたデータを使った。用意したデータとテーブルについてはgithubにupしている。charsetをutf8mb4にしているのは、utf8だと登録時にエラーになる文字を含んだ法人が複数存在する為。collationはデフォルトであるuft8mb4_general_ciを使用する。
 &amp;gt; show collation like &amp;#39;utf8mb4%&amp;#39; \G; *************************** 1. row *************************** Collation: utf8mb4_general_ci Charset: utf8mb4 Id: 45 Default: Yes Compiled: Yes Sortlen: 1 今回付けたFULLTEXT INDEXは会社名検索・住所検索を想定したものにしている。
 -- 法人番号データ投入用テーブルのCREATE文 CREATE TABLE `corporate_nums` ( `id` int NOT NULL AUTO_INCREMENT, `sequence_number` varchar(8) NOT NULL, `corporate_number` char(13) DEFAULT NULL, `process` char(2) DEFAULT NULL, `correct` char(1) DEFAULT NULL, `update_date` char(10) DEFAULT NULL, `change_date` char(10) DEFAULT NULL, `name` varchar(150) DEFAULT NULL, `name_image_id` char(8) DEFAULT NULL, `kind` char(3) DEFAULT NULL, `prefecture_name` varchar(10) DEFAULT NULL, `city_name` varchar(20) DEFAULT NULL, `street_number` varchar(300) DEFAULT NULL, `address_image_id` char(8) DEFAULT NULL, `prefecture_code` char(2) DEFAULT NULL, `city_code` char(3) DEFAULT NULL, `post_code` char(7) DEFAULT NULL, `address_outside` varchar(300) DEFAULT NULL, `address_outside_image_id` char(8) DEFAULT NULL, `close_date` char(10) DEFAULT NULL, `close_cause` char(2) DEFAULT NULL, `successor_corporate_number` char(13) DEFAULT NULL, `change_cause` varchar(500) DEFAULT NULL, `assignment_date` char(10), `latest` char(1) DEFAULT NULL, `en_name` varchar(300) DEFAULT NULL, `en_prefecture_name` varchar(9) DEFAULT NULL, `en_city_name` varchar(600) DEFAULT NULL, `en_address_outside` varchar(600) DEFAULT NULL, PRIMARY KEY (`id`), KEY `cn_i1` (`sequence_number`), KEY `cn_i2` (`corporate_number`), FULLTEXT KEY `cn_fti1` (`name`, `en_name`) WITH PARSER ngram, FULLTEXT KEY `cn_fti2` (`prefecture_name`, `city_name`, `street_number`, `en_prefecture_name`, `en_city_name`) WITH PARSER ngram ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ROW_FORMAT=DYNAMIC 件数は↓この通り</description>
-    </item>
-    
-    <item>
-      <title>Github Pages &amp; Hugo でブログ公開するまで</title>
-      <link>https://horizoon.jp/post/2017/05/21/hugo_github_pages/</link>
-      <pubDate>Sun, 21 May 2017 12:54:19 +0900</pubDate>
-      
-      <guid>https://horizoon.jp/post/2017/05/21/hugo_github_pages/</guid>
-      <description>ブログサービスを使わずブログを公開するというのが初めての作業だったので、備忘も兼ねてメモしておく。
-Github Pages用のリポジトリを作成 Github Pages にブログを公開するに辺り、まずは こちらの公式の記事を参考に
- pages というリポジトリ - 記事のソースファイル置き場 ACCOUNT名.github.io というリポジトリ - Github Pages 公開用リポジトリ  私の場合 ACCOUNT名 は goldeneggg になる。   という2つのリポジトリを作成した。pagesリポジトリで作成したコンテンツのビルド成果物を goldeneggg.github.io リポジトリに出力→pushして公開する、という流れを想定している。
-Hugoの導入 サイトジェネレータの選定だが、Go製の hugo が生成処理が速いという評判だったのと、個人的にGoが好き という理由であまり深くは考えずHugoを使う事にした。
-# brew か go get でインストール $ brew install hugo ## Or $ go get -u -v github.com/spf13/hugo Hugoの初期設定  最初に作成した 記事のソースファイル置き場 用のリポジトリを git clone する cloneしたディレクトリにcdし、hugo new site . する。これで雛形となるディレクトリ群が生成される  $ git clone git@github.</description>
-    </item>
-    
-    <item>
-      <title>About</title>
-      <link>https://horizoon.jp/about/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      
-      <guid>https://horizoon.jp/about/</guid>
-      <description> WEB、特にサーバーサイド寄りのシステムエンジニア。
-兼、東南アジアの熱気とカオス（と現地で飲むビール）をこよなく愛する エアポート投稿おじさん バックパッカー。
-技術そのものも好きですが、決済や金融/fintechといったお金にまつわる分野の経験・知見が多めです。
-My Resume 詳細なレジュメは こちらのgist にupしております。
-お問い合わせ お仕事に関するご相談・お問い合わせは メール にてお願いいたします。
-現在受託・請負は取り扱っておらず、準委任契約での業務委託のみお受けしております。 直近の空き予定  2019年3月から最大週2日　にてご相談可能です（勤務形態を常駐にするかリモートにするかはご相談させてください）  </description>
-    </item>
-    
-    <item>
-      <title>Projects</title>
-      <link>https://horizoon.jp/projects/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      
-      <guid>https://horizoon.jp/projects/</guid>
-      <description>Coming soon Coming soon&amp;hellip;</description>
     </item>
     
   </channel>

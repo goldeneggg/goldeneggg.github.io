@@ -22,6 +22,24 @@
   </url>
   
   <url>
+    <loc>https://horizoon.jp/categories/full-text-search/</loc>
+    <lastmod>2018-11-19T03:21:36+09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://horizoon.jp/categories/hugo/</loc>
+    <lastmod>2017-05-21T12:54:19+09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://horizoon.jp/categories/mysql/</loc>
+    <lastmod>2018-11-19T03:21:36+09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
     <loc>https://horizoon.jp/post/</loc>
     <lastmod>2018-11-19T03:21:36+09:00</lastmod>
     <priority>0</priority>
@@ -29,6 +47,12 @@
   
   <url>
     <loc>https://horizoon.jp/projects/</loc>
+  </url>
+  
+  <url>
+    <loc>https://horizoon.jp/categories/static-site/</loc>
+    <lastmod>2017-05-21T12:54:19+09:00</lastmod>
+    <priority>0</priority>
   </url>
   
   <url>
