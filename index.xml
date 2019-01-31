@@ -46,15 +46,10 @@ Hugoの導入 サイトジェネレータの選定だが、Go製の hugo が生�
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
       <guid>https://horizoon.jp/about/</guid>
-      <description>I&amp;rsquo;m Web Developer, especially good at server side engineering.
+      <description>I&amp;rsquo;m Web Developer and Engineer Manager, especially good at server side engineering.
 I also like the technology itself, but I like the job of assembling customer&amp;rsquo;s tasks into concrete system requirements and I am good at it. I have plenty of knowledge on fintech.
-And I&amp;rsquo;m a backpacker. I love all south east asian countries.
-WEB、特にサーバーサイド寄りのシステムエンジニア。
-技術そのものも好きですが、フワッとしたアイデアを具体的かつ穴や欠陥が無いシステム要件に落とし込んでいく仕事が得意です。
-業界経験としては、決済や金融/fintechといったお金にまつわる分野の経験・知見が多めです。
-兼、東南アジアの熱気とカオス（と現地で飲むビール）をこよなく愛する エアポート投稿おじさん バックパッカー。
-My Resume / レジュメ My detailed resume is this gist.
-詳細なレジュメは こちらのgist にupしております。</description>
+And I&amp;rsquo;m a backpacker. I love all south east asian countries!
+My Resume My detailed resume and skillset are here (on github gist). Please check it.</description>
     </item>
     
     <item>
