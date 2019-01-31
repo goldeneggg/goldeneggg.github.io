@@ -46,12 +46,15 @@ Hugoの導入 サイトジェネレータの選定だが、Go製の hugo が生�
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
       <guid>https://horizoon.jp/about/</guid>
-      <description> WEB、特にサーバーサイド寄りのシステムエンジニア。
+      <description>I&amp;rsquo;m Web Developer, especially good at server side engineering.
+I also like the technology itself, but I like the job of assembling customer&amp;rsquo;s tasks into concrete system requirements and I am good at it. I have plenty of knowledge on fintech.
+And I&amp;rsquo;m a backpacker. I love all south east asian countries.
+WEB、特にサーバーサイド寄りのシステムエンジニア。
+技術そのものも好きですが、フワッとしたアイデアを具体的かつ穴や欠陥が無いシステム要件に落とし込んでいく仕事が得意です。
+業界経験としては、決済や金融/fintechといったお金にまつわる分野の経験・知見が多めです。
 兼、東南アジアの熱気とカオス（と現地で飲むビール）をこよなく愛する エアポート投稿おじさん バックパッカー。
-技術そのものも好きですが、決済や金融/fintechといったお金にまつわる分野の経験・知見が多めです。
-My Resume 詳細なレジュメは こちらのgist にupしております。
-お問い合わせ お仕事に関するご相談・お問い合わせは メール にてお願いいたします。
-現在受託・請負は取り扱っておらず、準委任契約での業務委託のみお受けしております。 直近の空き予定  2019年3月から最大週2日　にてご相談可能です（勤務形態を常駐にするかリモートにするかはご相談させてください）  </description>
+My Resume / レジュメ My detailed resume is this gist.
+詳細なレジュメは こちらのgist にupしております。</description>
     </item>
     
     <item>
@@ -60,7 +63,8 @@ My Resume 詳細なレジュメは こちらのgist にupしております。
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
       <guid>https://horizoon.jp/projects/</guid>
-      <description>Coming soon Coming soon&amp;hellip;</description>
+      <description>My OSS libraries My github account is goldeneggg
+ goldeneggg/lsec2: List view of aws ec2 instances, written in Go goldeneggg/gat: Concatnating and printing file to various services, written in Go goldeneggg/faraday_adapter_socks: Faraday adapter for socks proxy, written in Ruby goldeneggg/provisioning-bash: Provisioning scripts, written in bash  My services Coming soon&amp;hellip;</description>
     </item>
     
   </channel>
