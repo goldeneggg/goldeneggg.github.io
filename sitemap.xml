@@ -3,6 +3,11 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
+    <loc>https://horizoon.jp/post/2019/02/07/lambda_layer_nodejs8/</loc>
+    <lastmod>2019-02-07T14:42:54+09:00</lastmod>
+  </url>
+  
+  <url>
     <loc>https://horizoon.jp/post/2018/11/19/mysql_innodb_fts/</loc>
     <lastmod>2018-11-19T03:21:36+09:00</lastmod>
   </url>
@@ -17,7 +22,26 @@
   </url>
   
   <url>
+    <loc>https://horizoon.jp/categories/aws/</loc>
+    <lastmod>2019-02-07T14:42:54+09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://horizoon.jp/categories/aws-lambda/</loc>
+    <lastmod>2019-02-07T14:42:54+09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://horizoon.jp/categories/aws-sam/</loc>
+    <lastmod>2019-02-07T14:42:54+09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
     <loc>https://horizoon.jp/categories/</loc>
+    <lastmod>2019-02-07T14:42:54+09:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -34,19 +58,43 @@
   </url>
   
   <url>
+    <loc>https://horizoon.jp/categories/javascript/</loc>
+    <lastmod>2019-02-07T14:42:54+09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
     <loc>https://horizoon.jp/categories/mysql/</loc>
     <lastmod>2018-11-19T03:21:36+09:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
+    <loc>https://horizoon.jp/categories/node.js/</loc>
+    <lastmod>2019-02-07T14:42:54+09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
     <loc>https://horizoon.jp/post/</loc>
-    <lastmod>2018-11-19T03:21:36+09:00</lastmod>
+    <lastmod>2019-02-07T14:42:54+09:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>https://horizoon.jp/projects/</loc>
+  </url>
+  
+  <url>
+    <loc>https://horizoon.jp/categories/serverless/</loc>
+    <lastmod>2019-02-07T14:42:54+09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://horizoon.jp/categories/slack/</loc>
+    <lastmod>2019-02-07T14:42:54+09:00</lastmod>
+    <priority>0</priority>
   </url>
   
   <url>
@@ -62,7 +110,7 @@
   
   <url>
     <loc>https://horizoon.jp/</loc>
-    <lastmod>2018-11-19T03:21:36+09:00</lastmod>
+    <lastmod>2019-02-07T14:42:54+09:00</lastmod>
     <priority>0</priority>
   </url>
   

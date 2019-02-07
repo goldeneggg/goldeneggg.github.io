@@ -6,9 +6,37 @@
     <description>Recent content in Categories on horizoon</description>
     <generator>Hugo -- gohugo.io</generator>
     <copyright>&amp;copy; Fuminori Sakamoto 2018</copyright>
+    <lastBuildDate>Thu, 07 Feb 2019 14:42:54 +0900</lastBuildDate>
     
 	<atom:link href="https://horizoon.jp/categories/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Aws</title>
+      <link>https://horizoon.jp/categories/aws/</link>
+      <pubDate>Thu, 07 Feb 2019 14:42:54 +0900</pubDate>
+      
+      <guid>https://horizoon.jp/categories/aws/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Aws Lambda</title>
+      <link>https://horizoon.jp/categories/aws-lambda/</link>
+      <pubDate>Thu, 07 Feb 2019 14:42:54 +0900</pubDate>
+      
+      <guid>https://horizoon.jp/categories/aws-lambda/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Aws Sam</title>
+      <link>https://horizoon.jp/categories/aws-sam/</link>
+      <pubDate>Thu, 07 Feb 2019 14:42:54 +0900</pubDate>
+      
+      <guid>https://horizoon.jp/categories/aws-sam/</guid>
+      <description></description>
+    </item>
     
     <item>
       <title>Full Text Search</title>
@@ -29,11 +57,47 @@
     </item>
     
     <item>
+      <title>Javascript</title>
+      <link>https://horizoon.jp/categories/javascript/</link>
+      <pubDate>Thu, 07 Feb 2019 14:42:54 +0900</pubDate>
+      
+      <guid>https://horizoon.jp/categories/javascript/</guid>
+      <description></description>
+    </item>
+    
+    <item>
       <title>Mysql</title>
       <link>https://horizoon.jp/categories/mysql/</link>
       <pubDate>Mon, 19 Nov 2018 03:21:36 +0900</pubDate>
       
       <guid>https://horizoon.jp/categories/mysql/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Node.js</title>
+      <link>https://horizoon.jp/categories/node.js/</link>
+      <pubDate>Thu, 07 Feb 2019 14:42:54 +0900</pubDate>
+      
+      <guid>https://horizoon.jp/categories/node.js/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Serverless</title>
+      <link>https://horizoon.jp/categories/serverless/</link>
+      <pubDate>Thu, 07 Feb 2019 14:42:54 +0900</pubDate>
+      
+      <guid>https://horizoon.jp/categories/serverless/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Slack</title>
+      <link>https://horizoon.jp/categories/slack/</link>
+      <pubDate>Thu, 07 Feb 2019 14:42:54 +0900</pubDate>
+      
+      <guid>https://horizoon.jp/categories/slack/</guid>
       <description></description>
     </item>
     

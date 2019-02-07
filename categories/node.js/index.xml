@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Node.js on horizoon</title>
+    <link>https://horizoon.jp/categories/node.js/</link>
+    <description>Recent content in Node.js on horizoon</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <copyright>&amp;copy; Fuminori Sakamoto 2018</copyright>
+    <lastBuildDate>Thu, 07 Feb 2019 14:42:54 +0900</lastBuildDate>
+    
+	<atom:link href="https://horizoon.jp/categories/node.js/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>既存のLambda FunctionにLambda Layersを導入し、AWS SAMで管理する（Node.js）</title>
+      <link>https://horizoon.jp/post/2019/02/07/lambda_layer_nodejs8/</link>
+      <pubDate>Thu, 07 Feb 2019 14:42:54 +0900</pubDate>
+      
+      <guid>https://horizoon.jp/post/2019/02/07/lambda_layer_nodejs8/</guid>
+      <description>Summary  axiosなどのモジュールに依存した既存のNode.js Lambda Functionがある このfunctionで使用しているモジュールをAWS Lambda Layersに移行し、aws-sam-cliでデプロイする 既存functionで個別にnpm installしていたモジュールを削除し、デプロイしたLayerを使用するように変更する Layer移行後も既存functionが sam local invoke コマンドでローカルで実行できる事を確認する Layerを使うように変更した既存functionをデプロイする 移行した結果  既存functionのサイズを半分以下に削減できた 既存functionの実行時間を半分以下に削減できた  AWS SAM 便利  Lambda Layerも便利、だけど、チーム開発でCIの仕組み構築まで考え始めると一工夫必要かも？   前提条件 # aws-cliのバージョン $ aws --version aws-cli/1.16.80 Python/3.7.1 Darwin/18.2.0 botocore/1.12.70 # aws-sam-cliのバージョン $ sam --version SAM CLI, version 0.10.0 既存Functionで使用中のモジュールをLayersに移行する Layer用のプロジェクトディレクトリを作成し、Layer化したいnpmモジュールをインストールします。 ディレクトリの構成は公式ドキュメントの記載 の通り nodejs/node_modules という構成になるようにします。
+$ cd &amp;lt;PROJECT_ROOT&amp;gt; $ mkdir nodejs $ cd nodejs $ npm init -y $ npm install [必要なモジュール群] ここまで完了すると、PROJECT_ROOTの下には下記のディレクトリとファイルが作成された状態になります</description>
+    </item>
+    
+  </channel>
+</rss>
