@@ -48,6 +48,33 @@
     </item>
     
     <item>
+      <title>Go</title>
+      <link>https://horizoon.jp/categories/go/</link>
+      <pubDate>Mon, 25 Feb 2019 08:17:54 +0900</pubDate>
+      
+      <guid>https://horizoon.jp/categories/go/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Golang</title>
+      <link>https://horizoon.jp/categories/golang/</link>
+      <pubDate>Mon, 25 Feb 2019 08:17:54 +0900</pubDate>
+      
+      <guid>https://horizoon.jp/categories/golang/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Goreleaser</title>
+      <link>https://horizoon.jp/categories/goreleaser/</link>
+      <pubDate>Mon, 25 Feb 2019 08:17:54 +0900</pubDate>
+      
+      <guid>https://horizoon.jp/categories/goreleaser/</guid>
+      <description></description>
+    </item>
+    
+    <item>
       <title>Hugo</title>
       <link>https://horizoon.jp/categories/hugo/</link>
       <pubDate>Sun, 21 May 2017 12:54:19 +0900</pubDate>
@@ -107,6 +134,15 @@
       <pubDate>Sun, 21 May 2017 12:54:19 +0900</pubDate>
       
       <guid>https://horizoon.jp/categories/static-site/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Travis Ci</title>
+      <link>https://horizoon.jp/categories/travis-ci/</link>
+      <pubDate>Mon, 25 Feb 2019 08:17:54 +0900</pubDate>
+      
+      <guid>https://horizoon.jp/categories/travis-ci/</guid>
       <description></description>
     </item>
     

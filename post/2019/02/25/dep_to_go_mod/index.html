@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+
+
+
+<base href="https://horizoon.jp">
+
+<title>depからgo modulesへの移行と、移行時にTravis CI &amp; GoReleaserでハマる（かもしれない）ポイント - horizoon</title>
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css">
+
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:300,400|Roboto+Slab:400,700|Roboto:300,300i,400,400i,500,500i,700,700i">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.0/css/all.css">
+<link rel="stylesheet" href="https://horizoon.jp/css/main.css">
+
+
+
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="/favicon-32x32.png" sizes="32x32">
+<link rel="icon" type="image/png" href="/favicon-16x16.png" sizes="16x16">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+<meta name="theme-color" content="#ffffff">
+
+</head>
+<body lang="">
+<div class="container">
+
+
+<header class="row text-left title">
+  <h1 class="title">depからgo modulesへの移行と、移行時にTravis CI &amp; GoReleaserでハマる（かもしれない）ポイント</h1>
+</header>
+<section id="category-pane" class="row meta">
+  
+  <div class="col-md-12">
+    <h6 class="text-left meta">
+        PUBLISHED ON 2019-02-25 
+      
+      
+      
+      —
+      
+      
+      <a class="meta" href="/categories/go">GO</a>, 
+      
+      <a class="meta" href="/categories/golang">GOLANG</a>, 
+      
+      <a class="meta" href="/categories/goreleaser">GORELEASER</a>, 
+      
+      <a class="meta" href="/categories/travis-ci">TRAVIS CI</a>
+      
+      
+      
+    </h6>
+  </div>
+  
+</section>
+<section id="content-pane" class="row">
+  <div class="col-md-12 text-justify content">
+    
+
+<h2 id="summary">Summary</h2>
+
+<ul>
+<li>depで管理していた既存のGo製ツールをdepからgo moduleに移行してみたが、移行自体は特にハマりどころも無くスンナリいった</li>
+<li>go moduleへの移行後に依存パッケージのupgradeを実施、これもスンナリいった</li>
+<li>Travis CI + <a href="https://goreleaser.com/">GoReleaser</a> で、ビルド成果物をGithub Releasesに登録する作業 ＆ GoアプリのHomeBrewパッケージ作成・公開作業 を自動化しようと試みたが、そのCIが <code>git is currently in a dirty state</code> というコケ方をしてちょっとハマった</li>
+<li><strong>GoReleaserは本当に便利</strong></li>
+</ul>
+
+<h2 id="前提条件">前提条件</h2>
+<div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh"><span class="c1"># goのバージョン</span>
+$ go version
+go version go1.11.5 darwin/amd64</code></pre></div>
+<h2 id="切り替え手順">切り替え手順</h2>
+
+<p>depを使っていたので、<code>go mod init</code> して <code>go build</code> の成功を確認できたらdep関連のファイルを削除する、という手順で完了します（<a href="https://github.com/goldeneggg/lsec2/pull/10">対応例</a>）</p>
+<div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh"><span class="c1"># go mod利用時に必要な環境変数、direnvでプロジェクトディレクトリ下のみ適用されるようにしても良さそう</span>
+$ <span class="nb">export</span> <span class="nv">GO111MODULE</span><span class="o">=</span>on
+
+<span class="c1"># go modulesの初期設定</span>
+$ go mod init
+
+<span class="c1"># go runしてスタンドアロンで実行すれば、そのタイミングでgo.sumファイルが作成される</span>
+$ go run *.go --help
+
+<span class="c1"># dep関連ファイルを削除する</span>
+$ rm Gopkg.toml Gopkg.lock
+$ rm -fr vendor/
+
+<span class="c1"># Makefileを修正</span>
+<span class="c1"># CIの設定ファイル（今回の場合は .travis.yml）を修正</span></code></pre></div>
+<h2 id="依存パッケージをupgradeしてみる">依存パッケージをupgradeしてみる</h2>
+
+<p>自作ツールで使用しているaws-sdk-goがv1.12.39だったのですが、最新がv1.16.36と乖離が発生していたのでupgradeしてみました。手順としては下記で問題ありません。</p>
+<div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh"><span class="c1"># go.mod を修正してバージョンを変更</span>
+$ vi go.mod</code></pre></div><div class="highlight"><pre class="chroma"><code class="language-mod" data-lang="mod"><span class="n">module</span> <span class="n">github</span><span class="p">.</span><span class="n">com</span><span class="o">/</span><span class="n">goldeneggg</span><span class="o">/</span><span class="n">lsec2</span>
+
+<span class="n">require</span> <span class="p">(</span>
+  <span class="n">github</span><span class="p">.</span><span class="n">com</span><span class="o">/</span><span class="n">aws</span><span class="o">/</span><span class="n">aws</span><span class="o">-</span><span class="n">sdk</span><span class="o">-</span><span class="n">go</span> <span class="n">v1</span><span class="p">.</span><span class="mf">16.36</span></code></pre></div><div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh"><span class="c1"># バージョンを修正したら go mod tidy を実行して反映</span>
+$ go mod tidy
+
+<span class="c1"># tidy実行後は、go build, go test, go runあたりを実行して問題ないか動作確認</span></code></pre></div>
+<h2 id="ciの設定変更-travis-ci">CIの設定変更（Travis CI）</h2>
+
+<h3 id="test-ci">test CI</h3>
+
+<p>Travis CIの場合は.travis.ymlを下記の通り修正すればOKです。</p>
+
+<ul>
+<li>envセクションで <code>GO111MODULE=on</code> を追加</li>
+<li>before_install か install かいずれかのセクションで <code>go mod download</code> を行うようにする</li>
+</ul>
+<div class="highlight"><pre class="chroma"><code class="language-yaml" data-lang="yaml">env<span class="p">:</span><span class="w">
+</span><span class="w">  </span>-<span class="w"> </span>GO111MODULE=on<span class="w">
+</span><span class="w">
+</span><span class="w"></span>install<span class="p">:</span><span class="w">
+</span><span class="w">  </span>-<span class="w"> </span>go<span class="w"> </span>mod<span class="w"> </span>download</code></pre></div>
+<h2 id="goreleaserでgoアプリのdeploy-ciを行う際の注意点">GoReleaserでGoアプリのdeploy CIを行う際の注意点</h2>
+
+<p>冒頭にTravis CI + GoReleaserによる成果物自動公開を試みてハマったと書きましたが、調査した結果こういう結論でした。</p>
+
+<ul>
+<li><code>go mod</code> 移行前に、「ライブラリ本体では使ってないがCIや開発補助目的でインストールしたパッケージ」が存在していた
+
+<ul>
+<li>自分の場合は github.com/golang/lint。これをcode validation目的のCI jobで使用していた</li>
+</ul></li>
+<li>該当パッケージは、自分の開発マシン（Mac）ではライブラリの開発とは無関係に <code>go get</code> で過去にインストールされていた、つまりgo.modには反映されていない状態だった。一方でTravis CIでは <code>before_install</code> セクションでCIの度にインストールを実行していた</li>
+<li><strong><code>go mod</code> への移行によって <code>go get</code> の実行結果がgo.modとgo.sumに反映されるようになった為、Travis CIで <code>before_install</code> セクションが実行されるとCI実行環境上でgo.modとgo.sumのgit diffが発生するようになった</strong></li>
+<li><strong>GoReleaserはdeployの際に「git diffが発生していないかどうか」をチェックしていて、</strong> 上記経緯でgo.modとgo.sumのdiffが発生した事によりチェックに引っかかり、deploy CIがエラーになっていた
+
+<ul>
+<li><a href="https://travis-ci.org/goldeneggg/gat/jobs/497688613">エラーになったCI jobのログ</a></li>
+</ul></li>
+</ul>
+
+<p>回避策としては、</p>
+
+<ol>
+<li>GoReleaserのdeploy処理前に、go.modとgo.sumの差分を（強制的に）解消しておく</li>
+<li>Travis CIの <code>before_install</code> で実行している <code>go get</code> をやめる（依存していたCI jobの設定も修正・削除が必要）</li>
+<li>go.modに「CIや開発補助目的でインストールしたいパッケージ」も反映しておく</li>
+</ol>
+
+<p>のいずれかの対応が必要そうです（とはいえ本来取るべき対応策はNo.3ではないかと）。</p>
+
+<h3 id="go-modules対応版-travis-ci-goreleaserの設定">go modules対応版、Travis CI &amp; GoReleaserの設定</h3>
+
+<p>go modulesを使用しているGoプロジェクトをgoreleaserでデプロイする場合、<a href="https://goreleaser.com/build/">公式サイトで紹介されている</a> ように .goreleaser.ymlのbefore hookの設定で <code>go mod download</code> を実行するようにyamlを修正します。</p>
+<div class="highlight"><pre class="chroma"><code class="language-yaml" data-lang="yaml">before<span class="p">:</span><span class="w">
+</span><span class="w">  </span>hooks<span class="p">:</span><span class="w">
+</span><span class="w">    </span>-<span class="w"> </span>go<span class="w"> </span>mod<span class="w"> </span>download</code></pre></div>
+<p>そして.travis.ymlにあるdeployフェーズの設定を（無ければ追加して）、これも<a href="https://goreleaser.com/ci/">公式サイトで紹介されている</a>通りgoreleaserを実行するように修正します。</p>
+<div class="highlight"><pre class="chroma"><code class="language-yml" data-lang="yml">deploy<span class="p">:</span><span class="w">
+</span><span class="w">  </span>-<span class="w"> </span>provider<span class="p">:</span><span class="w"> </span>script<span class="w">
+</span><span class="w">    </span>skip_cleanup<span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="w">
+</span><span class="w">    </span>script<span class="p">:</span><span class="w"> </span>curl<span class="w"> </span>-sL<span class="w"> </span>http<span class="p">:</span>//git.io/goreleaser<span class="w"> </span><span class="sd">| bash
+</span><span class="sd">    on:
+</span><span class="sd">      tags: true
+</span><span class="sd">      condition: $TRAVIS_OS_NAME = linux</span></code></pre></div>
+<p>こう設定しておけば、該当プロジェクトをmasterにmerge =&gt; tagを打ったタイミングで、Travis CIの <code>deploy</code> フェーズで設定したGoReleaserによるデプロイも実行されるようになります。</p>
+
+<h2 id="補足-goreleaser-ymlの動作確認について">補足: .goreleaser.ymlの動作確認について</h2>
+
+<p><a href="https://goreleaser.com/quick-start/">GoRelease公式のQuick Start</a> にも書いてるのですが、goreleaserには <code>--skip-publish</code> という公開（release）をskip出来るオプションと、<code>--snapshot</code> というバージョンタグのチェックを行わず現状のコードベースの成果物を出力するオプションがあり、これらを組み合わせて.goreleaser.ymlの妥当性検証を行うことが可能です。</p>
+<div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh">$ goreleaser release --snapshot --skip-publish --rm-dist
+
+   • releasing using goreleaser <span class="m">0</span>.101.0...
+   • loading config file       <span class="nv">file</span><span class="o">=</span>.goreleaser.yml
+   • RUNNING BEFORE HOOKS
+      • running go mod download
+
+   :
+
+   • release succeeded after <span class="m">7</span>.35s</code></pre></div>
+<p>とはいえ実際にタグを打って成果物deploy用のCIを実行するとローカルで検証した際には見つからなかったエラーが発生する事もあり、そうなるとそのエラー解消の為にさらにreleaseを行って本チャンCIを走らせる、、、という「CIの為にrelease重ねる症候群」事が起こりがちです（自分は今回ハマった件の調査の為に5つ6つはreleaseを重ねてrelease historyがだいぶ切ない事に orz&hellip;）。</p>
+
+<p>GoReleaserの場合、成果物公開用のジョブでは<code>curl -sL http://git.io/goreleaser | bash</code>というスクリプトを実行するように設定しますが、<a href="http://git.io/goreleaser">http://git.io/goreleaser</a> の実体はタダのシェルスクリプトなので、これを丸っとコピーしてチェック処理やログ出力を追加したオリジナルのスクリプトに置き換えれば、いくらかは調査コストを下げる事が出来そうです。</p>
+<div class="highlight"><pre class="chroma"><code class="language-yml" data-lang="yml">deploy<span class="p">:</span><span class="w">
+</span><span class="w">  </span>-<span class="w"> </span>provider<span class="p">:</span><span class="w"> </span>script<span class="w">
+</span><span class="w">    </span>skip_cleanup<span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="w">
+</span><span class="w">    </span>script<span class="p">:</span><span class="w"> </span>my-goreleaser.sh<span class="w">  </span><span class="c"># オリジナルをコピーして処理を追加したスクリプトファイル</span><span class="w">
+</span><span class="w">    </span>on<span class="p">:</span><span class="w">
+</span><span class="w">      </span>tags<span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="w">
+</span><span class="w">      </span>condition<span class="p">:</span><span class="w"> </span>$TRAVIS_OS_NAME<span class="w"> </span>=<span class="w"> </span>linux</code></pre></div><div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh"><span class="c1"># オリジナルのスクリプトではこういう実装になっているが、</span>
+download
+tar -xf <span class="s2">&#34;</span><span class="nv">$TAR_FILE</span><span class="s2">&#34;</span> -C <span class="s2">&#34;</span><span class="nv">$TMPDIR</span><span class="s2">&#34;</span>
+<span class="s2">&#34;</span><span class="si">${</span><span class="nv">TMPDIR</span><span class="si">}</span><span class="s2">/goreleaser&#34;</span> <span class="s2">&#34;</span><span class="nv">$@</span><span class="s2">&#34;</span>
+
+<span class="c1"># goreleaser実行直前でgit diffが発生していないかチェックする処理を追加する（例）</span>
+download
+tar -xf <span class="s2">&#34;</span><span class="nv">$TAR_FILE</span><span class="s2">&#34;</span> -C <span class="s2">&#34;</span><span class="nv">$TMPDIR</span><span class="s2">&#34;</span>
+
+git diff &gt; /tmp/diff.log
+cat /tmp/diff.log
+
+<span class="s2">&#34;</span><span class="si">${</span><span class="nv">TMPDIR</span><span class="si">}</span><span class="s2">/goreleaser&#34;</span> <span class="s2">&#34;</span><span class="nv">$@</span><span class="s2">&#34;</span></code></pre></div>
+<h2 id="ブックマーク">ブックマーク</h2>
+
+<ul>
+<li><a href="https://www.wantedly.com/companies/wantedly/post_articles/132270">Go 1.11 の modules・vgo を試す - 実際に使っていく上で考えないといけないこと #golang | Wantedly Engineer Blog</a></li>
+<li><a href="https://itiskj.hatenablog.com/entry/2018/08/30/101017">Migrate from dep to Golang 1.11 Modules - kenju&rsquo;s blog</a></li>
+</ul>
+
+  </div>
+</section>
+<section id="tag-pane" class="row meta">
+  
+  <div class="col-md-12">
+    <h6 class="text-right meta">
+      
+    </h6>
+  </div>
+  
+</section>
+
+
+
+
+
+
+
+
+<section id="menu-pane" class="row menu text-center">
+  
+  
+  <span><a class="menu-item" href="https://horizoon.jp/post/2019/02/07/lambda_layer_nodejs8/">&lt; prev | </a></span>
+  
+  
+  <span><a class="menu-item" href="/post">post</a></span>
+  
+  
+  
+  <h4 class="text-center"><a class="menu-item" href="https://horizoon.jp">home</a></h4>
+</section>
+
+
+
+<footer class="row text-center footer">
+  <hr />
+  
+  <h6 class="text-center copyright">© 2018. Fuminori Sakamoto. <a href="http://creativecommons.org/licenses/by/3.0/">Some Rights Reserved</a>.</h6>
+  
+  <h6 class="text-center powered">Powered by <a href="https://gohugo.io/">Hugo</a> &amp; <a href="https://github.com/shenoybr/hugo-goa">Goa</a>.</h6>
+  
+  
+</footer>
+
+</div>
+
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  
+
+<script type="text/javascript">
+hljs.initHighlightingOnLoad();
+</script>
+
+
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-129776715-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
+
+
