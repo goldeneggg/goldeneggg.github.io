@@ -12,6 +12,12 @@
 }
 
 /* customize */
+*
+{
+    /* font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", YuGothic, "ヒラギノ角ゴ ProN W3", Hiragino Kaku Gothic ProN, Arial, "メイリオ", Meiryo, sans-serif; */
+    font-family: Georgia, 'Hiragino Mincho ProN', 'Yu Mincho', serif;
+}
+
 a,
 a:hover,
 a:link
@@ -29,32 +35,32 @@ a:visited
 
 /* customize */
 h1, h2, .h1, .h2 {
-    margin-top: 50px;
+    margin-top: 60px;
     margin-bottom: 20px;
     border-bottom: 1px solid #dddddd;
     padding-bottom: .1em;
 }
 h3, .h3 {
-    margin-top: 30px;
+    margin-top: 40px;
 }
 h4, .h4 {
-    margin-top: 20px;
+    margin-top: 30px;
 }
 h1.title {
-    margin-top: 20px;
+    margin-top: 30px;
     border-bottom: none;
 }
 
 /* customize */
 h1.author
 {
-    margin-top: 20px;
+    margin-top: 30px;
     border-bottom: none;
 }
 
 body
 {
-    font-family: 'Roboto Slab', 'Roboto', 'Lato', sans-serif;
+    /* font-family: 'Roboto Slab', 'Roboto', 'Lato', sans-serif; */
     font-size: 20px;
     font-weight: 400;
 
@@ -86,7 +92,7 @@ html
 .author h6,
 .author p
 {
-    font-family: 'Roboto Slab', serif;
+    /* font-family: 'Roboto Slab', serif; */
 }
 .category
 {
@@ -106,7 +112,7 @@ html
 }
 div.content
 {
-    font-family: 'Roboto', sans-serif;
+    /* font-family: 'Roboto', sans-serif; */
     font-size: 18px;
     font-weight: 300;
 
@@ -114,19 +120,19 @@ div.content
 }
 .copyright
 {
-    font-family: 'Roboto', sans-serif;
+    /* font-family: 'Roboto', sans-serif; */
     font-size: 12px;
     font-weight: 200;
 }
 .description
 {
-    font-family: 'Roboto', sans-serif;
+    /* font-family: 'Roboto', sans-serif; */
     font-weight: 200;
     color: #8b8b8b;
 }
 .error
 {
-    font-family: 'Roboto', sans-serif;
+    /* font-family: 'Roboto', sans-serif; */
 
     margin-top: 100px;
 }
@@ -144,7 +150,7 @@ div.content
 }
 .excerpt
 {
-    font-family: 'Lato', sans-serif;
+    /* font-family: 'Lato', sans-serif; */
     font-size: 18px;
     font-weight: 200;
 
@@ -174,7 +180,7 @@ div.content
 }
 .intro
 {
-    font-family: 'Roboto Slab', serif;
+    /* font-family: 'Roboto Slab', serif; */
     font-weight: 200;
     color: #777;
 }
@@ -184,7 +190,7 @@ h3.intro
 }
 .list
 {
-    font-family: 'Roboto', sans-serif;
+    /* font-family: 'Roboto', sans-serif; */
 
     margin-top: 50px;
 }
@@ -194,7 +200,7 @@ h3.intro
 }
 .list-entry
 {
-    font-family: 'Roboto Slab', serif;
+    /* font-family: 'Roboto Slab', serif; */
     font-size: 25px;
     font-weight: 400;
 
@@ -217,7 +223,7 @@ h3.intro
 }
 .menu-item
 {
-    font-family: 'Lato', sans-serif;
+    /* font-family: 'Lato', sans-serif; */
     font-size: 20px;
     font-weight: 300;
 
@@ -227,7 +233,7 @@ h3.intro
 }
 .meta
 {
-    font-family: 'Roboto', sans-serif;
+    /* font-family: 'Roboto', sans-serif; */
     font-size: 12px;
     font-weight: 200;
 
@@ -239,7 +245,7 @@ a.meta
 }
 h6.meta
 {
-    font-family: 'Roboto', sans-serif;
+    /* font-family: 'Roboto', sans-serif; */
     font-size: 12px;
     font-weight: 200;
 
@@ -250,7 +256,7 @@ section.meta {
 }
 .powered
 {
-    font-family: 'Roboto', sans-serif;
+    /* font-family: 'Roboto', sans-serif; */
     font-size: 12px;
     font-weight: 300;
 }
@@ -265,7 +271,7 @@ section.meta {
 }
 .title
 {
-    font-family: 'Roboto Slab', serif;
+    /* font-family: 'Roboto Slab', serif; */
     font-weight: 400;
 
     color: #555;
@@ -284,7 +290,7 @@ header.title
     }
     .list
     {
-        font-family: 'Roboto', sans-serif;
+        /* font-family: 'Roboto', sans-serif; */
 
         margin-top: 30px;
     }
