@@ -208,7 +208,7 @@ $ go mod tidy
 
 <h3 id="公式提供のシェススクリプトをカスタマイズする">公式提供のシェススクリプトをカスタマイズする</h3>
 
-<p>GoReleaserの場合、成果物公開用のジョブでは<code>curl -sL http://git.io/goreleaser | bash</code>というスクリプトを実行するように設定しますが、<a href="http://git.io/goreleaser">http://git.io/goreleaser</a> の実体はタダのシェルスクリプトなので、これを丸っとコピーしてチェック処理やログ出力を追加したオリジナルのスクリプトに置き換えれば、いくらかは調査コストを下げる事が出来そうです。</p>
+<p>GoReleaserの場合、成果物公開用のジョブでは <code>curl -sL http://git.io/goreleaser | bash</code> というスクリプトを実行するように設定しますが、<code>http://git.io/goreleaser</code> の実体はタダのシェルスクリプトなので、これを丸っとコピーしてチェック処理やログ出力を追加したオリジナルのスクリプトに置き換えれば、いくらかは調査コストを下げる事が出来そうです。</p>
 
 <div class="highlight"><pre class="chroma"><code class="language-yaml" data-lang="yaml">deploy<span class="p">:</span><span class="w">
 </span><span class="w">  </span>-<span class="w"> </span>provider<span class="p">:</span><span class="w"> </span>script<span class="w">
