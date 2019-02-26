@@ -39,11 +39,29 @@
     </item>
     
     <item>
+      <title>Diff</title>
+      <link>https://horizoon.jp/categories/diff/</link>
+      <pubDate>Tue, 26 Feb 2019 14:41:00 +0900</pubDate>
+      
+      <guid>https://horizoon.jp/categories/diff/</guid>
+      <description></description>
+    </item>
+    
+    <item>
       <title>Full Text Search</title>
       <link>https://horizoon.jp/categories/full-text-search/</link>
       <pubDate>Mon, 19 Nov 2018 03:21:36 +0900</pubDate>
       
       <guid>https://horizoon.jp/categories/full-text-search/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Git</title>
+      <link>https://horizoon.jp/categories/git/</link>
+      <pubDate>Tue, 26 Feb 2019 14:41:00 +0900</pubDate>
+      
+      <guid>https://horizoon.jp/categories/git/</guid>
       <description></description>
     </item>
     
@@ -143,6 +161,15 @@
       <pubDate>Mon, 25 Feb 2019 08:17:54 +0900</pubDate>
       
       <guid>https://horizoon.jp/categories/travis-ci/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Vim</title>
+      <link>https://horizoon.jp/categories/vim/</link>
+      <pubDate>Tue, 26 Feb 2019 14:41:00 +0900</pubDate>
+      
+      <guid>https://horizoon.jp/categories/vim/</guid>
       <description></description>
     </item>
     

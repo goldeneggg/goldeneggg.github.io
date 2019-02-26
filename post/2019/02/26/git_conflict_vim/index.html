@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+<meta name="description" content="This is my portfolio. I&#39;m Web Developer, Software Engineer, Engineering Manager and Backpacker. Ruby/Rails/Go/PHP/Java/Linux/MySQL/Docker/AWS/Fintech/Payment">
+<meta name="keywords" content="developer,software engineer,technology,web,blog,freelance,hugo">
+
+<base href="https://horizoon.jp">
+
+<title>conflict-marker.vimを使ってgitのconflictをvimで高速に解消する - horizoon</title>
+
+<meta name="generator" content="Hugo 0.54.0" />
+
+
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:300,400|Roboto+Slab:400,700|Roboto:300,300i,400,400i,500,500i,700,700i">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.0/css/all.css">
+<link rel="stylesheet" href="https://horizoon.jp/css/main.css">
+<link rel="stylesheet" href="https://horizoon.jp/css/syntax.css">
+
+
+
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="/favicon-32x32.png" sizes="32x32">
+<link rel="icon" type="image/png" href="/favicon-16x16.png" sizes="16x16">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+<meta name="theme-color" content="#ffffff">
+
+</head>
+<body lang="">
+<div class="container">
+
+
+<header class="row text-left title">
+  <h1 class="title">conflict-marker.vimを使ってgitのconflictをvimで高速に解消する</h1>
+</header>
+<section id="category-pane" class="row meta">
+  
+  <div class="col-md-12">
+    <h6 class="text-left meta">
+        PUBLISHED ON 2019-02-26 
+      
+      
+      
+      —
+      
+      
+      <a class="meta" href="/categories/diff">DIFF</a>, 
+      
+      <a class="meta" href="/categories/git">GIT</a>, 
+      
+      <a class="meta" href="/categories/vim">VIM</a>
+      
+      
+      
+    </h6>
+  </div>
+  
+</section>
+<section id="content-pane" class="row">
+  <div class="col-md-12 text-justify content">
+    
+
+<h2 id="summary">Summary</h2>
+
+<p>下記手順だとボチボチ速い</p>
+
+<ol>
+<li><code>vim conflict対象ファイル</code></li>
+<li><code>qa</code></li>
+<li><code>]x</code></li>
+<li>どの内容を残すかで実行コマンドを変える
+
+<ul>
+<li>HEAD側を残すなら <code>co</code></li>
+<li>非・HEAD側を残すなら <code>ct</code></li>
+<li>両方残すなら <code>cb</code></li>
+</ul></li>
+<li><code>q</code></li>
+<li><code>:%norm! @a</code></li>
+</ol>
+
+<h2 id="前提条件">前提条件</h2>
+
+<ul>
+<li><a href="https://github.com/rhysd/conflict-marker.vim">rhysd/conflict-marker.vim プラグイン</a> をインストールしておく</li>
+<li>HEAD側を残すか/非・HEAD側を残すか？（あるいは両方消すか？）を個々に判断する必要がなく、ファイル全体で一律どちらを残すかが定まっている</li>
+</ul>
+
+<h2 id="vimで高速conflict解消">vimで高速conflict解消</h2>
+
+<p>conflictなんか起こらない事が理想とはいえそれなりの規模の開発が並行で走っているとなかなかそうもいかず、起こる度に「conflict解消めんどいよね〜」という会話をしてたりします。最近もそういう会話からお互いのやり方を共有し合うという機会があったので、自分がVimで行っている方法を小ネタとして備忘。</p>
+
+<p>前提条件に書いた通り、conflict箇所のどちらを削除するか？がファイル全体で定まっていると判断できたら、</p>
+
+<ul>
+<li>conflict箇所にジャンプする</li>
+<li>=&gt; 残したく無い方を削除する</li>
+<li>=&gt; これをファイル全体で繰り返す</li>
+</ul>
+
+<p>という作業を行えば良く、私が普段使っているNeoVim（Vim）のやり方を晒してみますと下記のような流れの作業になります。</p>
+
+<ol>
+<li><code>qa</code> ： レジスタ<code>a</code>へのマクロの記録を開始する</li>
+<li><code>]x</code> ： conflict箇所（下方）へジャンプする
+
+<ul>
+<li><a href="https://github.com/rhysd/conflict-marker.vim">conflict-marker.vim プラグイン</a> の機能です。 <code>[x</code> と入力すると逆に上方のconflict箇所へジャンプします</li>
+</ul></li>
+<li>どの内容を残すかで実行コマンドを変える
+
+<ul>
+<li>HEAD側を残すなら <code>co</code></li>
+<li>非・HEAD側を残すなら <code>ct</code></li>
+<li>両方残すなら <code>cb</code></li>
+<li>これらも <a href="https://github.com/rhysd/conflict-marker.vim">conflict-marker.vim プラグイン</a> の機能です</li>
+</ul></li>
+<li><code>q</code> ： マクロの記録を終了する</li>
+<li><code>:%norm! @a</code> ： ファイル全体を対象にレジスタ<code>a</code>に記録したマクロ（＝conflict箇所へジャンプして不要なコードとconflictマーカーを削除）を実行する
+
+<ul>
+<li><code>:%norm! COMMAND</code> で、ファイル全体で<code>COMMAND</code>で指定したノーマルモードコマンドを実行する（詳細は <code>:h normal-range</code> でヘルプを参照）</li>
+</ul></li>
+</ol>
+
+<p>HEAD側を残す作業例↓</p>
+
+<p><img src="/img/git_conflict_vim/1.gif" alt="1" /></p>
+
+<h2 id="〆">〆</h2>
+
+<p>conflictが無い平和な世界に、私は住みたい。</p>
+
+  </div>
+</section>
+<section id="tag-pane" class="row meta">
+  
+  <div class="col-md-12">
+    <h6 class="text-right meta">
+      
+    </h6>
+  </div>
+  
+</section>
+
+
+
+
+
+
+
+
+<section id="menu-pane" class="row menu text-center">
+  
+  
+  <span><a class="menu-item" href="https://horizoon.jp/post/2019/02/25/dep_to_go_mod/">&lt; prev | </a></span>
+  
+  
+  <span><a class="menu-item" href="/post">post</a></span>
+  
+  
+  
+  <h4 class="text-center"><a class="menu-item" href="https://horizoon.jp">home</a></h4>
+</section>
+
+
+
+<footer class="row text-center footer">
+  <hr />
+  
+  <h6 class="text-center copyright">© 2019. Fuminori Sakamoto. <a href="http://creativecommons.org/licenses/by/3.0/">Some Rights Reserved</a>.</h6>
+  
+  <h6 class="text-center powered">Powered by <a href="https://gohugo.io/">Hugo</a> &amp; <a href="https://github.com/shenoybr/hugo-goa">Goa</a>.</h6>
+  
+  
+</footer>
+
+</div>
+
+
+
+
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-129776715-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
+
+
