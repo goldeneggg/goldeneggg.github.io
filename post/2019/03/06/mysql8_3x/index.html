@@ -136,7 +136,7 @@
 
 <p>X Protocolの特徴として、まずセキュリティに関してはTLS, <a href="https://dev.mysql.com/doc/internals/en/x-protocol-authentication-authentication.html">SASL</a>といった信頼性が証明されている標準技術が<a href="https://dev.mysql.com/doc/internals/en/x-protocol-lifecycle-lifecycle.html">採用されています</a>。またパフォーマンスに関しては<a href="https://dev.mysql.com/doc/internals/en/x-protocol-implementation-implementation-notes.html">Client/Server間のやり取りのパイプライン化や、サーバー側でのマルチスレッド化といった対応</a> で改善されています。</p>
 
-<p>過去のC/Sプロトコルとの比較は<a href="https://dev.mysql.com/doc/internals/en/x-protocol-comparison-comparison-to-mysql-c-s-protocol.html">こちら</a> が詳しいですが、セキュリティ対策やパフォーマンス改善も含め、た機能追加・修正が行いやすい事に貢献している大きな材料が<a href="https://dev.mysql.com/doc/internals/en/x-protocol-messages-messages.html">C/S間のメッセージのやり取りにProtocol Buffersを採用している</a> 事ではないかと思います。言語・プラットフォームに依存せず・厳密な型定義を保ちながら・拡張可能なメカニズムでデータをserialize可能である、という特徴がX Protocolで実現したかった要件とマッチしていて、現状ベストな選択と言えそうです。</p>
+<p>過去のC/Sプロトコルとの比較は<a href="https://dev.mysql.com/doc/internals/en/x-protocol-comparison-comparison-to-mysql-c-s-protocol.html">こちら</a> が詳しいですが、セキュリティ対策やパフォーマンス改善も含めて、機能追加・修正が行いやすい事に貢献している大きな材料が<a href="https://dev.mysql.com/doc/internals/en/x-protocol-messages-messages.html">C/S間のメッセージのやり取りにProtocol Buffersを採用している</a> 事ではないかと思います。言語・プラットフォームに依存せず・厳密な型定義を保ちながら・拡張可能なメカニズムでデータをserialize可能である、という特徴がX Protocolで実現したかった要件とマッチしていて、現状ベストな選択と言えそうです。</p>
 
 <p>X Protocolのprotobuf定義は<a href="https://github.com/mysql/mysql-server/tree/8.0/plugin/x/protocol">githubで公開されています</a>。</p>
 
@@ -217,7 +217,9 @@
 <p>MySQL Shellは「X Pluginを介してサーバーと通信する為にX Protocolを使用するように設計されているクライアント」で、つまりリレーショナル（SQL）、Document Store（NoSQL） いずれの方式にも対応しているクライアントです。</p>
 
 <p>Macなどでサクッとver8のMySQLを立ち上げて試したければ、<a href="https://hub.docker.com/_/mysql?tab=tags">8系のDockerfileが公開されているので</a>これを使うのが良いでしょう。</p>
-<div class="highlight"><pre class="chroma"><code class="language-yml" data-lang="yml">version<span class="p">:</span><span class="w"> </span><span class="s1">&#39;3&#39;</span><span class="w">
+<div class="highlight"><pre class="chroma"><code class="language-yml" data-lang="yml"><span class="c"># docker-compose.yml</span><span class="w">
+</span><span class="w">
+</span><span class="w"></span>version<span class="p">:</span><span class="w"> </span><span class="s1">&#39;3&#39;</span><span class="w">
 </span><span class="w"></span>services<span class="p">:</span><span class="w">
 </span><span class="w">  </span>mysql<span class="p">:</span><span class="w">
 </span><span class="w">    </span>image<span class="p">:</span><span class="w"> </span>mysql<span class="p">:</span><span class="m">8.0</span><span class="w">
@@ -252,8 +254,8 @@
 <p>mysqlshコマンドで、従来のmysqlコマンド（C/Sプロトコル）による接続を行う事も可能です。その場合portにはサーバが使用している待受ポートを指定し、合わせて<code>--classic</code>というオプションを指定します。X Protocolで接続した場合と異なり、</p>
 
 <ul>
-<li><code>Creating a Classic session...</code> とメッセージが表示される</li>
-<li>接続後のプロンプトのポート番号に<code>+</code>表記が無い</li>
+<li><code>Creating a Classic session...</code> というメッセージが表示される</li>
+<li>接続後のプロンプトのポート番号部分に<code>+</code>表記が無い</li>
 </ul>
 
 <p>という違いがあります。</p>
@@ -305,19 +307,7 @@ mysqlx-ssl-key = /path/to/xplugin-key.pem</code></pre></div>
 <div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh"><span class="c1"># ポート番号として33060を指定</span>
 $ mysqlsh -u root -proot -h localhost -P33060 --sql</code></pre></div>
 <p>ver 8.0からX Pluginがデフォルトで有効化されている事は、下記の通り<code>show plugin</code>文を実行すると確認する事ができます。例えばこの記事執筆時点で公開されてるver8系の公式Docker imageは8.0.15が使われていますが、このimageを使っても確認可能です。</p>
-<div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh">$ vi docker-compose.yml</code></pre></div><div class="highlight"><pre class="chroma"><code class="language-yml" data-lang="yml">version<span class="p">:</span><span class="w"> </span><span class="s1">&#39;3&#39;</span><span class="w">
-</span><span class="w"></span>services<span class="p">:</span><span class="w">
-</span><span class="w">  </span>mysql<span class="p">:</span><span class="w">
-</span><span class="w">    </span>image<span class="p">:</span><span class="w"> </span>mysql<span class="p">:</span><span class="m">8.0</span><span class="w">
-</span><span class="w">    </span>environment<span class="p">:</span><span class="w">
-</span><span class="w">      </span>-<span class="w"> </span>MYSQL_ROOT_PASSWORD=root<span class="w">
-</span><span class="w">    </span>volumes<span class="p">:</span><span class="w">
-</span><span class="w">      </span>-<span class="w"> </span>./.data/mysql<span class="p">:</span>/var/lib/mysql<span class="w">
-</span><span class="w">    </span>ports<span class="p">:</span><span class="w">
-</span><span class="w">      </span>-<span class="w"> </span><span class="s2">&#34;3306:3306&#34;</span><span class="w">
-</span><span class="w">      </span>-<span class="w"> </span><span class="s2">&#34;33060:33060&#34;</span></code></pre></div><div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh">$ docker-compose up
-
-$ mysql -h <span class="m">127</span>.0.0.1 -u root -p</code></pre></div><div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="o">&gt;</span> <span class="k">show</span> <span class="n">plugins</span><span class="p">;</span>
+<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="o">&gt;</span> <span class="k">show</span> <span class="n">plugins</span><span class="p">;</span>
 
 <span class="o">+</span><span class="c1">---------------------------------+----------+--------------------+---------+---------+
 </span><span class="c1"></span><span class="o">|</span> <span class="n">Name</span>                            <span class="o">|</span> <span class="n">Status</span>   <span class="o">|</span> <span class="k">Type</span>               <span class="o">|</span> <span class="n">Library</span> <span class="o">|</span> <span class="n">License</span> <span class="o">|</span>
