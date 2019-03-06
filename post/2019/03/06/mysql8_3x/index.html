@@ -136,7 +136,7 @@
 
 <p>X Protocolの特徴として、まずセキュリティに関してはTLS, <a href="https://dev.mysql.com/doc/internals/en/x-protocol-authentication-authentication.html">SASL</a>といった信頼性が証明されている標準技術が<a href="https://dev.mysql.com/doc/internals/en/x-protocol-lifecycle-lifecycle.html">採用されています</a>。またパフォーマンスに関しては<a href="https://dev.mysql.com/doc/internals/en/x-protocol-implementation-implementation-notes.html">Client/Server間のやり取りのパイプライン化や、サーバー側でのマルチスレッド化といった対応</a> で改善されています。</p>
 
-<p>過去のC/Sプロトコルとの比較は<a href="https://dev.mysql.com/doc/internals/en/x-protocol-comparison-comparison-to-mysql-c-s-protocol.html">こちら</a> が詳しいですが、セキュリティ対策やパフォーマンス改善も含めた機能追加・修正が行いやすい、という拡張性担保に貢献している大きな材料が<a href="https://dev.mysql.com/doc/internals/en/x-protocol-messages-messages.html">C/S間のメッセージのやり取りにProtocol Buffersを採用している</a> ことではないかと思います。言語・プラットフォームに依存せず・厳密な型定義を保ちながら・拡張可能なメカニズムでデータをserialize可能である、という特徴がX Protocolで実現したかった要件とマッチしていて、現状ベストな選択と言えそうです。</p>
+<p>過去のC/Sプロトコルとの比較は<a href="https://dev.mysql.com/doc/internals/en/x-protocol-comparison-comparison-to-mysql-c-s-protocol.html">こちら</a> が詳しいですが、セキュリティ対策やパフォーマンス改善も含め、た機能追加・修正が行いやすい事に貢献している大きな材料が<a href="https://dev.mysql.com/doc/internals/en/x-protocol-messages-messages.html">C/S間のメッセージのやり取りにProtocol Buffersを採用している</a> 事ではないかと思います。言語・プラットフォームに依存せず・厳密な型定義を保ちながら・拡張可能なメカニズムでデータをserialize可能である、という特徴がX Protocolで実現したかった要件とマッチしていて、現状ベストな選択と言えそうです。</p>
 
 <p>X Protocolのprotobuf定義は<a href="https://github.com/mysql/mysql-server/tree/8.0/plugin/x/protocol">githubで公開されています</a>。</p>
 
@@ -156,11 +156,11 @@
 
 <ul>
 <li><a href="https://dev.mysql.com/downloads/shell/">MySQL Shell</a>  （後述）</li>
-<li><a href="https://dev.mysql.com/downloads/connector/j/">Connector/J</a> Javaクライアント</li>
-<li><a href="https://dev.mysql.com/downloads/connector/nodejs/">Connector/Node.js</a> Node.jsクライアント</li>
-<li><a href="https://dev.mysql.com/downloads/connector/python/">Connector/Python</a> Pythonクライアント</li>
-<li><a href="https://dev.mysql.com/downloads/connector/net/">Connector/NET</a> .NETクライアント</li>
-<li><a href="https://dev.mysql.com/downloads/connector/cpp/">Connector/C++</a> C++クライアント</li>
+<li><a href="https://dev.mysql.com/downloads/connector/j/">Connector/J</a>　※Java</li>
+<li><a href="https://dev.mysql.com/downloads/connector/nodejs/">Connector/Node.js</a></li>
+<li><a href="https://dev.mysql.com/downloads/connector/python/">Connector/Python</a></li>
+<li><a href="https://dev.mysql.com/downloads/connector/net/">Connector/NET</a>　※.NET</li>
+<li><a href="https://dev.mysql.com/downloads/connector/cpp/">Connector/C++</a></li>
 </ul>
 
 <p>X DevAPIでは <a href="https://dev.mysql.com/doc/x-devapi-userguide/en/connecting-to-a-single-mysqld-node-setup.html">mysqlx というモジュールを使って Session と呼ばれるX Protocol接続オブジェクトを取得し</a>、mysqlサーバに接続します。これにより、JSONデータをDocument Storeとして取り扱うクラスやメソッド群が使用可能になります。逆にX Pluginが有効ではない（古い）プロトコルでの接続は Classic Session と呼ばれるオブジェクトで管理されます。各言語のConnectorでは、共通して<code>mysqlx</code>と呼ばれるモジュールにより、従来の機能（API）とは独立した形でX DevAPIの機能が提供されています。</p>
@@ -197,18 +197,27 @@
 <p><a href="https://dev.mysql.com/doc/dev/mysqlsh-api-javascript/8.0/">公式 - MySQL Shell: Main Page(JavaScript)</a></p>
 
 <ul>
-<li>MySQL Shellでは、過去のmysqlクライアントと同じ操作が可能なSQLモードが提供されている</li>
+<li>MySQL Shellでは、過去のmysqlクライアントと同じ操作が可能な <strong>SQLモード</strong> が提供されている
+
+<ul>
+<li>従来の <code>mysql</code> コマンドで立ち上げたmysqlコンソールと全く同じ操作が、MySQL Shellでも可能</li>
+</ul></li>
 <li>加えて、JavaScript, Pythonの2言語が対話型インタフェースとして追加された
 
 <ul>
 <li>両言語では、対話型だけでなくバッチモードで・各言語でのスクリプト処理も開発・実行できる</li>
+</ul></li>
+<li>MySQL Shellを立ち上げてからでも、言語の切り替えが出来る
+
+<ul>
+<li>例えば <code>\js</code> と打てばJavaScriptモードになる</li>
 </ul></li>
 </ul>
 
 <p>MySQL Shellは「X Pluginを介してサーバーと通信する為にX Protocolを使用するように設計されているクライアント」で、つまりリレーショナル（SQL）、Document Store（NoSQL） いずれの方式にも対応しているクライアントです。</p>
 
 <p>Macなどでサクッとver8のMySQLを立ち上げて試したければ、<a href="https://hub.docker.com/_/mysql?tab=tags">8系のDockerfileが公開されているので</a>これを使うのが良いでしょう。</p>
-<div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh">$ vi docker-compose.yml</code></pre></div><div class="highlight"><pre class="chroma"><code class="language-yml" data-lang="yml">version<span class="p">:</span><span class="w"> </span><span class="s1">&#39;3&#39;</span><span class="w">
+<div class="highlight"><pre class="chroma"><code class="language-yml" data-lang="yml">version<span class="p">:</span><span class="w"> </span><span class="s1">&#39;3&#39;</span><span class="w">
 </span><span class="w"></span>services<span class="p">:</span><span class="w">
 </span><span class="w">  </span>mysql<span class="p">:</span><span class="w">
 </span><span class="w">    </span>image<span class="p">:</span><span class="w"> </span>mysql<span class="p">:</span><span class="m">8.0</span><span class="w">
@@ -219,10 +228,45 @@
 </span><span class="w">    </span>ports<span class="p">:</span><span class="w">
 </span><span class="w">      </span>-<span class="w"> </span><span class="s2">&#34;3306:3306&#34;</span><span class="w">
 </span><span class="w">      </span>-<span class="w"> </span><span class="s2">&#34;33060:33060&#34;</span></code></pre></div><div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh">$ docker-compose up</code></pre></div>
-<p>Mac向けのMySQL Shellは<a href="https://dev.mysql.com/downloads/shell/">dmgで公開されている</a>のでこれをインストールし、SQLモードでshellを立ち上げてみるとプロンプトがシャレオツなmysqlコンソールが立ち上がります。</p>
-<div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh">$ mysqlsh -u root -proot -h localhost -P33060 --sql</code></pre></div>
-<p><code>--sql</code> で立ち上げたMySQL Shellは過去バージョンのmysqlコマンドで利用可能な機能が全てそのまま使えます。</p>
-<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"> <span class="n">MySQL</span>  <span class="n">localhost</span><span class="p">:</span><span class="mi">33060</span><span class="o">+</span> <span class="n">ssl</span>  <span class="k">SQL</span> <span class="o">&gt;</span></code></pre></div>
+<p>Mac向けのMySQL Shellは<a href="https://dev.mysql.com/downloads/shell/">dmgで公開されている</a>のでこれをインストールし、SQLモードでshellを立ち上げてみるとプロンプトがシャレオツなmysqlコンソールが立ち上がります。ポート番号は後述のX Pluginが接続を待ち受ける番号を指定します（デフォルトが33060）</p>
+
+<p><code>--sql</code> とSQLモードで立ち上げたMySQL Shellは、過去バージョンのmysqlコマンドで利用可能な機能が全てそのまま使えます。</p>
+<div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh">$ mysqlsh -u root -proot -h localhost -P33060 --sql</code></pre></div><div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="p">:</span>
+
+<span class="n">Creating</span> <span class="n">a</span> <span class="k">session</span> <span class="k">to</span> <span class="s1">&#39;root@localhost:33060&#39;</span>
+<span class="n">Fetching</span> <span class="k">schema</span> <span class="k">names</span> <span class="k">for</span> <span class="n">autocompletion</span><span class="p">...</span> <span class="n">Press</span> <span class="o">^</span><span class="k">C</span> <span class="k">to</span> <span class="n">stop</span><span class="p">.</span>
+<span class="n">Your</span> <span class="n">MySQL</span> <span class="k">connection</span> <span class="n">id</span> <span class="k">is</span> <span class="mi">1</span> <span class="p">(</span><span class="n">X</span> <span class="n">protocol</span><span class="p">)</span>
+
+<span class="p">:</span>
+<span class="p">:</span>
+
+<span class="n">MySQL</span>  <span class="n">localhost</span><span class="p">:</span><span class="mi">33060</span><span class="o">+</span> <span class="n">ssl</span>  <span class="k">SQL</span> <span class="o">&gt;</span></code></pre></div>
+<p><code>\js</code>と入力するとJavaScriptモードに、<code>\py</code>と入力するとPythonモードに切り替わります</p>
+<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="n">MySQL</span>  <span class="n">localhost</span><span class="p">:</span><span class="mi">33060</span><span class="o">+</span> <span class="n">ssl</span>  <span class="k">SQL</span> <span class="o">&gt;</span> <span class="err">\</span><span class="n">js</span>
+<span class="n">Switching</span> <span class="k">to</span> <span class="n">JavaScript</span> <span class="k">mode</span><span class="p">...</span>
+
+<span class="n">MySQL</span>  <span class="n">localhost</span><span class="p">:</span><span class="mi">33060</span><span class="o">+</span> <span class="n">ssl</span>  <span class="n">JS</span> <span class="o">&gt;</span> <span class="err">\</span><span class="n">py</span>
+<span class="n">Switching</span> <span class="k">to</span> <span class="n">Python</span> <span class="k">mode</span><span class="p">...</span>
+
+<span class="n">MySQL</span>  <span class="n">localhost</span><span class="p">:</span><span class="mi">33060</span><span class="o">+</span> <span class="n">ssl</span>  <span class="n">Py</span> <span class="o">&gt;</span></code></pre></div>
+<p>mysqlshコマンドで、従来のmysqlコマンド（C/Sプロトコル）による接続を行う事も可能です。その場合portにはサーバが使用している待受ポートを指定し、合わせて<code>--classic</code>というオプションを指定します。X Protocolで接続した場合と異なり、</p>
+
+<ul>
+<li><code>Creating a Classic session...</code> とメッセージが表示される</li>
+<li>接続後のプロンプトのポート番号に<code>+</code>表記が無い</li>
+</ul>
+
+<p>という違いがあります。</p>
+<div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh">$ mysqlsh -u root -proot -h localhost -P3306 --sql --classic</code></pre></div><div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="p">:</span>
+
+<span class="n">Creating</span> <span class="n">a</span> <span class="n">Classic</span> <span class="k">session</span> <span class="k">to</span> <span class="s1">&#39;root@localhost:3306&#39;</span>
+<span class="n">Fetching</span> <span class="k">schema</span> <span class="k">names</span> <span class="k">for</span> <span class="n">autocompletion</span><span class="p">...</span> <span class="n">Press</span> <span class="o">^</span><span class="k">C</span> <span class="k">to</span> <span class="n">stop</span><span class="p">.</span>
+<span class="n">Your</span> <span class="n">MySQL</span> <span class="k">connection</span> <span class="n">id</span> <span class="k">is</span> <span class="mi">2</span>
+
+<span class="p">:</span>
+<span class="p">:</span>
+
+<span class="n">MySQL</span>  <span class="n">localhost</span><span class="p">:</span><span class="mi">3306</span> <span class="n">ssl</span>  <span class="k">SQL</span> <span class="o">&gt;</span></code></pre></div>
 <h2 id="x-plugin">X Plugin</h2>
 
 <p><a href="https://dev.mysql.com/doc/refman/8.0/en/x-plugin.html">公式 - MySQL :: MySQL 8.0 Reference Manual :: 20.5 X Plugin</a></p>
@@ -238,6 +282,11 @@
 <ul>
 <li>つまりX Pluginがロードされて初めてDocument Storeの機能も有効になる</li>
 </ul></li>
+<li>X Pluginは、MySQLサーバのポート（=3306）とは別のポートで接続を待ち受ける
+
+<ul>
+<li>デフォルト = 33060</li>
+</ul></li>
 <li>関連するサーバ設定は <code>mysqlx_xxx</code> という名前になっている</li>
 </ul>
 
@@ -252,7 +301,7 @@ ssl-key = /path/to/server-key.pem
 mysqlx-ssl-ca = /path/to/ca_xplugin.pem
 mysqlx-ssl-cert = /path/to/xplugin-cert.pem
 mysqlx-ssl-key = /path/to/xplugin-key.pem</code></pre></div>
-<p>X PluginはMySQLサーバとは別のポート＝デフォルトで33060番ポートを使って通信を行います。後述するMySQL Shellを使ってX Pluginと対話型インタフェースで接続するには下記コマンドで接続します。</p>
+<p>X PluginはMySQLサーバとは別のポート＝デフォルトで33060番ポートを使って通信を行います。先述のMySQL Shellを使ってX Pluginと対話型インタフェースで接続するには下記コマンドで接続します。</p>
 <div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh"><span class="c1"># ポート番号として33060を指定</span>
 $ mysqlsh -u root -proot -h localhost -P33060 --sql</code></pre></div>
 <p>ver 8.0からX Pluginがデフォルトで有効化されている事は、下記の通り<code>show plugin</code>文を実行すると確認する事ができます。例えばこの記事執筆時点で公開されてるver8系の公式Docker imageは8.0.15が使われていますが、このimageを使っても確認可能です。</p>
