@@ -14,7 +14,7 @@
 
 <title>depからgo modulesへの移行と、移行時にTravis CI &amp; GoReleaserでハマる（かもしれない）ポイント - horizoon</title>
 
-<meta name="generator" content="Hugo 0.54.0" />
+<meta name="generator" content="Hugo 0.53" />
 
 
 
@@ -182,10 +182,10 @@ $ go mod tidy
 <div class="highlight"><pre class="chroma"><code class="language-yaml" data-lang="yaml">deploy<span class="p">:</span><span class="w">
 </span><span class="w">  </span>-<span class="w"> </span>provider<span class="p">:</span><span class="w"> </span>script<span class="w">
 </span><span class="w">    </span>skip_cleanup<span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="w">
-</span><span class="hl"><span class="w">    </span>script<span class="p">:</span><span class="w"> </span>curl<span class="w"> </span>-sL<span class="w"> </span>http<span class="p">:</span>//git.io/goreleaser<span class="w"> </span>|<span class="w"> </span>bash<span class="w">
-</span></span><span class="w">    </span>on<span class="p">:</span><span class="w">
-</span><span class="w">      </span>tags<span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="w">
-</span><span class="w">      </span>condition<span class="p">:</span><span class="w"> </span>$TRAVIS_OS_NAME<span class="w"> </span>=<span class="w"> </span>linux</code></pre></div>
+</span><span class="hl"><span class="w">    </span>script<span class="p">:</span><span class="w"> </span>curl<span class="w"> </span>-sL<span class="w"> </span>http<span class="p">:</span>//git.io/goreleaser<span class="w"> </span><span class="sd">| bash
+</span></span><span class="sd">    on:
+</span><span class="sd">      tags: true
+</span><span class="sd">      condition: $TRAVIS_OS_NAME = linux</span></code></pre></div>
 
 <p>こう設定しておけば、該当プロジェクトをmasterにmerge =&gt; tagを打ったタイミングで、Travis CIの <code>deploy</code> フェーズで設定したGoReleaserによるデプロイも実行されるようになります。</p>
 

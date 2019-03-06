@@ -48,6 +48,15 @@
     </item>
     
     <item>
+      <title>Document Store</title>
+      <link>https://horizoon.jp/categories/document-store/</link>
+      <pubDate>Wed, 06 Mar 2019 12:15:00 +0900</pubDate>
+      
+      <guid>https://horizoon.jp/categories/document-store/</guid>
+      <description></description>
+    </item>
+    
+    <item>
       <title>Full Text Search</title>
       <link>https://horizoon.jp/categories/full-text-search/</link>
       <pubDate>Mon, 19 Nov 2018 03:21:36 +0900</pubDate>
@@ -113,9 +122,18 @@
     <item>
       <title>Mysql</title>
       <link>https://horizoon.jp/categories/mysql/</link>
-      <pubDate>Mon, 19 Nov 2018 03:21:36 +0900</pubDate>
+      <pubDate>Wed, 06 Mar 2019 12:15:00 +0900</pubDate>
       
       <guid>https://horizoon.jp/categories/mysql/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Mysql8</title>
+      <link>https://horizoon.jp/categories/mysql8/</link>
+      <pubDate>Wed, 06 Mar 2019 12:15:00 +0900</pubDate>
+      
+      <guid>https://horizoon.jp/categories/mysql8/</guid>
       <description></description>
     </item>
     

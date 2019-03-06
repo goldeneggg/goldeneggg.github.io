@@ -300,3 +300,26 @@ pre > code {
     word-wrap: initial;
     word-break: initial;
 }
+
+/* customize */
+figure.center {
+    text-align: center;
+}
+figure img {
+    text-align: center;
+    width: 480px;
+}
+figcaption h4 {
+    margin-top: 10px;
+    margin-bottom: 20px;
+}
+
+/* customize for embedded gist */
+div.gist-data *
+{
+    font-family: SFMono-Regular,Consolas,Liberation Mono,Menlo,Courier,monospace;
+}
+div.gist-meta a
+{
+    font-family: SFMono-Regular,Consolas,Liberation Mono,Menlo,Courier,monospace;
+}

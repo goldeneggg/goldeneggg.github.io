@@ -6,10 +6,19 @@
     <description>Recent content in Mysql on horizoon</description>
     <generator>Hugo -- gohugo.io</generator>
     <copyright>&amp;copy; Fuminori Sakamoto 2018</copyright>
-    <lastBuildDate>Mon, 19 Nov 2018 03:21:36 +0900</lastBuildDate>
+    <lastBuildDate>Wed, 06 Mar 2019 12:15:00 +0900</lastBuildDate>
     
 	<atom:link href="https://horizoon.jp/categories/mysql/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>MySQL8.0 Document Store関連技術まとめ</title>
+      <link>https://horizoon.jp/post/2019/03/06/mysql8_3x/</link>
+      <pubDate>Wed, 06 Mar 2019 12:15:00 +0900</pubDate>
+      
+      <guid>https://horizoon.jp/post/2019/03/06/mysql8_3x/</guid>
+      <description>Summary  ver 5.7.12 で追加された「3つのX」。ver 8.0からGA  X Protocol X DevAPI X Plugin  X Protocol  アプリケーションがX Pluginと通信するために使われる新プロトコル。MySQLへの（これまで通りの）SQLインターフェース ＋ NoSQLインタフェースの両方をサポートしている  X DevAPI  MySQL用のNoSQLソリューションを開発したり、Document StoreとしてMySQLを使用したりすることを可能にするAPI Connectors  X DevAPIをサポートしている、言語別クライアント C++, Java, Node.js, .NET, Python の各言語向けライブラリが公式に提供されている  MySQL Shell  MySQLサーバへの新しい対話型インタフェースで、Connector同様にX DevAPIをサポートしている 以前からのmysqlコマンドと同じSQLインタフェースに加えて、JavaScript, Pythonでもコンソール上での各種操作が可能。 JSやPythonでmysqlコンソールを操作できる   X Plugin  X Protocolをサーバー側で有効にして、X Protocolを使ってクライアントとの通信を可能にする為のプラグイン Document StoreとしてMySQLを使用する為にはX Pluginが有効化されていなければならない  ver 8.0.11以降はデフォルトで有効化されている   Document Store  「3つのX」を使って、JSON DocumentをNoSQL/DocumentDB likeに取り扱う仕組み    X Protocol 公式 - MySQL :: MySQL Internals Manual :: 15 X Protocol</description>
+    </item>
     
     <item>
       <title>MySQL5.7 InnoDB のN-gram全文検索を検証＆サービス導入した</title>

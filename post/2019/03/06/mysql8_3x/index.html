@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+<meta name="description" content="This is my portfolio. I&#39;m Web Developer, Software Engineer, Engineering Manager and Backpacker. Ruby/Rails/Go/PHP/Java/Linux/MySQL/Docker/AWS/Fintech/Payment">
+<meta name="keywords" content="developer,software engineer,technology,web,blog,freelance,hugo">
+
+<base href="https://horizoon.jp">
+
+<title>MySQL8.0 Document Store関連技術まとめ - horizoon</title>
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:300,400|Roboto+Slab:400,700|Roboto:300,300i,400,400i,500,500i,700,700i">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.0/css/all.css">
+<link rel="stylesheet" href="https://horizoon.jp/css/main.css">
+<link rel="stylesheet" href="https://horizoon.jp/css/syntax.css">
+
+
+
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="/favicon-32x32.png" sizes="32x32">
+<link rel="icon" type="image/png" href="/favicon-16x16.png" sizes="16x16">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+<meta name="theme-color" content="#ffffff">
+
+</head>
+<body lang="">
+<div class="container">
+
+
+<header class="row text-left title">
+  <h1 class="title">MySQL8.0 Document Store関連技術まとめ</h1>
+</header>
+<section id="category-pane" class="row meta">
+  
+  <div class="col-md-12">
+    <h6 class="text-left meta">
+        PUBLISHED ON 2019-03-06 
+      
+      
+      
+      —
+      
+      
+      <a class="meta" href="/categories/document-store">DOCUMENT STORE</a>, 
+      
+      <a class="meta" href="/categories/mysql">MYSQL</a>, 
+      
+      <a class="meta" href="/categories/mysql8">MYSQL8</a>
+      
+      
+      
+    </h6>
+  </div>
+  
+</section>
+<section id="content-pane" class="row">
+  <div class="col-md-12 text-justify content">
+    
+
+<h2 id="summary">Summary</h2>
+
+<ul>
+<li>ver 5.7.12 で追加された「3つのX」。ver 8.0からGA
+
+<ul>
+<li>X Protocol</li>
+<li>X DevAPI</li>
+<li>X Plugin</li>
+</ul></li>
+<li><a href="https://dev.mysql.com/doc/internals/en/x-protocol.html">X Protocol</a>
+
+<ul>
+<li>アプリケーションがX Pluginと通信するために使われる新プロトコル。MySQLへの（これまで通りの）SQLインターフェース ＋ NoSQLインタフェースの両方をサポートしている</li>
+</ul></li>
+<li><a href="https://dev.mysql.com/doc/x-devapi-userguide/en/">X DevAPI</a>
+
+<ul>
+<li>MySQL用のNoSQLソリューションを開発したり、Document StoreとしてMySQLを使用したりすることを可能にするAPI</li>
+<li><a href="https://dev.mysql.com/downloads/connector/">Connectors</a>
+
+<ul>
+<li>X DevAPIをサポートしている、言語別クライアント</li>
+<li>C++, Java, Node.js, .NET, Python の各言語向けライブラリが公式に提供されている</li>
+</ul></li>
+<li><a href="https://dev.mysql.com/doc/mysql-shell/8.0/en/">MySQL Shell</a>
+
+<ul>
+<li>MySQLサーバへの新しい対話型インタフェースで、Connector同様にX DevAPIをサポートしている</li>
+<li>以前からのmysqlコマンドと同じSQLインタフェースに加えて、JavaScript, Pythonでもコンソール上での各種操作が可能。 <strong>JSやPythonでmysqlコンソールを操作できる</strong></li>
+</ul></li>
+</ul></li>
+<li><a href="https://dev.mysql.com/doc/refman/8.0/en/x-plugin.html">X Plugin</a>
+
+<ul>
+<li>X Protocolをサーバー側で有効にして、X Protocolを使ってクライアントとの通信を可能にする為のプラグイン</li>
+<li>Document StoreとしてMySQLを使用する為にはX Pluginが有効化されていなければならない
+
+<ul>
+<li>ver 8.0.11以降はデフォルトで有効化されている</li>
+</ul></li>
+</ul></li>
+<li>Document Store
+
+<ul>
+<li><strong>「3つのX」を使って、JSON DocumentをNoSQL/DocumentDB likeに取り扱う仕組み</strong></li>
+</ul></li>
+</ul>
+
+<figure class="center">
+    <img src="/img/mysql8_doc/1.png"/> 
+</figure>
+
+
+<h2 id="x-protocol">X Protocol</h2>
+
+<p><a href="https://dev.mysql.com/doc/internals/en/x-protocol.html">公式 - MySQL :: MySQL Internals Manual :: 15 X Protocol</a></p>
+
+<ul>
+<li>X Protocolは、X DevAPIを使用してサーバーと通信するように設計されている</li>
+<li>X Protocolは、通常のSQLインターフェースもサポートしている。つまり先述のDocument Storeの機能と合わせてSQL/NoSQL両方のインタフェースを使用するアプリケーションを構築できる</li>
+</ul>
+
+<p><a href="https://dev.mysql.com/worklog/task/?id=8639">worklogで言及されている</a> 通り、X Protocolは拡張性・パフォーマンス・セキュリティ、の3点に主眼を置いて設計された新しいClient/Serverプロトコルです。過去のバージョンのC/Sプロトコルはこれらに課題を抱えていたという事ですが、下位互換性を維持しながら機能修正を行っていく事が厳しいという事情がありました。そうした経緯で全く新しいプロトコルが新たに開発されました。</p>
+
+<p>X Protocolの特徴として、まずセキュリティに関してはTLS, <a href="https://dev.mysql.com/doc/internals/en/x-protocol-authentication-authentication.html">SASL</a>といった信頼性が証明されている標準技術が<a href="https://dev.mysql.com/doc/internals/en/x-protocol-lifecycle-lifecycle.html">採用されています</a>。またパフォーマンスに関しては<a href="https://dev.mysql.com/doc/internals/en/x-protocol-implementation-implementation-notes.html">Client/Server間のやり取りのパイプライン化や、サーバー側でのマルチスレッド化といった対応</a> で改善されています。</p>
+
+<p>過去のC/Sプロトコルとの比較は<a href="https://dev.mysql.com/doc/internals/en/x-protocol-comparison-comparison-to-mysql-c-s-protocol.html">こちら</a> が詳しいですが、セキュリティ対策やパフォーマンス改善も含めた機能追加・修正が行いやすい、という拡張性担保に貢献している大きな材料が<a href="https://dev.mysql.com/doc/internals/en/x-protocol-messages-messages.html">C/S間のメッセージのやり取りにProtocol Buffersを採用している</a> ことではないかと思います。言語・プラットフォームに依存せず・厳密な型定義を保ちながら・拡張可能なメカニズムでデータをserialize可能である、という特徴がX Protocolで実現したかった要件とマッチしていて、現状ベストな選択と言えそうです。</p>
+
+<p>X Protocolのprotobuf定義は<a href="https://github.com/mysql/mysql-server/tree/8.0/plugin/x/protocol">githubで公開されています</a>。</p>
+
+<h2 id="x-devapi">X DevAPI</h2>
+
+<p><a href="https://dev.mysql.com/doc/x-devapi-userguide/en/">公式 - MySQL :: X DevAPI User Guide</a></p>
+
+<ul>
+<li>X DevAPIは、JSON Documentおよび（従来からの）リレーショナルデータと簡単にやり取りできるように設計されている。両方をサポートしているAPIである、という事が特徴
+
+<ul>
+<li>前者がDocument Store機能。NoSQLインタフェースを実装するクラスとメソッドのライブラリが提供されている</li>
+</ul></li>
+</ul>
+
+<p>X DevAPIはX Protocolを実装しているクライアントからのみ利用可能です。X DevAPIをサポートしているクライアントは下記の通りです。</p>
+
+<ul>
+<li><a href="https://dev.mysql.com/downloads/shell/">MySQL Shell</a>  （後述）</li>
+<li><a href="https://dev.mysql.com/downloads/connector/j/">Connector/J</a> Javaクライアント</li>
+<li><a href="https://dev.mysql.com/downloads/connector/nodejs/">Connector/Node.js</a> Node.jsクライアント</li>
+<li><a href="https://dev.mysql.com/downloads/connector/python/">Connector/Python</a> Pythonクライアント</li>
+<li><a href="https://dev.mysql.com/downloads/connector/net/">Connector/NET</a> .NETクライアント</li>
+<li><a href="https://dev.mysql.com/downloads/connector/cpp/">Connector/C++</a> C++クライアント</li>
+</ul>
+
+<p>X DevAPIでは <a href="https://dev.mysql.com/doc/x-devapi-userguide/en/connecting-to-a-single-mysqld-node-setup.html">mysqlx というモジュールを使って Session と呼ばれるX Protocol接続オブジェクトを取得し</a>、mysqlサーバに接続します。これにより、JSONデータをDocument Storeとして取り扱うクラスやメソッド群が使用可能になります。逆にX Pluginが有効ではない（古い）プロトコルでの接続は Classic Session と呼ばれるオブジェクトで管理されます。各言語のConnectorでは、共通して<code>mysqlx</code>と呼ばれるモジュールにより、従来の機能（API）とは独立した形でX DevAPIの機能が提供されています。</p>
+
+<p>接続を司るSessionオブジェクトも含め、X DevAPIを実装している各クライアント（のmysqlxモジュール）は下記構成で機能が提供されています。</p>
+
+<figure class="center">
+    <img src="/img/mysql8_doc/2.png"/> <figcaption>
+            <h4>（mysqlxモジュールの構成図）</h4>
+        </figcaption>
+</figure>
+
+
+<p>現状では先程のリストに挙がっていない言語、例えばRubyやGoでは公式にConnectorは提供されていませんが、各言語のconnector APIリファレンス（例：<a href="https://dev.mysql.com/doc/dev/connector-nodejs/8.0/">Node.jsのもの</a>）や、拡張BNF（<a href="https://dev.mysql.com/doc/x-devapi-userguide/en/mysql-x-crud-ebnf-definitions.html">CRUD関連</a> 、 <a href="https://dev.mysql.com/doc/x-devapi-userguide/en/mysql-x-expressions-ebnf-definitions.html">式関連</a> ）が公開されており、これらを参考に独自実装する事も不可能では無さそうです。</p>
+
+<figure class="center">
+    <img src="/img/mysql8_doc/3.png"/> <figcaption>
+            <h4>（Databaseオブジェクトのクラス図）</h4>
+        </figcaption>
+</figure>
+
+
+<figure class="center">
+    <img src="/img/mysql8_doc/4.png"/> <figcaption>
+            <h4>（Resultオブジェクトのクラス図）</h4>
+        </figcaption>
+</figure>
+
+
+<h3 id="mysql-shell">MySQL Shell</h3>
+
+<p><a href="https://dev.mysql.com/doc/mysql-shell/8.0/en/">公式 - MySQL :: MySQL Shell 8.0</a></p>
+
+<p><a href="https://dev.mysql.com/doc/dev/mysqlsh-api-javascript/8.0/">公式 - MySQL Shell: Main Page(JavaScript)</a></p>
+
+<ul>
+<li>MySQL Shellでは、過去のmysqlクライアントと同じ操作が可能なSQLモードが提供されている</li>
+<li>加えて、JavaScript, Pythonの2言語が対話型インタフェースとして追加された
+
+<ul>
+<li>両言語では、対話型だけでなくバッチモードで・各言語でのスクリプト処理も開発・実行できる</li>
+</ul></li>
+</ul>
+
+<p>MySQL Shellは「X Pluginを介してサーバーと通信する為にX Protocolを使用するように設計されているクライアント」で、つまりリレーショナル（SQL）、Document Store（NoSQL） いずれの方式にも対応しているクライアントです。</p>
+
+<p>Macなどでサクッとver8のMySQLを立ち上げて試したければ、<a href="https://hub.docker.com/_/mysql?tab=tags">8系のDockerfileが公開されているので</a>これを使うのが良いでしょう。</p>
+<div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh">$ vi docker-compose.yml</code></pre></div><div class="highlight"><pre class="chroma"><code class="language-yml" data-lang="yml">version<span class="p">:</span><span class="w"> </span><span class="s1">&#39;3&#39;</span><span class="w">
+</span><span class="w"></span>services<span class="p">:</span><span class="w">
+</span><span class="w">  </span>mysql<span class="p">:</span><span class="w">
+</span><span class="w">    </span>image<span class="p">:</span><span class="w"> </span>mysql<span class="p">:</span><span class="m">8.0</span><span class="w">
+</span><span class="w">    </span>environment<span class="p">:</span><span class="w">
+</span><span class="w">      </span>-<span class="w"> </span>MYSQL_ROOT_PASSWORD=root<span class="w">
+</span><span class="w">    </span>volumes<span class="p">:</span><span class="w">
+</span><span class="w">      </span>-<span class="w"> </span>./.data/mysql<span class="p">:</span>/var/lib/mysql<span class="w">
+</span><span class="w">    </span>ports<span class="p">:</span><span class="w">
+</span><span class="w">      </span>-<span class="w"> </span><span class="s2">&#34;3306:3306&#34;</span><span class="w">
+</span><span class="w">      </span>-<span class="w"> </span><span class="s2">&#34;33060:33060&#34;</span></code></pre></div><div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh">$ docker-compose up</code></pre></div>
+<p>Mac向けのMySQL Shellは<a href="https://dev.mysql.com/downloads/shell/">dmgで公開されている</a>のでこれをインストールし、SQLモードでshellを立ち上げてみるとプロンプトがシャレオツなmysqlコンソールが立ち上がります。</p>
+<div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh">$ mysqlsh -u root -proot -h localhost -P33060 --sql</code></pre></div>
+<p><code>--sql</code> で立ち上げたMySQL Shellは過去バージョンのmysqlコマンドで利用可能な機能が全てそのまま使えます。</p>
+<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"> <span class="n">MySQL</span>  <span class="n">localhost</span><span class="p">:</span><span class="mi">33060</span><span class="o">+</span> <span class="n">ssl</span>  <span class="k">SQL</span> <span class="o">&gt;</span></code></pre></div>
+<h2 id="x-plugin">X Plugin</h2>
+
+<p><a href="https://dev.mysql.com/doc/refman/8.0/en/x-plugin.html">公式 - MySQL :: MySQL 8.0 Reference Manual :: 20.5 X Plugin</a></p>
+
+<ul>
+<li>X Pluginは、実行タイミングで有効化・無効化が可能
+
+<ul>
+<li>ver 8.0からは、デフォルトで有効化されている</li>
+</ul></li>
+<li>X Pluginがロードされると、X Protocolを使用した通信も有効化される
+
+<ul>
+<li>つまりX Pluginがロードされて初めてDocument Storeの機能も有効になる</li>
+</ul></li>
+<li>関連するサーバ設定は <code>mysqlx_xxx</code> という名前になっている</li>
+</ul>
+
+<p>X Protocolをサーバー側で有効にして、X Protocolを使ってクライアントとの通信を可能にする為のプラグインがX Pluginです。MySQLをDocument Storeとして活用するにはX Protocolでの通信が必須であり、つまりDocument Storeとして活用する為の前提条件はX Pluginを有効にする事と言えます。</p>
+
+<p>X Pluginの特徴の1つとして、クライアント/サーバ間の通信で使っているSSL証明書と別のSSL証明書を使って（プラグインへの）接続を行う事が可能という点が挙げられます。下記がmy.cnfの設定例ですが、<code>mysqld</code> セクションのSSL関連の設定パラメータに <code>mysqlx_</code> というprefixを付けたパラメータで、サーバで使っているSSL証明書と別の証明書を指定する事ができます。</p>
+<div class="highlight"><pre class="chroma"><code class="language-cnf" data-lang="cnf">[mysqld]
+ssl-ca = /path/to/ca_server.pem
+ssl-cert = /path/to/server-cert.pem
+ssl-key = /path/to/server-key.pem
+
+mysqlx-ssl-ca = /path/to/ca_xplugin.pem
+mysqlx-ssl-cert = /path/to/xplugin-cert.pem
+mysqlx-ssl-key = /path/to/xplugin-key.pem</code></pre></div>
+<p>X PluginはMySQLサーバとは別のポート＝デフォルトで33060番ポートを使って通信を行います。後述するMySQL Shellを使ってX Pluginと対話型インタフェースで接続するには下記コマンドで接続します。</p>
+<div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh"><span class="c1"># ポート番号として33060を指定</span>
+$ mysqlsh -u root -proot -h localhost -P33060 --sql</code></pre></div>
+<p>ver 8.0からX Pluginがデフォルトで有効化されている事は、下記の通り<code>show plugin</code>文を実行すると確認する事ができます。例えばこの記事執筆時点で公開されてるver8系の公式Docker imageは8.0.15が使われていますが、このimageを使っても確認可能です。</p>
+<div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh">$ vi docker-compose.yml</code></pre></div><div class="highlight"><pre class="chroma"><code class="language-yml" data-lang="yml">version<span class="p">:</span><span class="w"> </span><span class="s1">&#39;3&#39;</span><span class="w">
+</span><span class="w"></span>services<span class="p">:</span><span class="w">
+</span><span class="w">  </span>mysql<span class="p">:</span><span class="w">
+</span><span class="w">    </span>image<span class="p">:</span><span class="w"> </span>mysql<span class="p">:</span><span class="m">8.0</span><span class="w">
+</span><span class="w">    </span>environment<span class="p">:</span><span class="w">
+</span><span class="w">      </span>-<span class="w"> </span>MYSQL_ROOT_PASSWORD=root<span class="w">
+</span><span class="w">    </span>volumes<span class="p">:</span><span class="w">
+</span><span class="w">      </span>-<span class="w"> </span>./.data/mysql<span class="p">:</span>/var/lib/mysql<span class="w">
+</span><span class="w">    </span>ports<span class="p">:</span><span class="w">
+</span><span class="w">      </span>-<span class="w"> </span><span class="s2">&#34;3306:3306&#34;</span><span class="w">
+</span><span class="w">      </span>-<span class="w"> </span><span class="s2">&#34;33060:33060&#34;</span></code></pre></div><div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh">$ docker-compose up
+
+$ mysql -h <span class="m">127</span>.0.0.1 -u root -p</code></pre></div><div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="o">&gt;</span> <span class="k">show</span> <span class="n">plugins</span><span class="p">;</span>
+
+<span class="o">+</span><span class="c1">---------------------------------+----------+--------------------+---------+---------+
+</span><span class="c1"></span><span class="o">|</span> <span class="n">Name</span>                            <span class="o">|</span> <span class="n">Status</span>   <span class="o">|</span> <span class="k">Type</span>               <span class="o">|</span> <span class="n">Library</span> <span class="o">|</span> <span class="n">License</span> <span class="o">|</span>
+<span class="o">+</span><span class="c1">---------------------------------+----------+--------------------+---------+---------+
+</span><span class="c1"></span><span class="o">|</span> <span class="n">mysqlx</span>                          <span class="o">|</span> <span class="n">ACTIVE</span>   <span class="o">|</span> <span class="n">DAEMON</span>             <span class="o">|</span> <span class="k">NULL</span>    <span class="o">|</span> <span class="n">GPL</span>     <span class="o">|</span></code></pre></div>
+<h2 id="ブックマーク">ブックマーク</h2>
+
+<ul>
+<li><a href="https://insidemysql.com/tag/x-devapi/">x-devapi | InsideMySQL.com</a></li>
+<li><a href="https://mysqlserverteam.com/import-json-to-mysql-made-easy-with-the-mysql-shell/">Import JSON to MySQL made easy with the MySQL Shell | MySQL Server Blog</a></li>
+<li>X ProtocolのGo実装？と思しきリポジトリ
+
+<ul>
+<li><a href="https://github.com/AlekSi/mysqlx">AlekSi/mysqlx: MySQL driver for Go&rsquo;s (golang) database/sql package and MySQL X Protocol</a>
+
+<ul>
+<li>直近の更新頻度はこのプロジェクトが一番活発</li>
+</ul></li>
+<li><a href="https://github.com/sjmudd/go-mysqlx-driver">sjmudd/go-mysqlx-driver: A MySQL X protocol driver for Go&rsquo;s database/sql package</a>
+
+<ul>
+<li>おそらく最古</li>
+</ul></li>
+<li><a href="https://github.com/pingcap/mysqlx-driver">pingcap/mysqlx-driver: A MySQL X protocol driver for Go&rsquo;s database/sql package</a></li>
+</ul></li>
+<li><a href="https://severalnines.com/blog/mysql-performance-benchmarking-mysql-57-vs-mysql-80">MySQL Performance Benchmarking: MySQL 5.7 vs MySQL 8.0 | Severalnines</a></li>
+</ul>
+
+  </div>
+</section>
+<section id="tag-pane" class="row meta">
+  
+  <div class="col-md-12">
+    <h6 class="text-right meta">
+      
+    </h6>
+  </div>
+  
+</section>
+
+
+
+
+
+
+
+
+<section id="menu-pane" class="row menu text-center">
+  
+  
+  <span><a class="menu-item" href="https://horizoon.jp/post/2019/02/26/git_conflict_vim/">&lt; prev | </a></span>
+  
+  
+  <span><a class="menu-item" href="/post">post</a></span>
+  
+  
+  
+  <h4 class="text-center"><a class="menu-item" href="https://horizoon.jp">home</a></h4>
+</section>
+
+
+
+<footer class="row text-center footer">
+  <hr />
+  
+  <h6 class="text-center copyright">© 2019. Fuminori Sakamoto. <a href="http://creativecommons.org/licenses/by/3.0/">Some Rights Reserved</a>.</h6>
+  
+  <h6 class="text-center powered">Powered by <a href="https://gohugo.io/">Hugo</a> &amp; <a href="https://github.com/shenoybr/hugo-goa">Goa</a>.</h6>
+  
+  
+</footer>
+
+</div>
+
+
+
+
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-129776715-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
+
+

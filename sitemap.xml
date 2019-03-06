@@ -3,6 +3,11 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
+    <loc>https://horizoon.jp/post/2019/03/06/mysql8_3x/</loc>
+    <lastmod>2019-03-06T12:15:00+09:00</lastmod>
+  </url>
+  
+  <url>
     <loc>https://horizoon.jp/post/2019/02/26/git_conflict_vim/</loc>
     <lastmod>2019-02-26T14:41:00+09:00</lastmod>
   </url>
@@ -62,6 +67,12 @@
   </url>
   
   <url>
+    <loc>https://horizoon.jp/categories/document-store/</loc>
+    <lastmod>2019-03-06T12:15:00+09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
     <loc>https://horizoon.jp/categories/full-text-search/</loc>
     <lastmod>2018-11-19T03:21:36+09:00</lastmod>
     <priority>0</priority>
@@ -105,7 +116,13 @@
   
   <url>
     <loc>https://horizoon.jp/categories/mysql/</loc>
-    <lastmod>2018-11-19T03:21:36+09:00</lastmod>
+    <lastmod>2019-03-06T12:15:00+09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://horizoon.jp/categories/mysql8/</loc>
+    <lastmod>2019-03-06T12:15:00+09:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -117,7 +134,7 @@
   
   <url>
     <loc>https://horizoon.jp/post/</loc>
-    <lastmod>2019-02-26T14:41:00+09:00</lastmod>
+    <lastmod>2019-03-06T12:15:00+09:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -162,7 +179,7 @@
   
   <url>
     <loc>https://horizoon.jp/</loc>
-    <lastmod>2019-02-26T14:41:00+09:00</lastmod>
+    <lastmod>2019-03-06T12:15:00+09:00</lastmod>
     <priority>0</priority>
   </url>
   
