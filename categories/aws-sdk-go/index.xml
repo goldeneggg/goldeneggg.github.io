@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Golang on horizoon</title>
-    <link>https://horizoon.jp/categories/golang/</link>
-    <description>Recent content in Golang on horizoon</description>
+    <title>Aws Sdk Go on horizoon</title>
+    <link>https://horizoon.jp/categories/aws-sdk-go/</link>
+    <description>Recent content in Aws Sdk Go on horizoon</description>
     <generator>Hugo -- gohugo.io</generator>
     <copyright>&amp;copy; Fuminori Sakamoto 2018</copyright>
     <lastBuildDate>Sat, 16 Mar 2019 12:03:00 +0900</lastBuildDate>
     
-	<atom:link href="https://horizoon.jp/categories/golang/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="https://horizoon.jp/categories/aws-sdk-go/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
@@ -22,16 +22,6 @@
 単純なサンプルコードはこんな感じで、Intfというinterfaceを実装済のAという構造体を ReplaceMethodZ に渡すと、MethodZの挙動だけが異なる別の構造体を取得するという挙動になります。
 （同じコードはこちら → https://play.golang.org/p/mh803JB5RSt ）
 package main import ( &amp;#34;fmt&amp;#34; ) type Intf interface { MethodY() MethodZ() } type A struct { Str string } func (a *A) MethodY() { fmt.Println(fmt.Sprintf(&amp;#34;%s: MethodY&amp;#34;, a.Str)) } func (a *A) MethodZ() { fmt.</description>
-    </item>
-    
-    <item>
-      <title>depからgo modulesへの移行と、移行時にTravis CI &amp; GoReleaserでハマる（かもしれない）ポイント</title>
-      <link>https://horizoon.jp/post/2019/02/25/dep_to_go_mod/</link>
-      <pubDate>Mon, 25 Feb 2019 08:17:54 +0900</pubDate>
-      
-      <guid>https://horizoon.jp/post/2019/02/25/dep_to_go_mod/</guid>
-      <description>Summary  depで管理していた既存のGo製ツールをdepからgo moduleに移行してみたが、移行自体は特にハマりどころも無くスンナリいった go moduleへの移行後に依存パッケージのupgradeを実施、これもスンナリいった Travis CI + GoReleaser で、ビルド成果物をGithub Releasesに登録する作業 ＆ GoアプリのHomeBrewパッケージ作成・公開作業 を自動化しようと試みたが、そのCIが git is currently in a dirty state というコケ方をしてちょっとハマった GoReleaserは本当に便利  前提条件 # goのバージョン $ go version go version go1.11.5 darwin/amd64 切り替え手順 depを使っていたので、go mod init して go build の成功を確認できたらdep関連のファイルを削除する、という手順で完了します（対応例）
-# go mod利用時に必要な環境変数、direnvでプロジェクトディレクトリ下のみ適用されるようにしても良さそう $ export GO111MODULE=on # go modulesの初期設定 $ go mod init # go runしてスタンドアロンで実行すれば、そのタイミングでgo.sumファイルが作成される $ go run *.go --help # dep関連ファイルを削除する $ rm Gopkg.toml Gopkg.</description>
     </item>
     
   </channel>

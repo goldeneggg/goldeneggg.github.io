@@ -3,6 +3,11 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
+    <loc>https://horizoon.jp/post/2019/03/16/go_embedded_interface/</loc>
+    <lastmod>2019-03-16T12:03:00+09:00</lastmod>
+  </url>
+  
+  <url>
     <loc>https://horizoon.jp/post/2019/03/06/mysql8_3x/</loc>
     <lastmod>2019-03-06T12:15:00+09:00</lastmod>
   </url>
@@ -38,7 +43,7 @@
   
   <url>
     <loc>https://horizoon.jp/categories/aws/</loc>
-    <lastmod>2019-02-07T14:42:54+09:00</lastmod>
+    <lastmod>2019-03-16T12:03:00+09:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -55,8 +60,14 @@
   </url>
   
   <url>
+    <loc>https://horizoon.jp/categories/aws-sdk-go/</loc>
+    <lastmod>2019-03-16T12:03:00+09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
     <loc>https://horizoon.jp/categories/</loc>
-    <lastmod>2019-02-07T14:42:54+09:00</lastmod>
+    <lastmod>2019-03-16T12:03:00+09:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -86,13 +97,13 @@
   
   <url>
     <loc>https://horizoon.jp/categories/go/</loc>
-    <lastmod>2019-02-25T08:17:54+09:00</lastmod>
+    <lastmod>2019-03-16T12:03:00+09:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>https://horizoon.jp/categories/golang/</loc>
-    <lastmod>2019-02-25T08:17:54+09:00</lastmod>
+    <lastmod>2019-03-16T12:03:00+09:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -134,7 +145,7 @@
   
   <url>
     <loc>https://horizoon.jp/post/</loc>
-    <lastmod>2019-03-06T12:15:00+09:00</lastmod>
+    <lastmod>2019-03-16T12:03:00+09:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -179,7 +190,7 @@
   
   <url>
     <loc>https://horizoon.jp/</loc>
-    <lastmod>2019-03-06T12:15:00+09:00</lastmod>
+    <lastmod>2019-03-16T12:03:00+09:00</lastmod>
     <priority>0</priority>
   </url>
   
