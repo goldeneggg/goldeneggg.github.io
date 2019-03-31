@@ -67,11 +67,11 @@
   <div class="col-md-12 text-justify content">
     
 
-<p>※ この記事は<a href="https://medium.com/@golden_eggg/mysql5-7-innodb-%E3%81%AEn-gram%E5%85%A8%E6%96%87%E6%A4%9C%E7%B4%A2%E3%82%92%E6%A4%9C%E8%A8%BC-%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9%E5%B0%8E%E5%85%A5%E3%81%97%E3%81%9F-a3d733480605">以前Mediumで公開した記事</a> の転載です</p>
+<p>※ この記事は<a href="https://medium.com/@golden_eggg/mysql5-7-innodb-%E3%81%AEn-gram%E5%85%A8%E6%96%87%E6%A4%9C%E7%B4%A2%E3%82%92%E6%A4%9C%E8%A8%BC-%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9%E5%B0%8E%E5%85%A5%E3%81%97%E3%81%9F-a3d733480605" target="_blank">以前Mediumで公開した記事</a> の転載です</p>
 
-<p>MySQL5.7・InnoDB・N-gram という環境下で全文検索の挙動やパフォーマンスについて検証を行った。FULLTEXT INDEXは以前はMyISAMでしか利用できなかったが、 <a href="http://y-ken.hatenablog.com/entry/mysql-casual-talks-vol4-innodb-fts">5.6.4からInnoDBでのサポートが始まっていた</a>。</p>
+<p>MySQL5.7・InnoDB・N-gram という環境下で全文検索の挙動やパフォーマンスについて検証を行った。FULLTEXT INDEXは以前はMyISAMでしか利用できなかったが、 <a href="http://y-ken.hatenablog.com/entry/mysql-casual-talks-vol4-innodb-fts" target="_blank">5.6.4からInnoDBでのサポートが始まっていた</a>。</p>
 
-<p>InnoDBの全文検索は5.7、特に<a href="https://dev.mysql.com/doc/refman/5.7/en/fulltext-search-ngram.html">5.7.6以降でいわゆるCJK（中国語・日本語・韓国語）がN-gramで標準サポート</a>され始め、 <a href="http://mysqlserverteam.com/innodb-%E5%85%A8%E6%96%87%E6%A4%9C%E7%B4%A2-n-gram-parser/">CREATE TABLE文で簡単にパーサーを指定できる構文のサポート</a>、 設定やクエリの組立で考えないといけない事が減った事で導入障壁がかなり下がっている。 ※4.1と5.0でサービス導入経験がある私の個人的な比較感想です。</p>
+<p>InnoDBの全文検索は5.7、特に<a href="https://dev.mysql.com/doc/refman/5.7/en/fulltext-search-ngram.html" target="_blank">5.7.6以降でいわゆるCJK（中国語・日本語・韓国語）がN-gramで標準サポート</a>され始め、 <a href="http://mysqlserverteam.com/innodb-%E5%85%A8%E6%96%87%E6%A4%9C%E7%B4%A2-n-gram-parser/" target="_blank">CREATE TABLE文で簡単にパーサーを指定できる構文のサポート</a>、 設定やクエリの組立で考えないといけない事が減った事で導入障壁がかなり下がっている。 ※4.1と5.0でサービス導入経験がある私の個人的な比較感想です。</p>
 
 <p>FULLTEXT INDEXも他のINDEXと同様にデータ更新・削除の際にINDEXのrebuildが走るので更新時の負荷には注意が必要で、FULLTEXT INDEXの場合は「rebuild負荷が列に含まれる単語数に比例する」「rebuildでの断片化が起こりやすい」という固有の注意点もあり、「件数が多い」「FULLTEXT INDEXを貼ったカラムの更新頻度が激しい」という条件が揃ったテーブルへの導入は十分な検証の上で実施した方が良さそう。</p>
 
@@ -79,7 +79,7 @@
 
 <h2 id="やること">やること</h2>
 
-<p><a href="http://www.houjin-bangou.nta.go.jp/download/zenken/#csv-unicode">国税庁が公開している法人番号データ</a>を使って検証してみる。データ件数が100万件強程度になるように東京・大阪・海外 の3種類をマージしたデータを使った。用意したデータとテーブルについては<a href="https://github.com/practice-goldeneggg/mysql-innodb-fts">githubにupしている</a>。charsetをutf8mb4にしているのは、utf8だと登録時にエラーになる文字を含んだ法人が複数存在する為。collationはデフォルトであるuft8mb4_general_ciを使用する。</p>
+<p><a href="http://www.houjin-bangou.nta.go.jp/download/zenken/#csv-unicode" target="_blank">国税庁が公開している法人番号データ</a>を使って検証してみる。データ件数が100万件強程度になるように東京・大阪・海外 の3種類をマージしたデータを使った。用意したデータとテーブルについては<a href="https://github.com/practice-goldeneggg/mysql-innodb-fts" target="_blank">githubにupしている</a>。charsetをutf8mb4にしているのは、utf8だと登録時にエラーになる文字を含んだ法人が複数存在する為。collationはデフォルトであるuft8mb4_general_ciを使用する。</p>
 <div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="o">&gt;</span> <span class="k">show</span> <span class="k">collation</span> <span class="k">like</span> <span class="s1">&#39;utf8mb4%&#39;</span> <span class="err">\</span><span class="k">G</span><span class="p">;</span>
 <span class="o">***************************</span> <span class="mi">1</span><span class="p">.</span> <span class="k">row</span> <span class="o">***************************</span>
 <span class="k">Collation</span><span class="p">:</span> <span class="n">utf8mb4_general_ci</span>
@@ -180,7 +180,7 @@
 <li>FULLTEXT INDEXを使っての部分一致</li>
 </ul>
 
-<p>の2パターンで比較してみる。<a href="https://dev.mysql.com/doc/refman/5.7/en/fulltext-search.html">全文検索モード</a>については、検索対象が固有名詞で自然言語による曖昧検索を行うと検索結果に含まれるノイズが増えそう＝法人番号社名検索という用途には不向き という判断で、<a href="https://dev.mysql.com/doc/refman/5.7/en/fulltext-boolean.html">BOOLEAN MODE</a>で厳密にマッチする検索を行う。</p>
+<p>の2パターンで比較してみる。<a href="https://dev.mysql.com/doc/refman/5.7/en/fulltext-search.html" target="_blank">全文検索モード</a>については、検索対象が固有名詞で自然言語による曖昧検索を行うと検索結果に含まれるノイズが増えそう＝法人番号社名検索という用途には不向き という判断で、<a href="https://dev.mysql.com/doc/refman/5.7/en/fulltext-boolean.html" target="_blank">BOOLEAN MODE</a>で厳密にマッチする検索を行う。</p>
 
 <p>まず name, en_name の2カラムを対象に &ldquo;コード&rdquo; という文字列でLIKE検索(2カラム分のLIKE条件をORで結合）と全文検索の結果を比較してみると、前者が約1.2sec、後者が約0.2secと、全文検索によってパフォーマンスが良くなった。</p>
 <div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="n">mysql</span><span class="o">&gt;</span> <span class="k">EXPLAIN</span> <span class="k">SELECT</span> <span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span> <span class="k">FROM</span> <span class="n">corporate_nums</span> <span class="k">WHERE</span> <span class="n">name</span> <span class="k">LIKE</span> <span class="s1">&#39;%コード%&#39;</span> <span class="k">or</span> <span class="n">en_name</span> <span class="k">LIKE</span> <span class="s1">&#39;%コード%&#39;</span><span class="p">;</span>
@@ -285,7 +285,7 @@
 <footer class="row text-center footer">
   <hr />
   
-  <h6 class="text-center copyright">© 2019. Fuminori Sakamoto. <a href="http://creativecommons.org/licenses/by/3.0/">Some Rights Reserved</a>.</h6>
+  <h6 class="text-center copyright">© 2019. Fuminori Sakamoto. <a href="http://creativecommons.org/licenses/by/3.0/" target="_blank">Some Rights Reserved</a>.</h6>
   
   <h6 class="text-center powered">Powered by <a href="https://gohugo.io/">Hugo</a> &amp; <a href="https://github.com/shenoybr/hugo-goa">Goa</a>.</h6>
   

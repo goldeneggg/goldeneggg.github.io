@@ -93,11 +93,11 @@
 </span><span class="c1"></span><span class="p">}</span></code></pre></div>
 <h2 id="例1-一部メソッドを別処理に差し替え">例1：一部メソッドを別処理に差し替え</h2>
 
-<p>無名インタフェースの埋め込み例として本家コードで参考になるのが<a href="https://github.com/golang/go/blob/master/src/sort/sort.go#L242">sort/sort.go のこの実装</a> です。<code>reverse</code>構造体のコメントにも書いてある通りこうした無名インタフェースを埋め込んだ構造体を利用する事で「一部のメソッドだけ別の実装に差し替える」という事を実現しています。</p>
+<p>無名インタフェースの埋め込み例として本家コードで参考になるのが<a href="https://github.com/golang/go/blob/master/src/sort/sort.go#L242" target="_blank">sort/sort.go のこの実装</a> です。<code>reverse</code>構造体のコメントにも書いてある通りこうした無名インタフェースを埋め込んだ構造体を利用する事で「一部のメソッドだけ別の実装に差し替える」という事を実現しています。</p>
 
 <p>単純なサンプルコードはこんな感じで、Intfというinterfaceを実装済のAという構造体を <code>ReplaceMethodZ</code> に渡すと、MethodZの挙動だけが異なる別の構造体を取得するという挙動になります。</p>
 
-<p>（同じコードはこちら → <a href="https://play.golang.org/p/mh803JB5RSt">https://play.golang.org/p/mh803JB5RSt</a> ）</p>
+<p>（同じコードはこちら → <a href="https://play.golang.org/p/mh803JB5RSt" target="_blank">https://play.golang.org/p/mh803JB5RSt</a> ）</p>
 <div class="highlight"><pre class="chroma"><code class="language-go" data-lang="go"><span class="kn">package</span> <span class="nx">main</span>
 
 <span class="kn">import</span> <span class="p">(</span>
@@ -146,7 +146,7 @@
 
 <p>sort.goの例は「インタフェースの全メソッドを実装済である構造体をあるメソッドに渡し、渡されたメソッド内で一部メソッドの実装を差し替える（上書きする）」という例でしたが、 下記のような「そもそもインタフェースのメソッドが部分的にしか実装されていない」ようなコードも書くことが出来ます。</p>
 
-<p>（同じコードはこちら → <a href="https://play.golang.org/p/8YvXVtw91Mc">https://play.golang.org/p/8YvXVtw91Mc</a> ）</p>
+<p>（同じコードはこちら → <a href="https://play.golang.org/p/8YvXVtw91Mc" target="_blank">https://play.golang.org/p/8YvXVtw91Mc</a> ）</p>
 <div class="highlight"><pre class="chroma"><code class="language-go" data-lang="go"><span class="kn">package</span> <span class="nx">main</span>
 
 <span class="kn">import</span> <span class="s">&#34;fmt&#34;</span>
@@ -201,7 +201,7 @@
 
 <h3 id="aws-sdk-go-での例">aws-sdk-go での例</h3>
 
-<p>SQSへのアクセスが発生するアプリケーションのテストを、アクセス部分だけmockして書く例が<a href="https://aws.amazon.com/jp/blogs/developer/mocking-out-then-aws-sdk-for-go-for-unit-testing/">AWS Developer Blogで紹介されています</a>。詳細はリンク先を読んでいただくとして、リンク先のSQSでの例以外にも、例えばEC2でも<a href="https://docs.aws.amazon.com/sdk-for-go/api/service/ec2/ec2iface/">ec2iface というパッケージ</a>が用意されています。このパッケージの<code>EC2API</code>というインタフェースが公式の、</p>
+<p>SQSへのアクセスが発生するアプリケーションのテストを、アクセス部分だけmockして書く例が<a href="https://aws.amazon.com/jp/blogs/developer/mocking-out-then-aws-sdk-for-go-for-unit-testing/" target="_blank">AWS Developer Blogで紹介されています</a>。詳細はリンク先を読んでいただくとして、リンク先のSQSでの例以外にも、例えばEC2でも<a href="https://docs.aws.amazon.com/sdk-for-go/api/service/ec2/ec2iface/" target="_blank">ec2iface というパッケージ</a>が用意されています。このパッケージの<code>EC2API</code>というインタフェースが公式の、</p>
 
 <blockquote>
 <p>Package ec2iface provides an interface to enable mocking the Amazon Elastic Compute Cloud service client for testing your code.</p>
@@ -209,7 +209,7 @@
 
 <p>という紹介コメントの通り、テスト時のmock化をサポートしてくれるインタフェースになります。</p>
 
-<p>実際には下記のような書き方で「アクセスが発生する部分だけ、テスト時にmockする」事が出来ます。EC2のインスタンス一覧を取得する場合なら <a href="https://docs.aws.amazon.com/sdk-for-go/api/service/ec2/#EC2.DescribeInstances">DescribeInstances メソッド</a> をmockすると良いです。</p>
+<p>実際には下記のような書き方で「アクセスが発生する部分だけ、テスト時にmockする」事が出来ます。EC2のインスタンス一覧を取得する場合なら <a href="https://docs.aws.amazon.com/sdk-for-go/api/service/ec2/#EC2.DescribeInstances" target="_blank">DescribeInstances メソッド</a> をmockすると良いです。</p>
 <div class="highlight"><pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// 本体のコード
 </span><span class="c1"></span>
 <span class="c1">// ec2ifaceのインタフェースを無名で埋め込んだクライアント用構造体
@@ -284,10 +284,10 @@
 <h2 id="ブックマーク">ブックマーク</h2>
 
 <ul>
-<li><a href="https://stackoverflow.com/questions/24537443/meaning-of-a-struct-with-embedded-anonymous-interface">go - Meaning of a struct with embedded anonymous interface? - Stack Overflow</a></li>
-<li><a href="https://aws.amazon.com/jp/blogs/developer/mocking-out-then-aws-sdk-for-go-for-unit-testing/">Mocking Out the AWS SDK for Go for Unit Testing | AWS Developer Blog</a></li>
-<li><a href="https://qiita.com/tenntenn/items/bba69d84a1e0b67c4db8">インタフェースを埋込む #golang - Qiita</a></li>
-<li><a href="https://qiita.com/tenntenn/items/eac962a49c56b2b15ee8#%E5%9F%8B%E3%82%81%E8%BE%BC%E3%81%BF%E3%82%92%E4%BD%BF%E3%81%A3%E3%81%9F%E3%82%A4%E3%83%B3%E3%82%BF%E3%83%95%E3%82%A7%E3%83%BC%E3%82%B9%E3%81%AE%E5%8B%95%E7%9A%84%E5%AE%9F%E8%A3%85">埋め込みを使ったインタフェースの動的実装</a></li>
+<li><a href="https://stackoverflow.com/questions/24537443/meaning-of-a-struct-with-embedded-anonymous-interface" target="_blank">go - Meaning of a struct with embedded anonymous interface? - Stack Overflow</a></li>
+<li><a href="https://aws.amazon.com/jp/blogs/developer/mocking-out-then-aws-sdk-for-go-for-unit-testing/" target="_blank">Mocking Out the AWS SDK for Go for Unit Testing | AWS Developer Blog</a></li>
+<li><a href="https://qiita.com/tenntenn/items/bba69d84a1e0b67c4db8" target="_blank">インタフェースを埋込む #golang - Qiita</a></li>
+<li><a href="https://qiita.com/tenntenn/items/eac962a49c56b2b15ee8#%E5%9F%8B%E3%82%81%E8%BE%BC%E3%81%BF%E3%82%92%E4%BD%BF%E3%81%A3%E3%81%9F%E3%82%A4%E3%83%B3%E3%82%BF%E3%83%95%E3%82%A7%E3%83%BC%E3%82%B9%E3%81%AE%E5%8B%95%E7%9A%84%E5%AE%9F%E8%A3%85" target="_blank">埋め込みを使ったインタフェースの動的実装</a></li>
 </ul>
 
   </div>
@@ -327,7 +327,7 @@
 <footer class="row text-center footer">
   <hr />
   
-  <h6 class="text-center copyright">© 2019. Fuminori Sakamoto. <a href="http://creativecommons.org/licenses/by/3.0/">Some Rights Reserved</a>.</h6>
+  <h6 class="text-center copyright">© 2019. Fuminori Sakamoto. <a href="http://creativecommons.org/licenses/by/3.0/" target="_blank">Some Rights Reserved</a>.</h6>
   
   <h6 class="text-center powered">Powered by <a href="https://gohugo.io/">Hugo</a> &amp; <a href="https://github.com/shenoybr/hugo-goa">Goa</a>.</h6>
   

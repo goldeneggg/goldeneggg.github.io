@@ -81,7 +81,7 @@
 
 <ul>
 <li>axiosなどのモジュールに依存した既存のNode.js Lambda Functionがある</li>
-<li>このfunctionで使用しているモジュールを<a href="https://docs.aws.amazon.com/ja_jp/lambda/latest/dg/configuration-layers.html#configuration-layers-path">AWS Lambda Layers</a>に移行し、aws-sam-cliでデプロイする</li>
+<li>このfunctionで使用しているモジュールを<a href="https://docs.aws.amazon.com/ja_jp/lambda/latest/dg/configuration-layers.html#configuration-layers-path" target="_blank">AWS Lambda Layers</a>に移行し、aws-sam-cliでデプロイする</li>
 <li>既存functionで個別にnpm installしていたモジュールを削除し、デプロイしたLayerを使用するように変更する</li>
 <li>Layer移行後も既存functionが <code>sam local invoke</code> コマンドでローカルで実行できる事を確認する</li>
 <li>Layerを使うように変更した既存functionをデプロイする</li>
@@ -109,7 +109,7 @@ SAM CLI, version <span class="m">0</span>.10.0</code></pre></div>
 <h2 id="既存functionで使用中のモジュールをlayersに移行する">既存Functionで使用中のモジュールをLayersに移行する</h2>
 
 <p>Layer用のプロジェクトディレクトリを作成し、Layer化したいnpmモジュールをインストールします。
-ディレクトリの構成は<a href="https://docs.aws.amazon.com/ja_jp/lambda/latest/dg/configuration-layers.html#configuration-layers-path">公式ドキュメントの記載</a> の通り <code>nodejs/node_modules</code> という構成になるようにします。</p>
+ディレクトリの構成は<a href="https://docs.aws.amazon.com/ja_jp/lambda/latest/dg/configuration-layers.html#configuration-layers-path" target="_blank">公式ドキュメントの記載</a> の通り <code>nodejs/node_modules</code> という構成になるようにします。</p>
 <div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh">$ <span class="nb">cd</span> &lt;PROJECT_ROOT&gt;
 $ mkdir nodejs
 
@@ -142,7 +142,7 @@ $ aws s3 mb s3://<span class="si">${</span><span class="nv">S3_BUCKET</span><spa
 $ aws s3 cp layer.zip s3://<span class="si">${</span><span class="nv">S3_BUCKET</span><span class="si">}</span>/<span class="si">${</span><span class="nv">S3_FOLDER</span><span class="si">}</span>/</code></pre></div>
 <h3 id="aws-samのテンプレートを作成">AWS SAMのテンプレートを作成</h3>
 
-<p>デプロイテンプレートを作成します。テンプレートの形式は<a href="https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlesslayerversion">SAMの公式ドキュメント</a> を参考にします。<code>ContentUri</code> がS3にアップロードしたzipのURLになっている事がポイントです。</p>
+<p>デプロイテンプレートを作成します。テンプレートの形式は<a href="https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlesslayerversion" target="_blank">SAMの公式ドキュメント</a> を参考にします。<code>ContentUri</code> がS3にアップロードしたzipのURLになっている事がポイントです。</p>
 <div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh">$ vi template.yaml</code></pre></div><div class="highlight"><pre class="chroma"><code class="language-yaml" data-lang="yaml">AWSTemplateFormatVersion<span class="p">:</span><span class="w"> </span><span class="s1">&#39;2010-09-09&#39;</span><span class="w">
 </span><span class="w"></span>Transform<span class="p">:</span><span class="w"> </span>AWS<span class="p">::</span>Serverless-<span class="ld">2016-10-31</span><span class="w">
 </span><span class="w"></span>Description<span class="p">:</span><span class="w"> </span><span class="sd">&gt;
@@ -221,7 +221,7 @@ $ npm install</code></pre></div>
 <div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh">$ aws lambda list-layer-versions --layer-name my-layer <span class="p">|</span> grep LayerVersionArn
 
             <span class="s2">&#34;LayerVersionArn&#34;</span>: <span class="s2">&#34;arn:aws:lambda:REGION:ACCOUNT_ID:layer:my-layer:1&#34;</span>,</code></pre></div>
-<p>確認したARNを使用して、functionのテンプレートファイルをLayerを使用する形式に修正します。<a href="https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction">こちらのドキュメント</a> に記載の通り、functionのリソース定義のProperties指定に <code>Layers</code> というセクションを追加し、そこにLayerのARNを設定します。</p>
+<p>確認したARNを使用して、functionのテンプレートファイルをLayerを使用する形式に修正します。<a href="https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction" target="_blank">こちらのドキュメント</a> に記載の通り、functionのリソース定義のProperties指定に <code>Layers</code> というセクションを追加し、そこにLayerのARNを設定します。</p>
 <div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh">$ <span class="nb">cd</span> &lt;FUNCTION_ROOT&gt;
 $ vi template.yaml</code></pre></div><div class="highlight"><pre class="chroma"><code class="language-yaml" data-lang="yaml">Resources<span class="p">:</span><span class="w">
 </span><span class="w">  </span>HelloWorldFunction<span class="p">:</span><span class="w">
@@ -246,7 +246,7 @@ Downloading arn:aws:lambda:ap-northeast-1:123456789012:layer:my-layer:1  <span c
 :</code></pre></div>
 <h3 id="注意点-layers設定時のハマりどころ">注意点: Layers設定時のハマりどころ</h3>
 
-<p><a href="https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction">こちらのドキュメント</a>の例では、template.yamlの <code>Layers</code> セクションで組み込み関数 <code>Fn::Sub</code> の短縮形 <code>!Sub</code> が使われているのですが、これはlocalでの実行時は機能しません。この内容で <code>sam local invoke</code> を行うと、<code>Fn::Sub</code> 関数で期待している変数置換が実行されずLayerのARNが正しい内容で処理されない為、Layer Functionのダウンロードが実行されません。その結果「layerに含まれているモジュールが見つからない」という旨のエラーになってしまいます。localでの実行も考慮するなら、LayersのARNは文字列のみで記載するか、あるいは <code>Ref</code> 関数で「文字列のみで記載された別リソースを参照する」という手段で記述します。</p>
+<p><a href="https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction" target="_blank">こちらのドキュメント</a>の例では、template.yamlの <code>Layers</code> セクションで組み込み関数 <code>Fn::Sub</code> の短縮形 <code>!Sub</code> が使われているのですが、これはlocalでの実行時は機能しません。この内容で <code>sam local invoke</code> を行うと、<code>Fn::Sub</code> 関数で期待している変数置換が実行されずLayerのARNが正しい内容で処理されない為、Layer Functionのダウンロードが実行されません。その結果「layerに含まれているモジュールが見つからない」という旨のエラーになってしまいます。localでの実行も考慮するなら、LayersのARNは文字列のみで記載するか、あるいは <code>Ref</code> 関数で「文字列のみで記載された別リソースを参照する」という手段で記述します。</p>
 
 <h3 id="デプロイ-公開-1">デプロイ/公開</h3>
 
@@ -295,10 +295,10 @@ $ vi template.yaml</code></pre></div><div class="highlight"><pre class="chroma">
 <h2 id="ブックマーク">ブックマーク</h2>
 
 <ul>
-<li><a href="https://docs.aws.amazon.com/ja_jp/lambda/latest/dg/configuration-layers.html">AWS Lambda レイヤー - AWS Lambda</a></li>
-<li><a href="https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md">serverless-application-model/2016-10-31.md</a></li>
-<li><a href="https://github.com/awsdocs/aws-sam-developer-guide">awsdocs/aws-sam-developer-guide</a></li>
-<li><a href="https://dev.classmethod.jp/server-side/serverless/aws-lambda-typescript-lambda-layers-deploy/">AWS Lambda ( Typescript ) の Lambda Layers 活用、開発、デプロイ考察 ｜ DevelopersIO</a></li>
+<li><a href="https://docs.aws.amazon.com/ja_jp/lambda/latest/dg/configuration-layers.html" target="_blank">AWS Lambda レイヤー - AWS Lambda</a></li>
+<li><a href="https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md" target="_blank">serverless-application-model/2016-10-31.md</a></li>
+<li><a href="https://github.com/awsdocs/aws-sam-developer-guide" target="_blank">awsdocs/aws-sam-developer-guide</a></li>
+<li><a href="https://dev.classmethod.jp/server-side/serverless/aws-lambda-typescript-lambda-layers-deploy/" target="_blank">AWS Lambda ( Typescript ) の Lambda Layers 活用、開発、デプロイ考察 ｜ DevelopersIO</a></li>
 </ul>
 
   </div>
@@ -340,7 +340,7 @@ $ vi template.yaml</code></pre></div><div class="highlight"><pre class="chroma">
 <footer class="row text-center footer">
   <hr />
   
-  <h6 class="text-center copyright">© 2019. Fuminori Sakamoto. <a href="http://creativecommons.org/licenses/by/3.0/">Some Rights Reserved</a>.</h6>
+  <h6 class="text-center copyright">© 2019. Fuminori Sakamoto. <a href="http://creativecommons.org/licenses/by/3.0/" target="_blank">Some Rights Reserved</a>.</h6>
   
   <h6 class="text-center powered">Powered by <a href="https://gohugo.io/">Hugo</a> &amp; <a href="https://github.com/shenoybr/hugo-goa">Goa</a>.</h6>
   

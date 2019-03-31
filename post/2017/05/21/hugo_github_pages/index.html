@@ -71,7 +71,7 @@
 
 <h2 id="github-pages用のリポジトリを作成">Github Pages用のリポジトリを作成</h2>
 
-<p>Github Pages にブログを公開するに辺り、まずは <a href="https://help.github.com/articles/configuring-a-publishing-source-for-github-pages/">こちらの公式の記事</a>を参考に</p>
+<p>Github Pages にブログを公開するに辺り、まずは <a href="https://help.github.com/articles/configuring-a-publishing-source-for-github-pages/" target="_blank">こちらの公式の記事</a>を参考に</p>
 
 <ul>
 <li><code>pages</code> というリポジトリ - 記事のソースファイル置き場</li>
@@ -86,7 +86,7 @@
 
 <h2 id="hugoの導入">Hugoの導入</h2>
 
-<p>サイトジェネレータの選定だが、Go製の <a href="https://github.com/spf13/hugo">hugo</a> が<a href="http://deeeet.com/writing/2014/12/25/hugo/" title="deeeetさんの記事">生成処理が速い</a>という評判だったのと、個人的にGoが好き という理由であまり深くは考えずHugoを使う事にした。</p>
+<p>サイトジェネレータの選定だが、Go製の <a href="https://github.com/spf13/hugo" target="_blank">hugo</a> が<a href="http://deeeet.com/writing/2014/12/25/hugo/" title="deeeetさんの記事" target="_blank">生成処理が速い</a>という評判だったのと、個人的にGoが好き という理由であまり深くは考えずHugoを使う事にした。</p>
 <div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh"><span class="c1"># brew か go get でインストール</span>
 
 $ brew install hugo
@@ -181,11 +181,11 @@ $ tree
 </span><span class="err"></span>SOME CONTENTS</code></pre></div>
 <h2 id="ローカルで内容確認">ローカルで内容確認</h2>
 <div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh">$ hugo server -D -w</code></pre></div>
-<p>↑して、 <a href="http://localhost:1313">http://localhost:1313</a> にアクセス</p>
+<p>↑して、 <a href="http://localhost:1313" target="_blank">http://localhost:1313</a> にアクセス</p>
 
 <h2 id="テーマの導入">テーマの導入</h2>
 <div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh">$ git submodule add &lt;THEME_REPOS&gt; themes/&lt;THEME_NAME&gt;</code></pre></div>
-<p>このページでは<a href="https://github.com/jbub/ghostwriter">jbub/ghostwriter: A port of ghostwriter theme to Hugo.</a>を使っている</p>
+<p>このページでは<a href="https://github.com/jbub/ghostwriter" target="_blank">jbub/ghostwriter: A port of ghostwriter theme to Hugo.</a>を使っている</p>
 
 <h2 id="コードハイライト">コードハイライト</h2>
 
@@ -246,7 +246,7 @@ $ git push origin master</code></pre></div>
 <footer class="row text-center footer">
   <hr />
   
-  <h6 class="text-center copyright">© 2019. Fuminori Sakamoto. <a href="http://creativecommons.org/licenses/by/3.0/">Some Rights Reserved</a>.</h6>
+  <h6 class="text-center copyright">© 2019. Fuminori Sakamoto. <a href="http://creativecommons.org/licenses/by/3.0/" target="_blank">Some Rights Reserved</a>.</h6>
   
   <h6 class="text-center powered">Powered by <a href="https://gohugo.io/">Hugo</a> &amp; <a href="https://github.com/shenoybr/hugo-goa">Goa</a>.</h6>
   

@@ -76,7 +76,7 @@
 <ul>
 <li>depで管理していた既存のGo製ツールをdepからgo moduleに移行してみたが、移行自体は特にハマりどころも無くスンナリいった</li>
 <li>go moduleへの移行後に依存パッケージのupgradeを実施、これもスンナリいった</li>
-<li>Travis CI + <a href="https://goreleaser.com/">GoReleaser</a> で、ビルド成果物をGithub Releasesに登録する作業 ＆ GoアプリのHomeBrewパッケージ作成・公開作業 を自動化しようと試みたが、そのCIが <code>git is currently in a dirty state</code> というコケ方をしてちょっとハマった</li>
+<li>Travis CI + <a href="https://goreleaser.com/" target="_blank">GoReleaser</a> で、ビルド成果物をGithub Releasesに登録する作業 ＆ GoアプリのHomeBrewパッケージ作成・公開作業 を自動化しようと試みたが、そのCIが <code>git is currently in a dirty state</code> というコケ方をしてちょっとハマった</li>
 <li><strong>GoReleaserは本当に便利</strong></li>
 </ul>
 
@@ -88,7 +88,7 @@ go version go1.11.5 darwin/amd64</code></pre></div>
 
 <h2 id="切り替え手順">切り替え手順</h2>
 
-<p>depを使っていたので、<code>go mod init</code> して <code>go build</code> の成功を確認できたらdep関連のファイルを削除する、という手順で完了します（<a href="https://github.com/goldeneggg/lsec2/pull/10">対応例</a>）</p>
+<p>depを使っていたので、<code>go mod init</code> して <code>go build</code> の成功を確認できたらdep関連のファイルを削除する、という手順で完了します（<a href="https://github.com/goldeneggg/lsec2/pull/10" target="_blank">対応例</a>）</p>
 
 <div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh"><span class="c1"># go mod利用時に必要な環境変数、direnvでプロジェクトディレクトリ下のみ適用されるようにしても良さそう</span>
 $ <span class="nb">export</span> <span class="nv">GO111MODULE</span><span class="o">=</span>on
@@ -155,7 +155,7 @@ $ go mod tidy
 <li>GoReleaserはdeployの際に「git diffが発生していないかどうか」をチェックしていて、上記経緯でgo.modとgo.sumのdiffが発生した事によりチェックに引っかかり、deploy CIがエラーになっていた
 
 <ul>
-<li><a href="https://travis-ci.org/goldeneggg/gat/jobs/497688613">エラーになったCI jobのログ</a></li>
+<li><a href="https://travis-ci.org/goldeneggg/gat/jobs/497688613" target="_blank">エラーになったCI jobのログ</a></li>
 </ul></li>
 </ul>
 
@@ -171,13 +171,13 @@ $ go mod tidy
 
 <h3 id="go-modules対応版-travis-ci-goreleaserの設定">go modules対応版、Travis CI &amp; GoReleaserの設定</h3>
 
-<p>go modulesを使用しているGoプロジェクトをgoreleaserでデプロイする場合、<a href="https://goreleaser.com/build/">公式サイトで紹介されている</a> ように .goreleaser.ymlのbefore hookの設定で <code>go mod download</code> を実行するようにyamlを修正します。</p>
+<p>go modulesを使用しているGoプロジェクトをgoreleaserでデプロイする場合、<a href="https://goreleaser.com/build/" target="_blank">公式サイトで紹介されている</a> ように .goreleaser.ymlのbefore hookの設定で <code>go mod download</code> を実行するようにyamlを修正します。</p>
 
 <div class="highlight"><pre class="chroma"><code class="language-yaml" data-lang="yaml">before<span class="p">:</span><span class="w">
 </span><span class="w">  </span>hooks<span class="p">:</span><span class="w">
 </span><span class="w">    </span>-<span class="w"> </span>go<span class="w"> </span>mod<span class="w"> </span>download</code></pre></div>
 
-<p>そして.travis.ymlにあるdeployフェーズの設定を（無ければ追加して）、これも<a href="https://goreleaser.com/ci/">公式サイトで紹介されている</a>通りGoReleaserを実行するように修正します。</p>
+<p>そして.travis.ymlにあるdeployフェーズの設定を（無ければ追加して）、これも<a href="https://goreleaser.com/ci/" target="_blank">公式サイトで紹介されている</a>通りGoReleaserを実行するように修正します。</p>
 
 <div class="highlight"><pre class="chroma"><code class="language-yaml" data-lang="yaml">deploy<span class="p">:</span><span class="w">
 </span><span class="w">  </span>-<span class="w"> </span>provider<span class="p">:</span><span class="w"> </span>script<span class="w">
@@ -191,7 +191,7 @@ $ go mod tidy
 
 <h2 id="補足-goreleaser-ymlの動作確認について">補足: .goreleaser.ymlの動作確認について</h2>
 
-<p><a href="https://goreleaser.com/quick-start/">GoReleaser公式のQuick Start</a> にも書いてるのですが、goreleaserコマンドには <code>--skip-publish</code> という公開（release）をskip出来るオプションと、<code>--snapshot</code> というバージョンタグのチェックを行わず現状のコードベースの成果物を出力するオプションがあり、これらを組み合わせて.goreleaser.ymlの妥当性検証を行うことが可能です。</p>
+<p><a href="https://goreleaser.com/quick-start/" target="_blank">GoReleaser公式のQuick Start</a> にも書いてるのですが、goreleaserコマンドには <code>--skip-publish</code> という公開（release）をskip出来るオプションと、<code>--snapshot</code> というバージョンタグのチェックを行わず現状のコードベースの成果物を出力するオプションがあり、これらを組み合わせて.goreleaser.ymlの妥当性検証を行うことが可能です。</p>
 
 <div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh">$ goreleaser release --snapshot --skip-publish --rm-dist
 
@@ -235,8 +235,8 @@ tar -xf <span class="s2">&#34;</span><span class="nv">$TAR_FILE</span><span clas
 <h2 id="ブックマーク">ブックマーク</h2>
 
 <ul>
-<li><a href="https://www.wantedly.com/companies/wantedly/post_articles/132270">Go 1.11 の modules・vgo を試す - 実際に使っていく上で考えないといけないこと #golang | Wantedly Engineer Blog</a></li>
-<li><a href="https://itiskj.hatenablog.com/entry/2018/08/30/101017">Migrate from dep to Golang 1.11 Modules - kenju&rsquo;s blog</a></li>
+<li><a href="https://www.wantedly.com/companies/wantedly/post_articles/132270" target="_blank">Go 1.11 の modules・vgo を試す - 実際に使っていく上で考えないといけないこと #golang | Wantedly Engineer Blog</a></li>
+<li><a href="https://itiskj.hatenablog.com/entry/2018/08/30/101017" target="_blank">Migrate from dep to Golang 1.11 Modules - kenju&rsquo;s blog</a></li>
 </ul>
 
   </div>
@@ -278,7 +278,7 @@ tar -xf <span class="s2">&#34;</span><span class="nv">$TAR_FILE</span><span clas
 <footer class="row text-center footer">
   <hr />
   
-  <h6 class="text-center copyright">© 2019. Fuminori Sakamoto. <a href="http://creativecommons.org/licenses/by/3.0/">Some Rights Reserved</a>.</h6>
+  <h6 class="text-center copyright">© 2019. Fuminori Sakamoto. <a href="http://creativecommons.org/licenses/by/3.0/" target="_blank">Some Rights Reserved</a>.</h6>
   
   <h6 class="text-center powered">Powered by <a href="https://gohugo.io/">Hugo</a> &amp; <a href="https://github.com/shenoybr/hugo-goa">Goa</a>.</h6>
   
