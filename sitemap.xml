@@ -3,42 +3,20 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
+    <loc>https://horizoon.jp/categories/</loc>
+    <lastmod>2019-03-16T12:03:00+09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
     <loc>https://horizoon.jp/post/2019/03/16/go_embedded_interface/</loc>
     <lastmod>2019-03-16T12:03:00+09:00</lastmod>
   </url>
   
   <url>
-    <loc>https://horizoon.jp/post/2019/03/06/mysql8_3x/</loc>
-    <lastmod>2019-03-06T12:15:00+09:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://horizoon.jp/post/2019/02/26/git_conflict_vim/</loc>
-    <lastmod>2019-02-26T14:41:00+09:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://horizoon.jp/post/2019/02/25/dep_to_go_mod/</loc>
-    <lastmod>2019-02-25T08:17:54+09:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://horizoon.jp/post/2019/02/07/lambda_layer_nodejs8/</loc>
-    <lastmod>2019-02-07T14:42:54+09:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://horizoon.jp/post/2018/11/19/mysql_innodb_fts/</loc>
-    <lastmod>2018-11-19T03:21:36+09:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://horizoon.jp/post/2017/05/21/hugo_github_pages/</loc>
-    <lastmod>2017-05-21T12:54:19+09:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://horizoon.jp/about/</loc>
+    <loc>https://horizoon.jp/post/</loc>
+    <lastmod>2019-03-16T12:03:00+09:00</lastmod>
+    <priority>0</priority>
   </url>
   
   <url>
@@ -48,50 +26,8 @@
   </url>
   
   <url>
-    <loc>https://horizoon.jp/categories/aws-lambda/</loc>
-    <lastmod>2019-02-07T14:42:54+09:00</lastmod>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>https://horizoon.jp/categories/aws-sam/</loc>
-    <lastmod>2019-02-07T14:42:54+09:00</lastmod>
-    <priority>0</priority>
-  </url>
-  
-  <url>
     <loc>https://horizoon.jp/categories/aws-sdk-go/</loc>
     <lastmod>2019-03-16T12:03:00+09:00</lastmod>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>https://horizoon.jp/categories/</loc>
-    <lastmod>2019-03-16T12:03:00+09:00</lastmod>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>https://horizoon.jp/categories/diff/</loc>
-    <lastmod>2019-02-26T14:41:00+09:00</lastmod>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>https://horizoon.jp/categories/document-store/</loc>
-    <lastmod>2019-03-06T12:15:00+09:00</lastmod>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>https://horizoon.jp/categories/full-text-search/</loc>
-    <lastmod>2018-11-19T03:21:36+09:00</lastmod>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>https://horizoon.jp/categories/git/</loc>
-    <lastmod>2019-02-26T14:41:00+09:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -108,20 +44,19 @@
   </url>
   
   <url>
-    <loc>https://horizoon.jp/categories/goreleaser/</loc>
-    <lastmod>2019-02-25T08:17:54+09:00</lastmod>
+    <loc>https://horizoon.jp/</loc>
+    <lastmod>2019-03-16T12:03:00+09:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>https://horizoon.jp/categories/hugo/</loc>
-    <lastmod>2017-05-21T12:54:19+09:00</lastmod>
-    <priority>0</priority>
+    <loc>https://horizoon.jp/post/2019/03/06/mysql8_3x/</loc>
+    <lastmod>2019-03-06T12:15:00+09:00</lastmod>
   </url>
   
   <url>
-    <loc>https://horizoon.jp/categories/javascript/</loc>
-    <lastmod>2019-02-07T14:42:54+09:00</lastmod>
+    <loc>https://horizoon.jp/categories/document-store/</loc>
+    <lastmod>2019-03-06T12:15:00+09:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -138,19 +73,67 @@
   </url>
   
   <url>
-    <loc>https://horizoon.jp/categories/node.js/</loc>
+    <loc>https://horizoon.jp/post/2019/02/26/git_conflict_vim/</loc>
+    <lastmod>2019-02-26T14:41:00+09:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://horizoon.jp/categories/diff/</loc>
+    <lastmod>2019-02-26T14:41:00+09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://horizoon.jp/categories/git/</loc>
+    <lastmod>2019-02-26T14:41:00+09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://horizoon.jp/categories/vim/</loc>
+    <lastmod>2019-02-26T14:41:00+09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://horizoon.jp/post/2019/02/25/dep_to_go_mod/</loc>
+    <lastmod>2019-02-25T08:17:54+09:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://horizoon.jp/categories/goreleaser/</loc>
+    <lastmod>2019-02-25T08:17:54+09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://horizoon.jp/categories/travis-ci/</loc>
+    <lastmod>2019-02-25T08:17:54+09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://horizoon.jp/categories/aws-lambda/</loc>
     <lastmod>2019-02-07T14:42:54+09:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>https://horizoon.jp/post/</loc>
-    <lastmod>2019-03-16T12:03:00+09:00</lastmod>
+    <loc>https://horizoon.jp/categories/aws-sam/</loc>
+    <lastmod>2019-02-07T14:42:54+09:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>https://horizoon.jp/projects/</loc>
+    <loc>https://horizoon.jp/categories/javascript/</loc>
+    <lastmod>2019-02-07T14:42:54+09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://horizoon.jp/categories/node.js/</loc>
+    <lastmod>2019-02-07T14:42:54+09:00</lastmod>
+    <priority>0</priority>
   </url>
   
   <url>
@@ -166,31 +149,48 @@
   </url>
   
   <url>
+    <loc>https://horizoon.jp/post/2019/02/07/lambda_layer_nodejs8/</loc>
+    <lastmod>2019-02-07T14:42:54+09:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://horizoon.jp/post/2018/11/19/mysql_innodb_fts/</loc>
+    <lastmod>2018-11-19T03:21:36+09:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://horizoon.jp/categories/full-text-search/</loc>
+    <lastmod>2018-11-19T03:21:36+09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://horizoon.jp/post/2017/05/21/hugo_github_pages/</loc>
+    <lastmod>2017-05-21T12:54:19+09:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://horizoon.jp/categories/hugo/</loc>
+    <lastmod>2017-05-21T12:54:19+09:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
     <loc>https://horizoon.jp/categories/static-site/</loc>
     <lastmod>2017-05-21T12:54:19+09:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
+    <loc>https://horizoon.jp/about/</loc>
+  </url>
+  
+  <url>
+    <loc>https://horizoon.jp/projects/</loc>
+  </url>
+  
+  <url>
     <loc>https://horizoon.jp/tags/</loc>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>https://horizoon.jp/categories/travis-ci/</loc>
-    <lastmod>2019-02-25T08:17:54+09:00</lastmod>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>https://horizoon.jp/categories/vim/</loc>
-    <lastmod>2019-02-26T14:41:00+09:00</lastmod>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>https://horizoon.jp/</loc>
-    <lastmod>2019-03-16T12:03:00+09:00</lastmod>
     <priority>0</priority>
   </url>
   
