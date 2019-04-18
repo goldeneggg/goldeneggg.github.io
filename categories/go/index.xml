@@ -6,17 +6,17 @@
     <description>Recent content in Go on horizoon</description>
     <generator>Hugo -- gohugo.io</generator>
     <copyright>&amp;copy; Fuminori Sakamoto 2018</copyright>
-    <lastBuildDate>Wed, 17 Apr 2019 09:43:00 +0900</lastBuildDate>
+    <lastBuildDate>Thu, 18 Apr 2019 09:43:00 +0900</lastBuildDate>
     
 	<atom:link href="https://horizoon.jp/categories/go/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
       <title>Go: module modeでも躊躇なくcontributeしたければ知っておくと良さそうなこと</title>
-      <link>https://horizoon.jp/post/2019/04/17/contributing_with_gomodules/</link>
-      <pubDate>Wed, 17 Apr 2019 09:43:00 +0900</pubDate>
+      <link>https://horizoon.jp/post/2019/04/18/contributing_with_gomodules/</link>
+      <pubDate>Thu, 18 Apr 2019 09:43:00 +0900</pubDate>
       
-      <guid>https://horizoon.jp/post/2019/04/17/contributing_with_gomodules/</guid>
+      <guid>https://horizoon.jp/post/2019/04/18/contributing_with_gomodules/</guid>
       <description>Summary Go1.13がリリースされてGo Modulesのmodule modeがデフォルトになったら、例えばプロジェクトのCONTRIBUTING.mdあたりには何を書いておくと良さそうか？
  「公式ブログ（和訳）を読んでくれ」と書いておく 「公式Wikiを読んでくれ」と書いておく Module-awareモードに最適化した手順を記載しておいて、開発の敷居を下げておく Happy Contributing!!  前提条件 $ go version go version go1.12.4 darwin/amd64 # GO111MODULE=on して、常にModule-awareモードとなる状態で検証 $ export GO111MODULE=on GoプロジェクトにおけるCONTRIBUTING.md githubにプロジェクトを公開する際に、
  ルート docs .github  の3つの内いずれかのディレクトリに contributing* というパターン名（大文字でも可）が付いたファイルを置いておくと、pull-request作成時に「ここにガイドラインがあるよ」と通知してくれるようになります。慣例としてこのファイルは CONTRIBUTING.md という名前で用意されている事が多いです。
