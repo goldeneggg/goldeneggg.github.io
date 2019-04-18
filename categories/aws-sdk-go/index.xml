@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>aws-sdk-go on horizoon</title>
+    <title>Aws Sdk Go on horizoon</title>
     <link>https://horizoon.jp/categories/aws-sdk-go/</link>
-    <description>Recent content in aws-sdk-go on horizoon</description>
+    <description>Recent content in Aws Sdk Go on horizoon</description>
     <generator>Hugo -- gohugo.io</generator>
     <copyright>&amp;copy; Fuminori Sakamoto 2018</copyright>
     <lastBuildDate>Sat, 16 Mar 2019 12:03:00 +0900</lastBuildDate>

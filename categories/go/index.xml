@@ -1,15 +1,32 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>go on horizoon</title>
+    <title>Go on horizoon</title>
     <link>https://horizoon.jp/categories/go/</link>
-    <description>Recent content in go on horizoon</description>
+    <description>Recent content in Go on horizoon</description>
     <generator>Hugo -- gohugo.io</generator>
     <copyright>&amp;copy; Fuminori Sakamoto 2018</copyright>
-    <lastBuildDate>Sat, 16 Mar 2019 12:03:00 +0900</lastBuildDate>
+    <lastBuildDate>Wed, 17 Apr 2019 09:43:00 +0900</lastBuildDate>
     
 	<atom:link href="https://horizoon.jp/categories/go/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Go: module modeでも躊躇なくcontributeしたければ知っておくと良さそうなこと</title>
+      <link>https://horizoon.jp/post/2019/04/17/contributing_with_gomodules/</link>
+      <pubDate>Wed, 17 Apr 2019 09:43:00 +0900</pubDate>
+      
+      <guid>https://horizoon.jp/post/2019/04/17/contributing_with_gomodules/</guid>
+      <description>Summary Go1.13がリリースされてGo Modulesのmodule modeがデフォルトになったら、例えばプロジェクトのCONTRIBUTING.mdあたりには何を書いておくと良さそうか？
+ 「公式ブログ（和訳）を読んでくれ」と書いておく 「公式Wikiを読んでくれ」と書いておく Module-awareモードに最適化した手順を記載しておいて、開発の敷居を下げておく Happy Contributing!!  前提条件 $ go version go version go1.12.4 darwin/amd64 # GO111MODULE=on して、常にModule-awareモードとなる状態で検証 $ export GO111MODULE=on GoプロジェクトにおけるCONTRIBUTING.md githubにプロジェクトを公開する際に、
+ ルート docs .github  の3つの内いずれかのディレクトリに contributing* というパターン名（大文字でも可）が付いたファイルを置いておくと、pull-request作成時に「ここにガイドラインがあるよ」と通知してくれるようになります。慣例としてこのファイルは CONTRIBUTING.md という名前で用意されている事が多いです。
+このファイルには主に環境構築・テストの実行方法・pull-requestの送り方 などを記載しますが、Goプロジェクトでは「最初に $GOPATH 下にソースを持ってくる」事が前提になっている手順をよく見かけます（自作プロジェクトでもそうしていました）。
+Go ModulesのModule-awareモードがデフォルト挙動になるGo1.13以降では、ソースをcloneしてくるディレクトリは何処でも良い＝必ずしも$GOPATH下にソースを持ってくる必要は無くなりますし、依存ライブラリの追加・削除・バージョン変更を行いたい時の流れも変わります。なので、 CONTRIBUTING.mdに書く内容もそれに合わせておくとcontributorに親切なガイドラインを提示できそうです。
+引き続き$GOPATHベースでの開発を推奨するプロジェクトもあるかも知れませんし、内容や粒度はプロジェクトの運営方針や想定読者レベルによっても変わるとは思いますが、この記事ではModule-awareモードのレールに乗る前提で整理してみます。
+1. セットアップについて書く  cd 任意のディレクトリ git clone foo cd foo make  CONTRIBUTINGの冒頭は「自分のorganizationにforkしてgit clone」と書かれている事が多いですが、clone先のディレクトリは$GOPATHに拘らず何処でも良くなりましたよという事が伝われば、それこそ git clone 任意のディレクトリ と明記しておくだけでも良いと思います。
+git clone後にmake（或いは make setup のような名前のターゲット）を叩けば依存ライブラリを取り込んでくれるようなmakeターゲットを用意しておくと初期の敷居を下げられそうです。
+$ git clone foo $ cd foo # makeを叩く =&amp;gt; go.</description>
+    </item>
     
     <item>
       <title>Goで構造体へのインタフェース埋め込み活用例（aws-sdk-goの事例など）</title>

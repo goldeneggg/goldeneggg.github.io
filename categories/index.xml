@@ -12,7 +12,7 @@
     
     
     <item>
-      <title>aws</title>
+      <title>Aws</title>
       <link>https://horizoon.jp/categories/aws/</link>
       <pubDate>Sat, 16 Mar 2019 12:03:00 +0900</pubDate>
       
@@ -21,106 +21,7 @@
     </item>
     
     <item>
-      <title>aws-sdk-go</title>
-      <link>https://horizoon.jp/categories/aws-sdk-go/</link>
-      <pubDate>Sat, 16 Mar 2019 12:03:00 +0900</pubDate>
-      
-      <guid>https://horizoon.jp/categories/aws-sdk-go/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>go</title>
-      <link>https://horizoon.jp/categories/go/</link>
-      <pubDate>Sat, 16 Mar 2019 12:03:00 +0900</pubDate>
-      
-      <guid>https://horizoon.jp/categories/go/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>golang</title>
-      <link>https://horizoon.jp/categories/golang/</link>
-      <pubDate>Sat, 16 Mar 2019 12:03:00 +0900</pubDate>
-      
-      <guid>https://horizoon.jp/categories/golang/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>document store</title>
-      <link>https://horizoon.jp/categories/document-store/</link>
-      <pubDate>Wed, 06 Mar 2019 12:15:00 +0900</pubDate>
-      
-      <guid>https://horizoon.jp/categories/document-store/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>mysql</title>
-      <link>https://horizoon.jp/categories/mysql/</link>
-      <pubDate>Wed, 06 Mar 2019 12:15:00 +0900</pubDate>
-      
-      <guid>https://horizoon.jp/categories/mysql/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>mysql8</title>
-      <link>https://horizoon.jp/categories/mysql8/</link>
-      <pubDate>Wed, 06 Mar 2019 12:15:00 +0900</pubDate>
-      
-      <guid>https://horizoon.jp/categories/mysql8/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>diff</title>
-      <link>https://horizoon.jp/categories/diff/</link>
-      <pubDate>Tue, 26 Feb 2019 14:41:00 +0900</pubDate>
-      
-      <guid>https://horizoon.jp/categories/diff/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>git</title>
-      <link>https://horizoon.jp/categories/git/</link>
-      <pubDate>Tue, 26 Feb 2019 14:41:00 +0900</pubDate>
-      
-      <guid>https://horizoon.jp/categories/git/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>vim</title>
-      <link>https://horizoon.jp/categories/vim/</link>
-      <pubDate>Tue, 26 Feb 2019 14:41:00 +0900</pubDate>
-      
-      <guid>https://horizoon.jp/categories/vim/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>goreleaser</title>
-      <link>https://horizoon.jp/categories/goreleaser/</link>
-      <pubDate>Mon, 25 Feb 2019 08:17:54 +0900</pubDate>
-      
-      <guid>https://horizoon.jp/categories/goreleaser/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>travis ci</title>
-      <link>https://horizoon.jp/categories/travis-ci/</link>
-      <pubDate>Mon, 25 Feb 2019 08:17:54 +0900</pubDate>
-      
-      <guid>https://horizoon.jp/categories/travis-ci/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>aws lambda</title>
+      <title>Aws Lambda</title>
       <link>https://horizoon.jp/categories/aws-lambda/</link>
       <pubDate>Thu, 07 Feb 2019 14:42:54 +0900</pubDate>
       
@@ -129,7 +30,7 @@
     </item>
     
     <item>
-      <title>aws sam</title>
+      <title>Aws Sam</title>
       <link>https://horizoon.jp/categories/aws-sam/</link>
       <pubDate>Thu, 07 Feb 2019 14:42:54 +0900</pubDate>
       
@@ -138,43 +39,34 @@
     </item>
     
     <item>
-      <title>javascript</title>
-      <link>https://horizoon.jp/categories/javascript/</link>
-      <pubDate>Thu, 07 Feb 2019 14:42:54 +0900</pubDate>
+      <title>Aws Sdk Go</title>
+      <link>https://horizoon.jp/categories/aws-sdk-go/</link>
+      <pubDate>Sat, 16 Mar 2019 12:03:00 +0900</pubDate>
       
-      <guid>https://horizoon.jp/categories/javascript/</guid>
+      <guid>https://horizoon.jp/categories/aws-sdk-go/</guid>
       <description></description>
     </item>
     
     <item>
-      <title>node.js</title>
-      <link>https://horizoon.jp/categories/node.js/</link>
-      <pubDate>Thu, 07 Feb 2019 14:42:54 +0900</pubDate>
+      <title>Diff</title>
+      <link>https://horizoon.jp/categories/diff/</link>
+      <pubDate>Tue, 26 Feb 2019 14:41:00 +0900</pubDate>
       
-      <guid>https://horizoon.jp/categories/node.js/</guid>
+      <guid>https://horizoon.jp/categories/diff/</guid>
       <description></description>
     </item>
     
     <item>
-      <title>serverless</title>
-      <link>https://horizoon.jp/categories/serverless/</link>
-      <pubDate>Thu, 07 Feb 2019 14:42:54 +0900</pubDate>
+      <title>Document Store</title>
+      <link>https://horizoon.jp/categories/document-store/</link>
+      <pubDate>Wed, 06 Mar 2019 12:15:00 +0900</pubDate>
       
-      <guid>https://horizoon.jp/categories/serverless/</guid>
+      <guid>https://horizoon.jp/categories/document-store/</guid>
       <description></description>
     </item>
     
     <item>
-      <title>slack</title>
-      <link>https://horizoon.jp/categories/slack/</link>
-      <pubDate>Thu, 07 Feb 2019 14:42:54 +0900</pubDate>
-      
-      <guid>https://horizoon.jp/categories/slack/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>full text search</title>
+      <title>Full Text Search</title>
       <link>https://horizoon.jp/categories/full-text-search/</link>
       <pubDate>Mon, 19 Nov 2018 03:21:36 +0900</pubDate>
       
@@ -183,7 +75,61 @@
     </item>
     
     <item>
-      <title>hugo</title>
+      <title>Git</title>
+      <link>https://horizoon.jp/categories/git/</link>
+      <pubDate>Tue, 26 Feb 2019 14:41:00 +0900</pubDate>
+      
+      <guid>https://horizoon.jp/categories/git/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Github</title>
+      <link>https://horizoon.jp/categories/github/</link>
+      <pubDate>Wed, 17 Apr 2019 09:43:00 +0900</pubDate>
+      
+      <guid>https://horizoon.jp/categories/github/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Go</title>
+      <link>https://horizoon.jp/categories/go/</link>
+      <pubDate>Wed, 17 Apr 2019 09:43:00 +0900</pubDate>
+      
+      <guid>https://horizoon.jp/categories/go/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Go Modules</title>
+      <link>https://horizoon.jp/categories/go-modules/</link>
+      <pubDate>Wed, 17 Apr 2019 09:43:00 +0900</pubDate>
+      
+      <guid>https://horizoon.jp/categories/go-modules/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Golang</title>
+      <link>https://horizoon.jp/categories/golang/</link>
+      <pubDate>Wed, 17 Apr 2019 09:43:00 +0900</pubDate>
+      
+      <guid>https://horizoon.jp/categories/golang/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Goreleaser</title>
+      <link>https://horizoon.jp/categories/goreleaser/</link>
+      <pubDate>Mon, 25 Feb 2019 08:17:54 +0900</pubDate>
+      
+      <guid>https://horizoon.jp/categories/goreleaser/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Hugo</title>
       <link>https://horizoon.jp/categories/hugo/</link>
       <pubDate>Sun, 21 May 2017 12:54:19 +0900</pubDate>
       
@@ -192,11 +138,83 @@
     </item>
     
     <item>
-      <title>static site</title>
+      <title>Javascript</title>
+      <link>https://horizoon.jp/categories/javascript/</link>
+      <pubDate>Thu, 07 Feb 2019 14:42:54 +0900</pubDate>
+      
+      <guid>https://horizoon.jp/categories/javascript/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Mysql</title>
+      <link>https://horizoon.jp/categories/mysql/</link>
+      <pubDate>Wed, 06 Mar 2019 12:15:00 +0900</pubDate>
+      
+      <guid>https://horizoon.jp/categories/mysql/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Mysql8</title>
+      <link>https://horizoon.jp/categories/mysql8/</link>
+      <pubDate>Wed, 06 Mar 2019 12:15:00 +0900</pubDate>
+      
+      <guid>https://horizoon.jp/categories/mysql8/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Node.js</title>
+      <link>https://horizoon.jp/categories/node.js/</link>
+      <pubDate>Thu, 07 Feb 2019 14:42:54 +0900</pubDate>
+      
+      <guid>https://horizoon.jp/categories/node.js/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Serverless</title>
+      <link>https://horizoon.jp/categories/serverless/</link>
+      <pubDate>Thu, 07 Feb 2019 14:42:54 +0900</pubDate>
+      
+      <guid>https://horizoon.jp/categories/serverless/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Slack</title>
+      <link>https://horizoon.jp/categories/slack/</link>
+      <pubDate>Thu, 07 Feb 2019 14:42:54 +0900</pubDate>
+      
+      <guid>https://horizoon.jp/categories/slack/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Static Site</title>
       <link>https://horizoon.jp/categories/static-site/</link>
       <pubDate>Sun, 21 May 2017 12:54:19 +0900</pubDate>
       
       <guid>https://horizoon.jp/categories/static-site/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Travis Ci</title>
+      <link>https://horizoon.jp/categories/travis-ci/</link>
+      <pubDate>Mon, 25 Feb 2019 08:17:54 +0900</pubDate>
+      
+      <guid>https://horizoon.jp/categories/travis-ci/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Vim</title>
+      <link>https://horizoon.jp/categories/vim/</link>
+      <pubDate>Tue, 26 Feb 2019 14:41:00 +0900</pubDate>
+      
+      <guid>https://horizoon.jp/categories/vim/</guid>
       <description></description>
     </item>
     
