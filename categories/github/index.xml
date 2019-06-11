@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Github on horizoon</title>
+    <title>github on horizoon</title>
     <link>https://horizoon.jp/categories/github/</link>
-    <description>Recent content in Github on horizoon</description>
+    <description>Recent content in github on horizoon</description>
     <generator>Hugo -- gohugo.io</generator>
     <copyright>&amp;copy; Fuminori Sakamoto 2018</copyright>
     <lastBuildDate>Thu, 18 Apr 2019 09:43:00 +0900</lastBuildDate>

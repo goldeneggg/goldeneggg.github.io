@@ -6,10 +6,21 @@
     <description>Recent content on horizoon</description>
     <generator>Hugo -- gohugo.io</generator>
     <copyright>&amp;copy; Fuminori Sakamoto 2018</copyright>
-    <lastBuildDate>Thu, 18 Apr 2019 09:43:00 +0900</lastBuildDate>
+    <lastBuildDate>Tue, 11 Jun 2019 17:16:54 +0900</lastBuildDate>
     
 	<atom:link href="https://horizoon.jp/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Travis CIによるLambdaの自動デプロイ with AWS SAM in Go</title>
+      <link>https://horizoon.jp/post/2019/06/11/sam_cicd/</link>
+      <pubDate>Tue, 11 Jun 2019 17:16:54 +0900</pubDate>
+      
+      <guid>https://horizoon.jp/post/2019/06/11/sam_cicd/</guid>
+      <description>Summary  AWS SAMで管理しているLambda Functionのデプロイ自動化を、AWS CodePipelineやAWS CodeBuildを使うことなく Travis CIを活用して行う  今回利用したLambda FunctionはGo製 Pull Requestのmasterブランチへのmerge時に、samコマンドで自動デプロイ   前提条件  Lambdaのリポジトリはgithub 各種バージョン情報は下記の通り
+$ python --version Python 2.7.12 $ pip --version pip 19.0.3 from /usr/local/lib/python2.7/dist-packages/pip (python 2.7) $ aws --version aws-cli/1.16.175 Python/2.7.12 Linux/4.15.0-1028-gcp botocore/1.12.165 $ sam --version SAM CLI, version 0.17.0   SAMで管理しているLambdaのデプロイをTravis CIで自動化したい SAMで管理しているLambdaのデプロイ自動化をTravis CIで行います。SAMで管理しているからにはSAMのテンプレートとaws-sam-cliを使ってデプロイを行いたいです。なのでTravis公式のLambdaデプロイサポートは使用しません。
+ branch != master の場合のCI  Lambdaコードのテスト Lambdaコードのlint（golintやgo vetなど） sam validate  branch == master の場合のCI, デプロイ  CI時に実施した事全て sam package sam deploy   これらを.</description>
+    </item>
     
     <item>
       <title>Go: module modeでも躊躇なくcontributeしたければ知っておくと良さそうなこと</title>
