@@ -14,7 +14,7 @@
 
 <title>Goで構造体へのインタフェース埋め込み活用例（aws-sdk-goの事例など） - horizoon</title>
 
-<meta name="generator" content="Hugo 0.55.6" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 
@@ -77,20 +77,22 @@
 
 <ol>
 <li>一部メソッドを別処理に差し替え</li>
-<li>特定のメソッドだけを実装
+
+<li><p>特定のメソッドだけを実装</p>
 
 <ul>
-<li>外部APIアクセスなどを伴う機能のテストをmockで行いたい場合に、gomockのようなmock用ライブラリに依存せずにmock化を実現</li>
-</ul></li>
-</ol>
+<li><p>外部APIアクセスなどを伴う機能のテストをmockで行いたい場合に、gomockのようなmock用ライブラリに依存せずにmock化を実現</p>
 <div class="highlight"><pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">type</span> <span class="nx">Intf</span> <span class="kd">interface</span> <span class="p">{</span>
-  <span class="nf">MethodY</span><span class="p">()</span>
-  <span class="nf">MethodZ</span><span class="p">()</span>
+<span class="nf">MethodY</span><span class="p">()</span>
+<span class="nf">MethodZ</span><span class="p">()</span>
 <span class="p">}</span>
 
 <span class="kd">type</span> <span class="nx">B</span> <span class="kd">struct</span> <span class="p">{</span>
-  <span class="nx">Intf</span>  <span class="c1">// こういう埋め込み
-</span><span class="c1"></span><span class="p">}</span></code></pre></div>
+<span class="nx">Intf</span>  <span class="c1">// こういう埋め込み
+</span><span class="c1"></span><span class="p">}</span></code></pre></div></li>
+</ul></li>
+</ol>
+
 <h2 id="例1-一部メソッドを別処理に差し替え">例1：一部メソッドを別処理に差し替え</h2>
 
 <p>無名インタフェースの埋め込み例として本家コードで参考になるのが<a href="https://github.com/golang/go/blob/master/src/sort/sort.go#L242" target="_blank">sort/sort.go のこの実装</a> です。<code>reverse</code>構造体のコメントにも書いてある通りこうした無名インタフェースを埋め込んだ構造体を利用する事で「一部のメソッドだけ別の実装に差し替える」という事を実現しています。</p>

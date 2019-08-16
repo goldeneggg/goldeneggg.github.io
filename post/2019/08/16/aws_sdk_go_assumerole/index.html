@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+<meta name="description" content="This is my portfolio. I&#39;m Web Developer, Software Engineer, Engineering Manager and Backpacker. Ruby/Rails/Go/PHP/Java/Linux/MySQL/Docker/AWS/Fintech/Payment">
+<meta name="keywords" content="developer,software engineer,technology,web,blog,freelance,hugo">
+
+<base href="https://horizoon.jp">
+
+<title>aws-sdk-go, aws-sdk-go-v2 でMFAトークンによるAssumeRoleに対応する - horizoon</title>
+
+<meta name="generator" content="Hugo 0.57.0" />
+
+
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:300,400|Roboto+Slab:400,700|Roboto:300,300i,400,400i,500,500i,700,700i">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.0/css/all.css">
+<link rel="stylesheet" href="https://horizoon.jp/css/main.css">
+<link rel="stylesheet" href="https://horizoon.jp/css/syntax.css">
+
+
+
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="/favicon-32x32.png" sizes="32x32">
+<link rel="icon" type="image/png" href="/favicon-16x16.png" sizes="16x16">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+<meta name="theme-color" content="#ffffff">
+
+</head>
+<body lang="">
+<div class="container">
+
+
+<header class="row text-left title">
+  <h1 class="title">aws-sdk-go, aws-sdk-go-v2 でMFAトークンによるAssumeRoleに対応する</h1>
+</header>
+<section id="category-pane" class="row meta">
+  
+  <div class="col-md-12">
+    <h6 class="text-left meta">
+        PUBLISHED ON 2019-08-16 
+      
+      
+      
+      —
+      
+      
+      <a class="meta" href="/categories/aws">AWS</a>, 
+      
+      <a class="meta" href="/categories/aws-sdk-go">AWS-SDK-GO</a>, 
+      
+      <a class="meta" href="/categories/go">GO</a>, 
+      
+      <a class="meta" href="/categories/golang">GOLANG</a>
+      
+      
+      
+    </h6>
+  </div>
+  
+</section>
+<section id="content-pane" class="row">
+  <div class="col-md-12 text-justify content">
+    
+
+<!-- TOC depthFrom:1 -->
+
+<ul>
+<li><a href="#summary">Summary</a></li>
+<li><a href="#前提条件">前提条件</a></li>
+<li><a href="#aws-sdk-goで標準入力からのmfaトークン入力によるassumeroleを実装する">aws-sdk-goで、標準入力からのMFAトークン入力によるAssumeRoleを実装する</a>
+
+<ul>
+<li><a href="#awscredentials-と-awsconfig-の設定内容"><code>~/.aws/credentials</code> と <code>~/.aws/config</code> の設定内容</a></li>
+<li><a href="#awssessionパッケージを活用したprofile読み込み処理の実装">aws.sessionパッケージを活用したprofile読み込み処理の実装</a></li>
+<li><a href="#この実装でassumerole不要の別profileも利用できるの">この実装でAssumeRole不要の別profileも利用できるの？</a></li>
+</ul></li>
+<li><a href="#aws-sdk-go-v2の場合">aws-sdk-go-v2の場合</a>
+
+<ul>
+<li><a href="#v2はまだカジュアルに仕様変更が行われているフェーズなので利用時はご注意を">v2はまだカジュアルに仕様変更が行われているフェーズなので、利用時はご注意を</a></li>
+</ul></li>
+</ul>
+
+<!-- /TOC -->
+
+<h2 id="summary">Summary</h2>
+
+<ul>
+<li>aws-sdk-goで、標準入力からのMFAトークン入力によるAssumeRoleを実装する</li>
+<li>aws-sdk-go-v2で、標準入力からのMFAトークン入力によるAssumeRoleを実装する</li>
+</ul>
+
+<h2 id="前提条件">前提条件</h2>
+
+<ul>
+<li>aws-sdk-go - v1.21.x</li>
+<li>aws-sdk-go-v2 - v0.10.0</li>
+</ul>
+
+<h2 id="aws-sdk-goで-標準入力からのmfaトークン入力によるassumeroleを実装する">aws-sdk-goで、標準入力からのMFAトークン入力によるAssumeRoleを実装する</h2>
+
+<p>AssumeRole便利ですよね。AssumeRole自体の詳細な説明は<a href="https://docs.aws.amazon.com/ja_jp/IAM/latest/UserGuide/tutorial_cross-account-with-roles.html" target="_blank">公式のチュートリアル</a> 等の記事に任せるとして、aws-sdk-goもMFAによるAssumeRoleに対応しています。<a href="https://github.com/goldeneggg/lsec2" target="_blank">拙作のEC2インスタンス一覧取得ツール</a> で <a href="https://github.com/goldeneggg/lsec2/pull/21" target="_blank">これを実装する機会があった</a>ので、実装方法の備忘メモを残しておきます。</p>
+
+<p>今回の要件は下記を想定しました。</p>
+
+<ul>
+<li><a href="https://docs.aws.amazon.com/ja_jp/IAM/latest/UserGuide/id_credentials_temp_use-resources.html" target="_blank">一時的セキュリティ認証情報(STS)を利用した実装</a> にはしない</li>
+<li>代わりに <a href="https://docs.aws.amazon.com/ja_jp/cli/latest/userguide/cli-configure-role.html" target="_blank">切替用のIAMロールを設定ファイル経由で使用できるようにする</a> 実装にする
+
+<ul>
+<li><code>~/.aws/credentials</code> と <code>~/.aws/config</code> に、IAMユーザのprofileと切替先ロールのprofileを定義し、これを使用する</li>
+<li>この実装にすることで、コマンドやライブラリを使う側が指定しなければならない情報（例えばRoleARNやSessionTokenなど）を削減できる</li>
+</ul></li>
+<li>実際に利用する際はMFAトークンの入力を（標準入力から）促し、普段使っている2段階認証アプリ等で表示されたトークンを入力することで、切替先ロールの各種リソースにアクセスできるようにする</li>
+</ul>
+
+<h3 id="aws-credentials-と-aws-config-の設定内容"><code>~/.aws/credentials</code> と <code>~/.aws/config</code> の設定内容</h3>
+
+<p><a href="https://docs.aws.amazon.com/ja_jp/cli/latest/userguide/cli-configure-role.html?shortFooter=true#cli-configure-role-mfa" target="_blank">公式の例</a> を参考に下記のような内容で作成しておきます。リンク先でも触れられていますが、aws-sdk-goだけに限らず、他言語のSDKやawscliでもこの設定は使い回す事が出来ます。</p>
+<div class="highlight"><pre class="chroma"><code class="language-ini" data-lang="ini"><span class="c1"># ~/.aws/credentials</span>
+<span class="c1"># IAMユーザーのアクセスキー情報が hoge という名前のprofileで定義されている</span>
+
+<span class="k">[hoge]</span>
+<span class="na">aws_access_key_id</span><span class="o">=</span><span class="s">ACCESS_KEY_ID</span>
+<span class="na">aws_secret_access_key</span><span class="o">=</span><span class="s">SECRET_ACCESS_KEY</span></code></pre></div><div class="highlight"><pre class="chroma"><code class="language-ini" data-lang="ini"><span class="c1"># ~/.aws/config</span>
+<span class="c1"># hoge profileのconfig（例ではregionのみ）と、</span>
+<span class="c1"># hogeをsource_profileとするロール切替先のprofile=dev-hoge-role、</span>
+<span class="c1"># の2つが定義されている</span>
+
+<span class="k">[profile hoge]</span>
+<span class="na">region</span><span class="o">=</span><span class="s">ap-northeast-1</span>
+
+<span class="k">[profile dev-hoge-role]</span>
+<span class="na">region</span><span class="o">=</span><span class="s">ap-northeast-1</span>
+<span class="na">source_profile</span><span class="o">=</span><span class="s">hoge</span>
+<span class="na">role_arn</span><span class="o">=</span><span class="s">arn:aws:iam::123456789012:role/DevHogeRole</span>
+<span class="na">mfa_serial</span><span class="o">=</span><span class="s">arn:aws:iam::987654321098:mfa/hoge.hugao</span></code></pre></div>
+<h3 id="aws-sessionパッケージを活用したprofile読み込み処理の実装">aws.sessionパッケージを活用したprofile読み込み処理の実装</h3>
+
+<p>今回の要件をaws-sdk-goで実装する方法は実は複数パターン提供されているのですが、 <strong>利用側が指定しなければならない情報を減らしたい（プロファイルさえ設定されていれば、その情報を使うようにしたい）</strong> という要件を達成する為に、<a href="https://godoc.org/github.com/aws/aws-sdk-go/aws/session" target="_blank">aws/session パッケージ</a> を活用した実装にします。下記に解説コメント付きでコード例を載せておきます。</p>
+<div class="highlight"><pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// configを新規生成
+</span><span class="c1"></span><span class="nx">config</span> <span class="o">:=</span> <span class="nx">aws</span><span class="p">.</span><span class="nf">NewConfig</span><span class="p">()</span>
+
+<span class="c1">// session.Options を使ってMFAによるAssumeRole設定を行う
+</span><span class="c1"></span><span class="nx">sessOpts</span> <span class="o">:=</span> <span class="nx">session</span><span class="p">.</span><span class="nx">Options</span><span class="p">{</span>
+  <span class="c1">// 先程生成したconfigをセット
+</span><span class="c1"></span>  <span class="nx">Config</span><span class="p">:</span>                  <span class="o">*</span><span class="nx">config</span><span class="p">,</span>
+
+  <span class="c1">// *切替先ロールの* profileをセット（source IAMユーザーのprofileではないので注意）
+</span><span class="c1"></span>  <span class="nx">Profile</span><span class="p">:</span>                 <span class="nx">profile</span><span class="p">,</span>  <span class="c1">// = dev-hoge-role
+</span><span class="c1"></span>
+  <span class="c1">// AssumeRole時のMFAトークン取得経路をセット。今回は標準入力を使う実装にしている
+</span><span class="c1"></span>  <span class="c1">// See: https://godoc.org/github.com/aws/aws-sdk-go/aws/session#hdr-Assume_Role_configuration
+</span><span class="c1"></span>  <span class="nx">AssumeRoleTokenProvider</span><span class="p">:</span> <span class="nx">stscreds</span><span class="p">.</span><span class="nx">StdinTokenProvider</span><span class="p">,</span>
+
+  <span class="c1">// MFA &amp; AssumeRoleという文脈とは無関係だが、
+</span><span class="c1"></span>  <span class="c1">// 実行環境で AWS_SDK_LOAD_CONFIG 環境変数がセットされていなくても ~/.aws/config ファイルを自動で読み込んでくれるようにする為に、
+</span><span class="c1"></span>  <span class="c1">// このオプションを設定しておくと便利
+</span><span class="c1"></span>  <span class="c1">// See: https://godoc.org/github.com/aws/aws-sdk-go/aws/session#hdr-Shared_Config_Fields
+</span><span class="c1"></span>  <span class="nx">SharedConfigState</span><span class="p">:</span> <span class="nx">session</span><span class="p">.</span><span class="nx">SharedConfigEnable</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="c1">// AssumeRole設定済のsession.Optionsを使ってsessionオブジェクトを生成
+</span><span class="c1"></span><span class="nx">sess</span> <span class="o">:=</span> <span class="nx">session</span><span class="p">.</span><span class="nf">Must</span><span class="p">(</span><span class="nx">session</span><span class="p">.</span><span class="nf">NewSessionWithOptions</span><span class="p">(</span><span class="nx">sessOpts</span><span class="p">))</span>
+
+<span class="c1">// sessionオブジェクトを使用する例： EC2クライアントの場合
+</span><span class="c1"></span><span class="nx">ec2Client</span> <span class="o">:=</span> <span class="nx">ec2</span><span class="p">.</span><span class="nf">New</span><span class="p">(</span><span class="nx">sess</span><span class="p">)</span></code></pre></div>
+<p><a href="https://github.com/goldeneggg/lsec2" target="_blank">先述の拙作ツール</a> はEC2インスタンス一覧を取得するCLIなのですが、この実装でMFA &amp; AssumeRoleに対応した結果、実行時に下記のようなMFAトークンの入力が促されるようになりました。</p>
+<div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh">$ lsec2 --profile hoge
+Assume Role MFA token code: <span class="o">[</span>2段階認証アプリ等から取得したトークンを入力する<span class="o">]</span></code></pre></div>
+<h3 id="この実装でassumerole不要の別profileも利用できるの">この実装でAssumeRole不要の別profileも利用できるの？</h3>
+
+<p>できます。例えば下記例のように <code>default</code> というprofileが定義されている場合、先述のコードでprofileを指定している箇所に &ldquo;default&rdquo; を指定すればOKです。AssumeRoleとは無関係のprofileなので、当然MFAトークンの入力を求められる事もありません。</p>
+<div class="highlight"><pre class="chroma"><code class="language-ini" data-lang="ini"><span class="c1"># ~/.aws/credentials</span>
+
+<span class="k">[default]</span>
+<span class="na">aws_access_key_id</span><span class="o">=</span><span class="s">ACCESS_KEY_ID</span>
+<span class="na">aws_secret_access_key</span><span class="o">=</span><span class="s">SECRET_ACCESS_KEY</span>
+
+<span class="k">[hoge]</span>
+<span class="na">:</span>
+<span class="na">:</span></code></pre></div><div class="highlight"><pre class="chroma"><code class="language-ini" data-lang="ini"><span class="c1"># ~/.aws/config</span>
+
+<span class="k">[default]</span>
+<span class="na">region</span><span class="o">=</span><span class="s">ap-northeast-1</span>
+
+<span class="k">[profile hoge]</span>
+<span class="na">:</span>
+
+<span class="k">[profile dev-hoge-role]</span>
+<span class="na">:</span></code></pre></div>
+<h2 id="aws-sdk-go-v2の場合">aws-sdk-go-v2の場合</h2>
+
+<p>v2では<a href="https://github.com/aws/aws-sdk-go-v2/issues/83" target="_blank">aws/session パッケージが削除されてしまった為(泣)</a> 別の実装を行う必要があるのですが、結論を書くと <a href="https://godoc.org/github.com/aws/aws-sdk-go-v2/aws/external#WithMFATokenFunc" target="_blank">aws/external パッケージの WithMFATokenFunc</a> の利用例をほぼそのまま使って実装できます。</p>
+
+<p>なお、configとcredentialsの両設定ファイルは、v1の実装例で紹介した設定内容をそのまま流用できます。</p>
+<div class="highlight"><pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// external.LoadDefaultAWSConfig を2つのオプション付きで呼び出す
+</span><span class="c1"></span><span class="nx">cfg</span><span class="p">,</span> <span class="nx">err</span> <span class="p">=</span> <span class="nx">external</span><span class="p">.</span><span class="nf">LoadDefaultAWSConfig</span><span class="p">(</span>
+  <span class="c1">// external.WithMFATokenFunc でMFAトークンの入力方法を設定する
+</span><span class="c1"></span>  <span class="c1">// stscreds.StdinTokenProvider は標準入力を使用するProvider
+</span><span class="c1"></span>  <span class="nx">external</span><span class="p">.</span><span class="nf">WithMFATokenFunc</span><span class="p">(</span><span class="nx">stscreds</span><span class="p">.</span><span class="nx">StdinTokenProvider</span><span class="p">),</span>
+
+  <span class="c1">// external.WithSharedConfigProfile でprofile名を設定する
+</span><span class="c1"></span>  <span class="nx">external</span><span class="p">.</span><span class="nf">WithSharedConfigProfile</span><span class="p">(</span><span class="nx">profile</span><span class="p">),</span>
+<span class="p">)</span>
+
+<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+  <span class="c1">// エラー処理
+</span><span class="c1"></span><span class="p">}</span>
+
+<span class="c1">// configオブジェクトを使用する例： EC2クライアントの場合
+</span><span class="c1"></span><span class="nx">ec2Client</span> <span class="o">:=</span> <span class="nx">ec2</span><span class="p">.</span><span class="nf">New</span><span class="p">(</span><span class="nx">cfg</span><span class="p">)</span></code></pre></div>
+<p>この件に限らずv2はconfigの取り扱い方が大幅に変更されているのですが、便利な変更の一例として ~/.aws/config ファイルを読み込む為に <code>AWS_SDK_LOAD_CONFIG</code> 環境変数の設定が不要になっています。（v1の実装時は <code>session.SharedConfigEnable</code> を設定することで <code>AWS_SDK_LOAD_CONFIG</code> 環境変数の設定漏れをカバーしていたのですが、この考慮も不要になりました）</p>
+
+<h3 id="v2はまだカジュアルに仕様変更が行われているフェーズなので-利用時はご注意を">v2はまだカジュアルに仕様変更が行われているフェーズなので、利用時はご注意を</h3>
+
+<p>v2はまだまだ活発に開発されている途上のフェーズで、docやexampleがv1の内容のまま残っていたりして、今回紹介する例と異なる実装例が公式のドキュメントで大量にHITします（そしてこれをそのまま流用しても動きません）。今回の例は本体のコード＆テストを読んで実装を行い、一応の動作確認までは済ませてある例になります。が、将来的にこの実装では動かなくなる可能性は無くは無さそうという点だけご留意ください。</p>
+
+  </div>
+</section>
+<section id="tag-pane" class="row meta">
+  
+  <div class="col-md-12">
+    <h6 class="text-right meta">
+      
+      
+      
+      
+    </h6>
+  </div>
+  
+</section>
+
+
+
+
+
+
+
+
+<section id="menu-pane" class="row menu text-center">
+  
+  
+  <span><a class="menu-item" href="https://horizoon.jp/post/2019/06/11/sam_cicd/">&lt; prev | </a></span>
+  
+  
+  <span><a class="menu-item" href="/post">post</a></span>
+  
+  
+  
+  <h4 class="text-center"><a class="menu-item" href="https://horizoon.jp">home</a></h4>
+</section>
+
+
+
+<footer class="row text-center footer">
+  <hr />
+  
+  <h6 class="text-center copyright">© 2019. Fuminori Sakamoto. <a href="http://creativecommons.org/licenses/by/3.0/" target="_blank">Some Rights Reserved</a>.</h6>
+  
+  <h6 class="text-center powered">Powered by <a href="https://gohugo.io/">Hugo</a> &amp; <a href="https://github.com/shenoybr/hugo-goa">Goa</a>.</h6>
+  
+  
+</footer>
+
+</div>
+
+
+
+
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-129776715-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
+
+

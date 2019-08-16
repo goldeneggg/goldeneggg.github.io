@@ -14,7 +14,7 @@
 
 <title>Travis CIによるLambdaの自動デプロイ with AWS SAM in Go - horizoon</title>
 
-<meta name="generator" content="Hugo 0.55.6" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 
@@ -164,7 +164,7 @@ Please add the following to your .travis.yml file:
 </span><span class="w">  </span>matrix<span class="p">:</span><span class="w">
 </span><span class="w">    </span>-<span class="w"> </span>GO111MODULE=on<span class="w">
 </span><span class="w">  </span>global<span class="p">:</span><span class="w">
-</span><span class="w">    </span>-<span class="w"> </span>AWS_DEFAULT_REGION=ap-northeast-<span class="m">1</span><span class="w">
+</span><span class="w">    </span>-<span class="w"> </span>AWS_DEFAULT_REGION=ap-northeast<span class="m">-1</span><span class="w">
 </span><span class="w">    </span>-<span class="w"> </span>secure<span class="p">:</span><span class="w"> </span>ENCRYPTED_ACCESS_KEY_ID<span class="w">
 </span><span class="w">    </span>-<span class="w"> </span>secure<span class="p">:</span><span class="w"> </span>ENCRYPTED_SECRET_ACCESS_KEY<span class="w">
 </span><span class="w">
@@ -281,6 +281,8 @@ sam deploy --template-file <span class="si">${</span><span class="nv">OUTPUT_TEM
   
   <span><a class="menu-item" href="/post">post</a></span>
   
+  
+  <span><a class="menu-item" href="https://horizoon.jp/post/2019/08/16/aws_sdk_go_assumerole/"> | next &gt;</a></span>
   
   
   <h4 class="text-center"><a class="menu-item" href="https://horizoon.jp">home</a></h4>

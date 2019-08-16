@@ -14,7 +14,7 @@
 
 <title>既存のLambda FunctionにLambda Layersを導入し、AWS SAMで管理する（Node.js） - horizoon</title>
 
-<meta name="generator" content="Hugo 0.55.6" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 
@@ -144,7 +144,7 @@ $ aws s3 cp layer.zip s3://<span class="si">${</span><span class="nv">S3_BUCKET<
 
 <p>デプロイテンプレートを作成します。テンプレートの形式は<a href="https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlesslayerversion" target="_blank">SAMの公式ドキュメント</a> を参考にします。<code>ContentUri</code> がS3にアップロードしたzipのURLになっている事がポイントです。</p>
 <div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh">$ vi template.yaml</code></pre></div><div class="highlight"><pre class="chroma"><code class="language-yaml" data-lang="yaml">AWSTemplateFormatVersion<span class="p">:</span><span class="w"> </span><span class="s1">&#39;2010-09-09&#39;</span><span class="w">
-</span><span class="w"></span>Transform<span class="p">:</span><span class="w"> </span>AWS<span class="p">::</span>Serverless-<span class="ld">2016-10-31</span><span class="w">
+</span><span class="w"></span>Transform<span class="p">:</span><span class="w"> </span>AWS<span class="p">::</span>Serverless<span class="m">-2016-10-31</span><span class="w">
 </span><span class="w"></span>Description<span class="p">:</span><span class="w"> </span><span class="sd">&gt;
 </span><span class="sd">  My Node.js modules Layer</span><span class="w">
 </span><span class="w">
@@ -156,7 +156,7 @@ $ aws s3 cp layer.zip s3://<span class="si">${</span><span class="nv">S3_BUCKET<
 </span><span class="w">      </span>Description<span class="p">:</span><span class="w"> </span>My<span class="w"> </span>Node.js<span class="w"> </span>modules<span class="w"> </span>layer<span class="w">
 </span><span class="w">      </span>ContentUri<span class="p">:</span><span class="w"> </span><span class="s1">&#39;s3://S3_BUCKET/S3_FOLDER/layer.zip&#39;</span><span class="w">
 </span><span class="w">      </span>CompatibleRuntimes<span class="p">:</span><span class="w">
-</span><span class="w">        </span>-<span class="w"> </span>nodejs8.<span class="m">10</span><span class="w">
+</span><span class="w">        </span>-<span class="w"> </span>nodejs8<span class="m">.10</span><span class="w">
 </span><span class="w">      </span>LicenseInfo<span class="p">:</span><span class="w"> </span><span class="s1">&#39;Available under the MIT-0 license.&#39;</span><span class="w">
 </span><span class="w">      </span>RetentionPolicy<span class="p">:</span><span class="w"> </span>Retain</code></pre></div>
 <p>作成したらaws-sam-cliでyamlのvalidationをしておくと良いです。</p>
@@ -229,12 +229,12 @@ $ vi template.yaml</code></pre></div><div class="highlight"><pre class="chroma">
 </span><span class="w">    </span>Properties<span class="p">:</span><span class="w">
 </span><span class="w">      </span>CodeUri<span class="p">:</span><span class="w"> </span>hello_world/<span class="w">
 </span><span class="w">      </span>Handler<span class="p">:</span><span class="w"> </span>app.lambdaHandler<span class="w">
-</span><span class="w">      </span>Runtime<span class="p">:</span><span class="w"> </span>nodejs8.<span class="m">10</span><span class="w">
+</span><span class="w">      </span>Runtime<span class="p">:</span><span class="w"> </span>nodejs8<span class="m">.10</span><span class="w">
 </span><span class="w">
 </span><span class="w">      </span>(中略)<span class="w">
 </span><span class="w">
 </span><span class="w">      </span>Layers<span class="p">:</span><span class="w">
-</span><span class="w">        </span>-<span class="w"> </span>arn<span class="p">:</span>aws<span class="p">:</span>lambda<span class="p">:</span>ap-northeast-<span class="m">1</span><span class="p">:</span><span class="m">123456789012</span><span class="p">:</span>layer<span class="p">:</span>my-layer<span class="p">:</span><span class="m">1</span></code></pre></div>
+</span><span class="w">        </span>-<span class="w"> </span>arn<span class="p">:</span>aws<span class="p">:</span>lambda<span class="p">:</span>ap-northeast<span class="m">-1</span><span class="p">:</span><span class="m">123456789012</span><span class="p">:</span>layer<span class="p">:</span>my-layer<span class="p">:</span><span class="m">1</span></code></pre></div>
 <h3 id="ローカルでfunctionの動作確認">ローカルでfunctionの動作確認</h3>
 
 <p>Layerに移行した＆移行済モジュールを削除したので、ローカルでの実行がこれまで通り行えるかを確認しておきます。ローカルでの実行コマンドはLayer移行前から変える必要は無く、これまで通り <code>sal local invoke</code> コマンドを使用します。</p>
@@ -285,13 +285,13 @@ $ vi template.yaml</code></pre></div><div class="highlight"><pre class="chroma">
 </span><span class="w">    </span>Properties<span class="p">:</span><span class="w">
 </span><span class="w">      </span>CodeUri<span class="p">:</span><span class="w"> </span>hello_world/<span class="w">
 </span><span class="w">      </span>Handler<span class="p">:</span><span class="w"> </span>app.lambdaHandler<span class="w">
-</span><span class="w">      </span>Runtime<span class="p">:</span><span class="w"> </span>nodejs8.<span class="m">10</span><span class="w">
+</span><span class="w">      </span>Runtime<span class="p">:</span><span class="w"> </span>nodejs8<span class="m">.10</span><span class="w">
 </span><span class="w">
 </span><span class="w">      </span>(中略)<span class="w">
 </span><span class="w">
 </span><span class="w">      </span><span class="c"># my-layer:2 にバージョンアップ</span><span class="w">
 </span><span class="w">      </span>Layers<span class="p">:</span><span class="w">
-</span><span class="w">        </span>-<span class="w"> </span>arn<span class="p">:</span>aws<span class="p">:</span>lambda<span class="p">:</span>ap-northeast-<span class="m">1</span><span class="p">:</span><span class="m">123456789012</span><span class="p">:</span>layer<span class="p">:</span>my-layer<span class="p">:</span><span class="m">2</span></code></pre></div>
+</span><span class="w">        </span>-<span class="w"> </span>arn<span class="p">:</span>aws<span class="p">:</span>lambda<span class="p">:</span>ap-northeast<span class="m">-1</span><span class="p">:</span><span class="m">123456789012</span><span class="p">:</span>layer<span class="p">:</span>my-layer<span class="p">:</span><span class="m">2</span></code></pre></div>
 <h2 id="ブックマーク">ブックマーク</h2>
 
 <ul>

@@ -14,7 +14,7 @@
 
 <title>MySQL5.7 InnoDB のN-gram全文検索を検証＆サービス導入した - horizoon</title>
 
-<meta name="generator" content="Hugo 0.55.6" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 
@@ -227,17 +227,19 @@
 <ul>
 <li>例えばLIMITによるページングの為に結果をソートするようなケースで、適合性以外でORDER BYすると100% filesortが発生するので避ける。IDのような主キーでORDER BYしても同じ</li>
 <li>全文検索結果のソートは 適合性が高い順 がデフォルトの挙動で、<code>MATCH AGAINST</code> をSELECT対象にも含めると適合性が取得でき、この適合性でソートすると速い</li>
-<li>↓こういうSQLを書くと速い。<code>ASC</code> だと遅くなってしまう</li>
-</ul>
+
+<li><p>↓こういうSQLを書くと速い。<code>ASC</code> だと遅くなってしまう</p>
 <div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="k">SELECT</span>
-  <span class="o">*</span><span class="p">,</span>
-  <span class="k">MATCH</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="n">AGAINST</span> <span class="p">(</span><span class="s1">&#39;東京&#39;</span> <span class="k">IN</span> <span class="nb">BOOLEAN</span> <span class="k">MODE</span><span class="p">)</span> <span class="k">AS</span> <span class="n">score</span>
+<span class="o">*</span><span class="p">,</span>
+<span class="k">MATCH</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="n">AGAINST</span> <span class="p">(</span><span class="s1">&#39;東京&#39;</span> <span class="k">IN</span> <span class="nb">BOOLEAN</span> <span class="k">MODE</span><span class="p">)</span> <span class="k">AS</span> <span class="n">score</span>
 <span class="k">FROM</span>
-  <span class="n">corporate_nums</span>
+<span class="n">corporate_nums</span>
 <span class="k">WHERE</span>
-  <span class="k">MATCH</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="n">AGAINST</span> <span class="p">(</span><span class="s1">&#39;東京&#39;</span> <span class="k">IN</span> <span class="nb">BOOLEAN</span> <span class="k">MODE</span><span class="p">)</span>
+<span class="k">MATCH</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="n">AGAINST</span> <span class="p">(</span><span class="s1">&#39;東京&#39;</span> <span class="k">IN</span> <span class="nb">BOOLEAN</span> <span class="k">MODE</span><span class="p">)</span>
 <span class="k">ORDER</span> <span class="k">BY</span> <span class="n">score</span>  <span class="k">DESC</span>  <span class="c1">-- ASCは遅くなる
-</span><span class="c1"></span><span class="k">LIMIT</span> <span class="mi">0</span><span class="p">,</span><span class="mi">10</span></code></pre></div>
+</span><span class="c1"></span><span class="k">LIMIT</span> <span class="mi">0</span><span class="p">,</span><span class="mi">10</span></code></pre></div></li>
+</ul>
+
 <h2 id="memo-fulltext-indexの挙動について">MEMO: FULLTEXT INDEXの挙動について</h2>
 
 <ul>
