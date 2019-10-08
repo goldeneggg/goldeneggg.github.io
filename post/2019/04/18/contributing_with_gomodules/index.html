@@ -12,17 +12,19 @@
 
 <base href="https://horizoon.jp">
 
-<title>Go: module modeでも躊躇なくcontributeしたければ知っておくと良さそうなこと - horizoon</title>
+<title>
+  horizoon - Go: module modeでも躊躇なくcontributeしたければ知っておくと良さそうなこと 
+</title>
 
-<meta name="generator" content="Hugo 0.57.0" />
+<meta name="generator" content="Hugo 0.58.3" />
 
 
 
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:300,400|Roboto+Slab:400,700|Roboto:300,300i,400,400i,500,500i,700,700i">
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.0/css/all.css">
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css" integrity="sha384-oS3vJWv+0UjzBfQzYUhtDYW+Pj2yciDJxpsK1OYPAYjqT085Qq/1cq5FLXAZQ7Ay" crossorigin="anonymous">
 <link rel="stylesheet" href="https://horizoon.jp/css/main.css">
-<link rel="stylesheet" href="https://horizoon.jp/css/syntax.css">
+<link rel="stylesheet" href="https://horizoon.jp/css/custom.css">
 
 
 
@@ -70,8 +72,9 @@
 <section id="content-pane" class="row">
   <div class="col-md-12 text-justify content">
     
+    
 
-<h2 id="summary">Summary</h2>
+<h1 id="summary">Summary</h1>
 
 <p>Go1.13がリリースされてGo Modulesの<a href="https://github.com/golang/go/wiki/Modules#when-do-i-get-old-behavior-vs-new-module-based-behavior" target="_blank">module mode</a>がデフォルトになったら、例えばプロジェクトのCONTRIBUTING.mdあたりには何を書いておくと良さそうか？</p>
 
@@ -82,13 +85,13 @@
 <li>Happy Contributing!!</li>
 </ul>
 
-<h2 id="前提条件">前提条件</h2>
+<h1 id="前提条件">前提条件</h1>
 <div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh">$ go version
 go version go1.12.4 darwin/amd64
 
 <span class="c1"># GO111MODULE=on して、常にModule-awareモードとなる状態で検証</span>
 $ <span class="nb">export</span> <span class="nv">GO111MODULE</span><span class="o">=</span>on</code></pre></div>
-<h2 id="goプロジェクトにおけるcontributing-md">GoプロジェクトにおけるCONTRIBUTING.md</h2>
+<h1 id="goプロジェクトにおけるcontributing-md">GoプロジェクトにおけるCONTRIBUTING.md</h1>
 
 <p>githubにプロジェクトを公開する際に、</p>
 
@@ -106,7 +109,7 @@ $ <span class="nb">export</span> <span class="nv">GO111MODULE</span><span class=
 
 <p>引き続き$GOPATHベースでの開発を推奨するプロジェクトもあるかも知れませんし、内容や粒度はプロジェクトの運営方針や想定読者レベルによっても変わるとは思いますが、この記事ではModule-awareモードのレールに乗る前提で整理してみます。</p>
 
-<h2 id="1-セットアップについて書く">1. セットアップについて書く</h2>
+<h1 id="1-セットアップについて書く">1. セットアップについて書く</h1>
 
 <ol>
 <li><code>cd 任意のディレクトリ</code></li>
@@ -133,7 +136,7 @@ go: extracting github.com/urfave/cli v1.20.0
 go: extracting github.com/aws/aws-sdk-go v1.17.14</code></pre></div>
 <p>例えば  <a href="https://github.com/golang/go/wiki/Modules#daily-workflow" target="_blank"><code>go build</code> でもgo.modファイルの内容を元にした依存ライブラリの取り込みが動いてくれる</a>ので、<code>go build</code> をmakeのデフォルトターゲットとして用意しておくのも良さそうです。</p>
 
-<h2 id="2-依存ライブラリを追加したい時の手順を書く">2. 依存ライブラリを追加したい時の手順を書く</h2>
+<h1 id="2-依存ライブラリを追加したい時の手順を書く">2. 依存ライブラリを追加したい時の手順を書く</h1>
 
 <ol>
 <li>コードを編集・import文を追加</li>
@@ -159,11 +162,11 @@ require (
 )
 </code></pre>
 
-<h3 id="incompatible-と出力されるのはどういう時か"><code>+incompatible</code> と出力されるのはどういう時か？</h3>
+<h2 id="incompatible-と出力されるのはどういう時か"><code>+incompatible</code> と出力されるのはどういう時か？</h2>
 
 <p>たまたま今回使わせてもらったppで <code>+incompatible</code> というsuffixがgo.modに出力されましたが、これは <a href="https://github.com/golang/go/wiki/Modules#semantic-import-versioning" target="_blank">「ライブラリがGo Modulesに未対応で、且つMAJORバージョンが2以上」の場合に発生</a>します（が、開発への悪影響がある訳ではありません）</p>
 
-<h2 id="3-ライブラリのminorバージョン又はpatchバージョン-或いはその両方-を更新する手順を書く">3. ライブラリのMINORバージョン又はPATCHバージョン（或いはその両方）を更新する手順を書く</h2>
+<h1 id="3-ライブラリのminorバージョン又はpatchバージョン-或いはその両方-を更新する手順を書く">3. ライブラリのMINORバージョン又はPATCHバージョン（或いはその両方）を更新する手順を書く</h1>
 
 <ol>
 <li><code>go list -u -m PACKAGE</code> - PACKAGEで利用可能な最新バージョンが存在するか確認
@@ -201,7 +204,7 @@ go: extracting github.com/aws/aws-sdk-go v1.18.6
 <span class="c1"># go.modの更新内容を確認</span>
 $ cat go.mod <span class="p">|</span> grep aws-sdk-go
         github.com/aws/aws-sdk-go v1.18.6</code></pre></div>
-<h2 id="4-全てのライブラリを最新versionに更新する手順を書く">4. 全てのライブラリを最新versionに更新する手順を書く</h2>
+<h1 id="4-全てのライブラリを最新versionに更新する手順を書く">4. 全てのライブラリを最新versionに更新する手順を書く</h1>
 
 <ol>
 <li><code>go list -u -m all</code> - 全依存ライブラリに更新可能バージョン（があればそれ）を付けて一覧表示・確認</li>
@@ -227,7 +230,7 @@ go: downloading github.com/aws/aws-sdk-go v1.19.11
 go: extracting github.com/aws/aws-sdk-go v1.19.11
 :
 :</code></pre></div>
-<h2 id="5-使わなくなったライブラリを削除する手順を書く">5. 使わなくなったライブラリを削除する手順を書く</h2>
+<h1 id="5-使わなくなったライブラリを削除する手順を書く">5. 使わなくなったライブラリを削除する手順を書く</h1>
 
 <ol>
 <li>コードを編集・import文を削除</li>
@@ -239,7 +242,7 @@ go: extracting github.com/aws/aws-sdk-go v1.19.11
 
 <p>公式Wikiでは、<a href="https://github.com/golang/go/wiki/Modules#releasing-modules-all-versions" target="_blank">依存関係を整理しても互換性が担保されている事を（直接・間接いずれの依存に関わらず）テストしたいなら <code>go test all</code> を実行すると良い、と紹介されています</a>が、全依存ライブラリのテストが実行されるのでもしやるなら開発PCのリソースに余裕がある時が良いです。</p>
 
-<h2 id="thanks-to">Thanks to</h2>
+<h1 id="thanks-to">Thanks to</h1>
 
 <ul>
 <li><a href="https://github.com/golang/go/wiki/Modules" target="_blank">Modules · golang/go Wiki</a></li>
@@ -289,10 +292,13 @@ go: extracting github.com/aws/aws-sdk-go v1.19.11
 <footer class="row text-center footer">
   <hr />
   
-  <h6 class="text-center copyright">© 2019. Fuminori Sakamoto. <a href="http://creativecommons.org/licenses/by/3.0/" target="_blank">Some Rights Reserved</a>.</h6>
+  <h6 class="text-center copyright">© 2019. horizoon. <a href="http://creativecommons.org/licenses/by/3.0/" target="_blank">Some Rights Reserved</a>.</h6>
   
-  <h6 class="text-center powered">Powered by <a href="https://gohugo.io/">Hugo</a> &amp; <a href="https://github.com/shenoybr/hugo-goa">Goa</a>.</h6>
+  <h6 class="text-center powered">Powered by <a href="https://gohugo.io/">Hugo  v0.58.3</a> &amp; <a href="https://github.com/shenoybr/hugo-goa">Goa</a>.</h6>
   
+      
+      <h6><a href="" aria-label="RSS Feed"><i class="fas fa-rss" aria-hidden="true"></i></a></h6>
+    
   
 </footer>
 
@@ -317,6 +323,7 @@ if (!doNotTrack) {
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 <script src="js/main.js"></script>
+<script src="js/custom.js"></script>
 </body>
 </html>
 

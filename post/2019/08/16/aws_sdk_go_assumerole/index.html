@@ -12,17 +12,19 @@
 
 <base href="https://horizoon.jp">
 
-<title>aws-sdk-go, aws-sdk-go-v2 でMFAトークンによるAssumeRoleに対応する - horizoon</title>
+<title>
+  horizoon - aws-sdk-go, aws-sdk-go-v2 でMFAトークンによるAssumeRoleに対応する 
+</title>
 
-<meta name="generator" content="Hugo 0.57.0" />
+<meta name="generator" content="Hugo 0.58.3" />
 
 
 
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:300,400|Roboto+Slab:400,700|Roboto:300,300i,400,400i,500,500i,700,700i">
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.0/css/all.css">
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css" integrity="sha384-oS3vJWv+0UjzBfQzYUhtDYW+Pj2yciDJxpsK1OYPAYjqT085Qq/1cq5FLXAZQ7Ay" crossorigin="anonymous">
 <link rel="stylesheet" href="https://horizoon.jp/css/main.css">
-<link rel="stylesheet" href="https://horizoon.jp/css/syntax.css">
+<link rel="stylesheet" href="https://horizoon.jp/css/custom.css">
 
 
 
@@ -70,43 +72,23 @@
 <section id="content-pane" class="row">
   <div class="col-md-12 text-justify content">
     
+    
 
-<!-- TOC depthFrom:1 -->
-
-<ul>
-<li><a href="#summary">Summary</a></li>
-<li><a href="#前提条件">前提条件</a></li>
-<li><a href="#aws-sdk-goで標準入力からのmfaトークン入力によるassumeroleを実装する">aws-sdk-goで、標準入力からのMFAトークン入力によるAssumeRoleを実装する</a>
-
-<ul>
-<li><a href="#awscredentials-と-awsconfig-の設定内容"><code>~/.aws/credentials</code> と <code>~/.aws/config</code> の設定内容</a></li>
-<li><a href="#awssessionパッケージを活用したprofile読み込み処理の実装">aws.sessionパッケージを活用したprofile読み込み処理の実装</a></li>
-<li><a href="#この実装でassumerole不要の別profileも利用できるの">この実装でAssumeRole不要の別profileも利用できるの？</a></li>
-</ul></li>
-<li><a href="#aws-sdk-go-v2の場合">aws-sdk-go-v2の場合</a>
-
-<ul>
-<li><a href="#v2はまだカジュアルに仕様変更が行われているフェーズなので利用時はご注意を">v2はまだカジュアルに仕様変更が行われているフェーズなので、利用時はご注意を</a></li>
-</ul></li>
-</ul>
-
-<!-- /TOC -->
-
-<h2 id="summary">Summary</h2>
+<h1 id="summary">Summary</h1>
 
 <ul>
 <li>aws-sdk-goで、標準入力からのMFAトークン入力によるAssumeRoleを実装する</li>
 <li>aws-sdk-go-v2で、標準入力からのMFAトークン入力によるAssumeRoleを実装する</li>
 </ul>
 
-<h2 id="前提条件">前提条件</h2>
+<h1 id="前提条件">前提条件</h1>
 
 <ul>
 <li>aws-sdk-go - v1.21.x</li>
 <li>aws-sdk-go-v2 - v0.10.0</li>
 </ul>
 
-<h2 id="aws-sdk-goで-標準入力からのmfaトークン入力によるassumeroleを実装する">aws-sdk-goで、標準入力からのMFAトークン入力によるAssumeRoleを実装する</h2>
+<h1 id="aws-sdk-goで-標準入力からのmfaトークン入力によるassumeroleを実装する">aws-sdk-goで、標準入力からのMFAトークン入力によるAssumeRoleを実装する</h1>
 
 <p>AssumeRole便利ですよね。AssumeRole自体の詳細な説明は<a href="https://docs.aws.amazon.com/ja_jp/IAM/latest/UserGuide/tutorial_cross-account-with-roles.html" target="_blank">公式のチュートリアル</a> 等の記事に任せるとして、aws-sdk-goもMFAによるAssumeRoleに対応しています。<a href="https://github.com/goldeneggg/lsec2" target="_blank">拙作のEC2インスタンス一覧取得ツール</a> で <a href="https://github.com/goldeneggg/lsec2/pull/21" target="_blank">これを実装する機会があった</a>ので、実装方法の備忘メモを残しておきます。</p>
 
@@ -123,7 +105,7 @@
 <li>実際に利用する際はMFAトークンの入力を（標準入力から）促し、普段使っている2段階認証アプリ等で表示されたトークンを入力することで、切替先ロールの各種リソースにアクセスできるようにする</li>
 </ul>
 
-<h3 id="aws-credentials-と-aws-config-の設定内容"><code>~/.aws/credentials</code> と <code>~/.aws/config</code> の設定内容</h3>
+<h2 id="aws-credentials-と-aws-config-の設定内容"><code>~/.aws/credentials</code> と <code>~/.aws/config</code> の設定内容</h2>
 
 <p><a href="https://docs.aws.amazon.com/ja_jp/cli/latest/userguide/cli-configure-role.html?shortFooter=true#cli-configure-role-mfa" target="_blank">公式の例</a> を参考に下記のような内容で作成しておきます。リンク先でも触れられていますが、aws-sdk-goだけに限らず、他言語のSDKやawscliでもこの設定は使い回す事が出来ます。</p>
 <div class="highlight"><pre class="chroma"><code class="language-ini" data-lang="ini"><span class="c1"># ~/.aws/credentials</span>
@@ -177,7 +159,7 @@
 <p><a href="https://github.com/goldeneggg/lsec2" target="_blank">先述の拙作ツール</a> はEC2インスタンス一覧を取得するCLIなのですが、この実装でMFA &amp; AssumeRoleに対応した結果、実行時に下記のようなMFAトークンの入力が促されるようになりました。</p>
 <div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh">$ lsec2 --profile hoge
 Assume Role MFA token code: <span class="o">[</span>2段階認証アプリ等から取得したトークンを入力する<span class="o">]</span></code></pre></div>
-<h3 id="この実装でassumerole不要の別profileも利用できるの">この実装でAssumeRole不要の別profileも利用できるの？</h3>
+<h2 id="この実装でassumerole不要の別profileも利用できるの">この実装でAssumeRole不要の別profileも利用できるの？</h2>
 
 <p>できます。例えば下記例のように <code>default</code> というprofileが定義されている場合、先述のコードでprofileを指定している箇所に &ldquo;default&rdquo; を指定すればOKです。AssumeRoleとは無関係のprofileなので、当然MFAトークンの入力を求められる事もありません。</p>
 <div class="highlight"><pre class="chroma"><code class="language-ini" data-lang="ini"><span class="c1"># ~/.aws/credentials</span>
@@ -198,7 +180,7 @@ Assume Role MFA token code: <span class="o">[</span>2段階認証アプリ等か
 
 <span class="k">[profile dev-hoge-role]</span>
 <span class="na">:</span></code></pre></div>
-<h2 id="aws-sdk-go-v2の場合">aws-sdk-go-v2の場合</h2>
+<h1 id="aws-sdk-go-v2の場合">aws-sdk-go-v2の場合</h1>
 
 <p>v2では<a href="https://github.com/aws/aws-sdk-go-v2/issues/83" target="_blank">aws/session パッケージが削除されてしまった為(泣)</a> 別の実装を行う必要があるのですが、結論を書くと <a href="https://godoc.org/github.com/aws/aws-sdk-go-v2/aws/external#WithMFATokenFunc" target="_blank">aws/external パッケージの WithMFATokenFunc</a> の利用例をほぼそのまま使って実装できます。</p>
 
@@ -221,7 +203,7 @@ Assume Role MFA token code: <span class="o">[</span>2段階認証アプリ等か
 </span><span class="c1"></span><span class="nx">ec2Client</span> <span class="o">:=</span> <span class="nx">ec2</span><span class="p">.</span><span class="nf">New</span><span class="p">(</span><span class="nx">cfg</span><span class="p">)</span></code></pre></div>
 <p>この件に限らずv2はconfigの取り扱い方が大幅に変更されているのですが、便利な変更の一例として ~/.aws/config ファイルを読み込む為に <code>AWS_SDK_LOAD_CONFIG</code> 環境変数の設定が不要になっています。（v1の実装時は <code>session.SharedConfigEnable</code> を設定することで <code>AWS_SDK_LOAD_CONFIG</code> 環境変数の設定漏れをカバーしていたのですが、この考慮も不要になりました）</p>
 
-<h3 id="v2はまだカジュアルに仕様変更が行われているフェーズなので-利用時はご注意を">v2はまだカジュアルに仕様変更が行われているフェーズなので、利用時はご注意を</h3>
+<h2 id="v2はまだカジュアルに仕様変更が行われているフェーズなので-利用時はご注意を">v2はまだカジュアルに仕様変更が行われているフェーズなので、利用時はご注意を</h2>
 
 <p>v2はまだまだ活発に開発されている途上のフェーズで、docやexampleがv1の内容のまま残っていたりして、今回紹介する例と異なる実装例が公式のドキュメントで大量にHITします（そしてこれをそのまま流用しても動きません）。今回の例は本体のコード＆テストを読んで実装を行い、一応の動作確認までは済ませてある例になります。が、将来的にこの実装では動かなくなる可能性は無くは無さそうという点だけご留意ください。</p>
 
@@ -265,10 +247,13 @@ Assume Role MFA token code: <span class="o">[</span>2段階認証アプリ等か
 <footer class="row text-center footer">
   <hr />
   
-  <h6 class="text-center copyright">© 2019. Fuminori Sakamoto. <a href="http://creativecommons.org/licenses/by/3.0/" target="_blank">Some Rights Reserved</a>.</h6>
+  <h6 class="text-center copyright">© 2019. horizoon. <a href="http://creativecommons.org/licenses/by/3.0/" target="_blank">Some Rights Reserved</a>.</h6>
   
-  <h6 class="text-center powered">Powered by <a href="https://gohugo.io/">Hugo</a> &amp; <a href="https://github.com/shenoybr/hugo-goa">Goa</a>.</h6>
+  <h6 class="text-center powered">Powered by <a href="https://gohugo.io/">Hugo  v0.58.3</a> &amp; <a href="https://github.com/shenoybr/hugo-goa">Goa</a>.</h6>
   
+      
+      <h6><a href="" aria-label="RSS Feed"><i class="fas fa-rss" aria-hidden="true"></i></a></h6>
+    
   
 </footer>
 
@@ -293,6 +278,7 @@ if (!doNotTrack) {
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 <script src="js/main.js"></script>
+<script src="js/custom.js"></script>
 </body>
 </html>
 

@@ -12,17 +12,19 @@
 
 <base href="https://horizoon.jp">
 
-<title>Goで構造体へのインタフェース埋め込み活用例（aws-sdk-goの事例など） - horizoon</title>
+<title>
+  horizoon - Goで構造体へのインタフェース埋め込み活用例（aws-sdk-goの事例など） 
+</title>
 
-<meta name="generator" content="Hugo 0.57.0" />
+<meta name="generator" content="Hugo 0.58.3" />
 
 
 
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:300,400|Roboto+Slab:400,700|Roboto:300,300i,400,400i,500,500i,700,700i">
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.0/css/all.css">
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css" integrity="sha384-oS3vJWv+0UjzBfQzYUhtDYW+Pj2yciDJxpsK1OYPAYjqT085Qq/1cq5FLXAZQ7Ay" crossorigin="anonymous">
 <link rel="stylesheet" href="https://horizoon.jp/css/main.css">
-<link rel="stylesheet" href="https://horizoon.jp/css/syntax.css">
+<link rel="stylesheet" href="https://horizoon.jp/css/custom.css">
 
 
 
@@ -70,8 +72,9 @@
 <section id="content-pane" class="row">
   <div class="col-md-12 text-justify content">
     
+    
 
-<h2 id="summary">Summary</h2>
+<h1 id="summary">Summary</h1>
 
 <p>構造体へのインタフェース埋め込み活用例 ×2</p>
 
@@ -93,7 +96,7 @@
 </ul></li>
 </ol>
 
-<h2 id="例1-一部メソッドを別処理に差し替え">例1：一部メソッドを別処理に差し替え</h2>
+<h1 id="例1-一部メソッドを別処理に差し替え">例1：一部メソッドを別処理に差し替え</h1>
 
 <p>無名インタフェースの埋め込み例として本家コードで参考になるのが<a href="https://github.com/golang/go/blob/master/src/sort/sort.go#L242" target="_blank">sort/sort.go のこの実装</a> です。<code>reverse</code>構造体のコメントにも書いてある通りこうした無名インタフェースを埋め込んだ構造体を利用する事で「一部のメソッドだけ別の実装に差し替える」という事を実現しています。</p>
 
@@ -144,7 +147,7 @@
   <span class="nx">r</span><span class="p">.</span><span class="nf">MethodY</span><span class="p">()</span> <span class="c1">// print &#34;I am A: MethodY&#34;
 </span><span class="c1"></span>  <span class="nx">r</span><span class="p">.</span><span class="nf">MethodZ</span><span class="p">()</span> <span class="c1">// print &#34;Replaced MethodZ&#34; &lt;= replaced
 </span><span class="c1"></span><span class="p">}</span></code></pre></div>
-<h2 id="例2-特定のメソッドだけを実装">例2：特定のメソッドだけを実装</h2>
+<h1 id="例2-特定のメソッドだけを実装">例2：特定のメソッドだけを実装</h1>
 
 <p>sort.goの例は「インタフェースの全メソッドを実装済である構造体をあるメソッドに渡し、渡されたメソッド内で一部メソッドの実装を差し替える（上書きする）」という例でしたが、 下記のような「そもそもインタフェースのメソッドが部分的にしか実装されていない」ようなコードも書くことが出来ます。</p>
 
@@ -201,7 +204,7 @@
 </span><span class="c1"></span><span class="p">}</span></code></pre></div>
 <p>活用例として、「テストコードでテスト用の構造体を用意し、インタフェースのメソッド全部ではなくmockしたいメソッドだけを実装したい」というケースを、gomockのような外部ライブラリに頼る事なく実現出来ます。</p>
 
-<h3 id="aws-sdk-go-での例">aws-sdk-go での例</h3>
+<h2 id="aws-sdk-go-での例">aws-sdk-go での例</h2>
 
 <p>SQSへのアクセスが発生するアプリケーションのテストを、アクセス部分だけmockして書く例が<a href="https://aws.amazon.com/jp/blogs/developer/mocking-out-then-aws-sdk-for-go-for-unit-testing/" target="_blank">AWS Developer Blogで紹介されています</a>。詳細はリンク先を読んでいただくとして、リンク先のSQSでの例以外にも、例えばEC2でも<a href="https://docs.aws.amazon.com/sdk-for-go/api/service/ec2/ec2iface/" target="_blank">ec2iface というパッケージ</a>が用意されています。このパッケージの<code>EC2API</code>というインタフェースが公式の、</p>
 
@@ -283,7 +286,7 @@
     <span class="nx">t</span><span class="p">.</span><span class="nf">Errorf</span><span class="p">(</span><span class="s">&#34;expected: %#v, but actual: %#v&#34;</span><span class="p">,</span> <span class="nx">dummy</span><span class="p">.</span><span class="nx">InstanceId</span><span class="p">,</span> <span class="nx">insts</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">InstanceId</span><span class="p">)</span>
   <span class="p">}</span>
 <span class="p">}</span></code></pre></div>
-<h2 id="ブックマーク">ブックマーク</h2>
+<h1 id="ブックマーク">ブックマーク</h1>
 
 <ul>
 <li><a href="https://stackoverflow.com/questions/24537443/meaning-of-a-struct-with-embedded-anonymous-interface" target="_blank">go - Meaning of a struct with embedded anonymous interface? - Stack Overflow</a></li>
@@ -331,10 +334,13 @@
 <footer class="row text-center footer">
   <hr />
   
-  <h6 class="text-center copyright">© 2019. Fuminori Sakamoto. <a href="http://creativecommons.org/licenses/by/3.0/" target="_blank">Some Rights Reserved</a>.</h6>
+  <h6 class="text-center copyright">© 2019. horizoon. <a href="http://creativecommons.org/licenses/by/3.0/" target="_blank">Some Rights Reserved</a>.</h6>
   
-  <h6 class="text-center powered">Powered by <a href="https://gohugo.io/">Hugo</a> &amp; <a href="https://github.com/shenoybr/hugo-goa">Goa</a>.</h6>
+  <h6 class="text-center powered">Powered by <a href="https://gohugo.io/">Hugo  v0.58.3</a> &amp; <a href="https://github.com/shenoybr/hugo-goa">Goa</a>.</h6>
   
+      
+      <h6><a href="" aria-label="RSS Feed"><i class="fas fa-rss" aria-hidden="true"></i></a></h6>
+    
   
 </footer>
 
@@ -359,6 +365,7 @@ if (!doNotTrack) {
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 <script src="js/main.js"></script>
+<script src="js/custom.js"></script>
 </body>
 </html>
 

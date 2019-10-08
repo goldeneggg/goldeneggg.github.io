@@ -12,17 +12,19 @@
 
 <base href="https://horizoon.jp">
 
-<title>既存のLambda FunctionにLambda Layersを導入し、AWS SAMで管理する（Node.js） - horizoon</title>
+<title>
+  horizoon - 既存のLambda FunctionにLambda Layersを導入し、AWS SAMで管理する（Node.js） 
+</title>
 
-<meta name="generator" content="Hugo 0.57.0" />
+<meta name="generator" content="Hugo 0.58.3" />
 
 
 
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:300,400|Roboto+Slab:400,700|Roboto:300,300i,400,400i,500,500i,700,700i">
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.0/css/all.css">
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css" integrity="sha384-oS3vJWv+0UjzBfQzYUhtDYW+Pj2yciDJxpsK1OYPAYjqT085Qq/1cq5FLXAZQ7Ay" crossorigin="anonymous">
 <link rel="stylesheet" href="https://horizoon.jp/css/main.css">
-<link rel="stylesheet" href="https://horizoon.jp/css/syntax.css">
+<link rel="stylesheet" href="https://horizoon.jp/css/custom.css">
 
 
 
@@ -76,8 +78,9 @@
 <section id="content-pane" class="row">
   <div class="col-md-12 text-justify content">
     
+    
 
-<h2 id="summary">Summary</h2>
+<h1 id="summary">Summary</h1>
 
 <ul>
 <li>axiosなどのモジュールに依存した既存のNode.js Lambda Functionがある</li>
@@ -98,7 +101,7 @@
 </ul></li>
 </ul>
 
-<h2 id="前提条件">前提条件</h2>
+<h1 id="前提条件">前提条件</h1>
 <div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh"><span class="c1"># aws-cliのバージョン</span>
 $ aws --version
 aws-cli/1.16.80 Python/3.7.1 Darwin/18.2.0 botocore/1.12.70
@@ -106,7 +109,7 @@ aws-cli/1.16.80 Python/3.7.1 Darwin/18.2.0 botocore/1.12.70
 <span class="c1"># aws-sam-cliのバージョン</span>
 $ sam --version
 SAM CLI, version <span class="m">0</span>.10.0</code></pre></div>
-<h2 id="既存functionで使用中のモジュールをlayersに移行する">既存Functionで使用中のモジュールをLayersに移行する</h2>
+<h1 id="既存functionで使用中のモジュールをlayersに移行する">既存Functionで使用中のモジュールをLayersに移行する</h1>
 
 <p>Layer用のプロジェクトディレクトリを作成し、Layer化したいnpmモジュールをインストールします。
 ディレクトリの構成は<a href="https://docs.aws.amazon.com/ja_jp/lambda/latest/dg/configuration-layers.html#configuration-layers-path" target="_blank">公式ドキュメントの記載</a> の通り <code>nodejs/node_modules</code> という構成になるようにします。</p>
@@ -125,12 +128,12 @@ $ npm install <span class="o">[</span>必要なモジュール群<span class="o"
     └── package.json
 </code></pre>
 
-<h3 id="zipでアーカイブ">zipでアーカイブ</h3>
+<h2 id="zipでアーカイブ">zipでアーカイブ</h2>
 
 <p>成果物を<code>nodejs</code> ディレクトリがトップディレクトリとなるようにアーカイブします。</p>
 <div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh">$ <span class="nb">cd</span> &lt;PROJECT_ROOT&gt;
 $ zip -r layer.zip ./</code></pre></div>
-<h3 id="zipをs3にアップロード">zipをS3にアップロード</h3>
+<h2 id="zipをs3にアップロード">zipをS3にアップロード</h2>
 
 <p>作成したzipをS3にアップロードします。バケットが別途必要であれば事前に作成しておきます。</p>
 <div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh"><span class="c1"># BUCKET, REGION, FOLDERは適宜各自の環境の内容に置き換え</span>
@@ -140,7 +143,7 @@ $ aws s3 mb s3://<span class="si">${</span><span class="nv">S3_BUCKET</span><spa
 
 <span class="c1"># この例では、zipを指定バケット・指定フォルダの下にアップロード</span>
 $ aws s3 cp layer.zip s3://<span class="si">${</span><span class="nv">S3_BUCKET</span><span class="si">}</span>/<span class="si">${</span><span class="nv">S3_FOLDER</span><span class="si">}</span>/</code></pre></div>
-<h3 id="aws-samのテンプレートを作成">AWS SAMのテンプレートを作成</h3>
+<h2 id="aws-samのテンプレートを作成">AWS SAMのテンプレートを作成</h2>
 
 <p>デプロイテンプレートを作成します。テンプレートの形式は<a href="https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlesslayerversion" target="_blank">SAMの公式ドキュメント</a> を参考にします。<code>ContentUri</code> がS3にアップロードしたzipのURLになっている事がポイントです。</p>
 <div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh">$ vi template.yaml</code></pre></div><div class="highlight"><pre class="chroma"><code class="language-yaml" data-lang="yaml">AWSTemplateFormatVersion<span class="p">:</span><span class="w"> </span><span class="s1">&#39;2010-09-09&#39;</span><span class="w">
@@ -161,7 +164,7 @@ $ aws s3 cp layer.zip s3://<span class="si">${</span><span class="nv">S3_BUCKET<
 </span><span class="w">      </span>RetentionPolicy<span class="p">:</span><span class="w"> </span>Retain</code></pre></div>
 <p>作成したらaws-sam-cliでyamlのvalidationをしておくと良いです。</p>
 <div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh">$ sam validate</code></pre></div>
-<h3 id="デプロイ-公開">デプロイ/公開</h3>
+<h2 id="デプロイ-公開">デプロイ/公開</h2>
 
 <p>aws-sam-cliでデプロイします。</p>
 <div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh">$ sam deploy --template-file ./template.yaml --stack-name layer-stack --capabilities CAPABILITY_IAM
@@ -169,7 +172,7 @@ $ aws s3 cp layer.zip s3://<span class="si">${</span><span class="nv">S3_BUCKET<
 Waiting <span class="k">for</span> changeset to be created..
 Waiting <span class="k">for</span> stack create/update to <span class="nb">complete</span>
 Successfully created/updated stack - layer-stack</code></pre></div>
-<h2 id="既存functionをlayerを使用する形式に変更する">既存functionをLayerを使用する形式に変更する</h2>
+<h1 id="既存functionをlayerを使用する形式に変更する">既存functionをLayerを使用する形式に変更する</h1>
 
 <p>今回筆者が対象にしたfunctionは下記のようなディレクトリ構成で、API Gatewayをeventトリガーとして処理を行うfunctionです。</p>
 
@@ -200,7 +203,7 @@ Successfully created/updated stack - layer-stack</code></pre></div>
 
 <p>という流れで移行作業を進めていきます。</p>
 
-<h3 id="layer移行済のモジュールを削除">Layer移行済のモジュールを削除</h3>
+<h2 id="layer移行済のモジュールを削除">Layer移行済のモジュールを削除</h2>
 
 <p>まずLayerに移行したモジュールを対象のfunctionから削除します。package.jsonのdependenciesから不要モジュールの記述を削除し、<code>npm install</code> を再実行します。</p>
 
@@ -215,7 +218,7 @@ $ vi <span class="si">${</span><span class="nv">CODE_URI</span><span class="si">
   <span class="p">}</span><span class="err">,</span>
   <span class="err">:</span></code></pre></div><div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh">$ <span class="nb">cd</span> hello_world
 $ npm install</code></pre></div>
-<h3 id="template-yamlの修正">template.yamlの修正</h3>
+<h2 id="template-yamlの修正">template.yamlの修正</h2>
 
 <p>デプロイしたLayerのARNを下記コマンドで確認します。 <code>--layer-name</code> にはLayerのtemplate.yamlで設定した <code>LayerName</code> を指定します。正常終了すると下記形式の結果が返ってきます。（REGION と ACCOUNT_ID は適宜ご自身の環境に読み替えてください）</p>
 <div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh">$ aws lambda list-layer-versions --layer-name my-layer <span class="p">|</span> grep LayerVersionArn
@@ -235,7 +238,7 @@ $ vi template.yaml</code></pre></div><div class="highlight"><pre class="chroma">
 </span><span class="w">
 </span><span class="w">      </span>Layers<span class="p">:</span><span class="w">
 </span><span class="w">        </span>-<span class="w"> </span>arn<span class="p">:</span>aws<span class="p">:</span>lambda<span class="p">:</span>ap-northeast<span class="m">-1</span><span class="p">:</span><span class="m">123456789012</span><span class="p">:</span>layer<span class="p">:</span>my-layer<span class="p">:</span><span class="m">1</span></code></pre></div>
-<h3 id="ローカルでfunctionの動作確認">ローカルでfunctionの動作確認</h3>
+<h2 id="ローカルでfunctionの動作確認">ローカルでfunctionの動作確認</h2>
 
 <p>Layerに移行した＆移行済モジュールを削除したので、ローカルでの実行がこれまで通り行えるかを確認しておきます。ローカルでの実行コマンドはLayer移行前から変える必要は無く、これまで通り <code>sal local invoke</code> コマンドを使用します。</p>
 
@@ -244,11 +247,11 @@ $ vi template.yaml</code></pre></div><div class="highlight"><pre class="chroma">
 
 Downloading arn:aws:lambda:ap-northeast-1:123456789012:layer:my-layer:1  <span class="o">[</span><span class="c1">####################################]  7298732/7298732</span>
 :</code></pre></div>
-<h3 id="注意点-layers設定時のハマりどころ">注意点: Layers設定時のハマりどころ</h3>
+<h2 id="注意点-layers設定時のハマりどころ">注意点: Layers設定時のハマりどころ</h2>
 
 <p><a href="https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction" target="_blank">こちらのドキュメント</a>の例では、template.yamlの <code>Layers</code> セクションで組み込み関数 <code>Fn::Sub</code> の短縮形 <code>!Sub</code> が使われているのですが、これはlocalでの実行時は機能しません。この内容で <code>sam local invoke</code> を行うと、<code>Fn::Sub</code> 関数で期待している変数置換が実行されずLayerのARNが正しい内容で処理されない為、Layer Functionのダウンロードが実行されません。その結果「layerに含まれているモジュールが見つからない」という旨のエラーになってしまいます。localでの実行も考慮するなら、LayersのARNは文字列のみで記載するか、あるいは <code>Ref</code> 関数で「文字列のみで記載された別リソースを参照する」という手段で記述します。</p>
 
-<h3 id="デプロイ-公開-1">デプロイ/公開</h3>
+<h2 id="デプロイ-公開-1">デプロイ/公開</h2>
 
 <p>aws-sam-cliでデプロイします。</p>
 <div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh"><span class="c1"># BUCKET, FOLDER, STACKは適宜各自の環境の内容に置き換え</span>
@@ -261,7 +264,7 @@ $ sam deploy --template-file ./serverless-output.yaml --stack-name <span class="
 Waiting <span class="k">for</span> changeset to be created..
 Waiting <span class="k">for</span> stack create/update to <span class="nb">complete</span>
 Successfully created/updated stack - layer-stack</code></pre></div>
-<h2 id="layerの更新">Layerの更新</h2>
+<h1 id="layerの更新">Layerの更新</h1>
 
 <p>node moduleの追加/削除などでLayerの更新が必要になった場合も作業の流れはほとんど変わりません。</p>
 
@@ -292,7 +295,7 @@ $ vi template.yaml</code></pre></div><div class="highlight"><pre class="chroma">
 </span><span class="w">      </span><span class="c"># my-layer:2 にバージョンアップ</span><span class="w">
 </span><span class="w">      </span>Layers<span class="p">:</span><span class="w">
 </span><span class="w">        </span>-<span class="w"> </span>arn<span class="p">:</span>aws<span class="p">:</span>lambda<span class="p">:</span>ap-northeast<span class="m">-1</span><span class="p">:</span><span class="m">123456789012</span><span class="p">:</span>layer<span class="p">:</span>my-layer<span class="p">:</span><span class="m">2</span></code></pre></div>
-<h2 id="ブックマーク">ブックマーク</h2>
+<h1 id="ブックマーク">ブックマーク</h1>
 
 <ul>
 <li><a href="https://docs.aws.amazon.com/ja_jp/lambda/latest/dg/configuration-layers.html" target="_blank">AWS Lambda レイヤー - AWS Lambda</a></li>
@@ -340,10 +343,13 @@ $ vi template.yaml</code></pre></div><div class="highlight"><pre class="chroma">
 <footer class="row text-center footer">
   <hr />
   
-  <h6 class="text-center copyright">© 2019. Fuminori Sakamoto. <a href="http://creativecommons.org/licenses/by/3.0/" target="_blank">Some Rights Reserved</a>.</h6>
+  <h6 class="text-center copyright">© 2019. horizoon. <a href="http://creativecommons.org/licenses/by/3.0/" target="_blank">Some Rights Reserved</a>.</h6>
   
-  <h6 class="text-center powered">Powered by <a href="https://gohugo.io/">Hugo</a> &amp; <a href="https://github.com/shenoybr/hugo-goa">Goa</a>.</h6>
+  <h6 class="text-center powered">Powered by <a href="https://gohugo.io/">Hugo  v0.58.3</a> &amp; <a href="https://github.com/shenoybr/hugo-goa">Goa</a>.</h6>
   
+      
+      <h6><a href="" aria-label="RSS Feed"><i class="fas fa-rss" aria-hidden="true"></i></a></h6>
+    
   
 </footer>
 
@@ -368,6 +374,7 @@ if (!doNotTrack) {
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 <script src="js/main.js"></script>
+<script src="js/custom.js"></script>
 </body>
 </html>
 

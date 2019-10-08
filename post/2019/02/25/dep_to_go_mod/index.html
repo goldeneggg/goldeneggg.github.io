@@ -12,17 +12,19 @@
 
 <base href="https://horizoon.jp">
 
-<title>depからgo modulesへの移行と、移行時にTravis CI &amp; GoReleaserでハマる（かもしれない）ポイント - horizoon</title>
+<title>
+  horizoon - depからgo modulesへの移行と、移行時にTravis CI &amp; GoReleaserでハマる（かもしれない）ポイント 
+</title>
 
-<meta name="generator" content="Hugo 0.57.0" />
+<meta name="generator" content="Hugo 0.58.3" />
 
 
 
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:300,400|Roboto+Slab:400,700|Roboto:300,300i,400,400i,500,500i,700,700i">
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.0/css/all.css">
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css" integrity="sha384-oS3vJWv+0UjzBfQzYUhtDYW+Pj2yciDJxpsK1OYPAYjqT085Qq/1cq5FLXAZQ7Ay" crossorigin="anonymous">
 <link rel="stylesheet" href="https://horizoon.jp/css/main.css">
-<link rel="stylesheet" href="https://horizoon.jp/css/syntax.css">
+<link rel="stylesheet" href="https://horizoon.jp/css/custom.css">
 
 
 
@@ -70,8 +72,9 @@
 <section id="content-pane" class="row">
   <div class="col-md-12 text-justify content">
     
+    
 
-<h2 id="summary">Summary</h2>
+<h1 id="summary">Summary</h1>
 
 <ul>
 <li>depで管理していた既存のGo製ツールをdepからgo moduleに移行してみたが、移行自体は特にハマりどころも無くスンナリいった</li>
@@ -80,13 +83,13 @@
 <li><strong>GoReleaserは本当に便利</strong></li>
 </ul>
 
-<h2 id="前提条件">前提条件</h2>
+<h1 id="前提条件">前提条件</h1>
 
 <div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh"><span class="c1"># goのバージョン</span>
 $ go version
 go version go1.11.5 darwin/amd64</code></pre></div>
 
-<h2 id="切り替え手順">切り替え手順</h2>
+<h1 id="切り替え手順">切り替え手順</h1>
 
 <p>depを使っていたので、<code>go mod init</code> して <code>go build</code> の成功を確認できたらdep関連のファイルを削除する、という手順で完了します（<a href="https://github.com/goldeneggg/lsec2/pull/10" target="_blank">対応例</a>）</p>
 
@@ -106,7 +109,7 @@ $ rm -fr vendor/
 <span class="c1"># Makefileを修正</span>
 <span class="c1"># CIの設定ファイル（今回の場合は .travis.yml）を修正</span></code></pre></div>
 
-<h2 id="依存パッケージをupgradeしてみる">依存パッケージをupgradeしてみる</h2>
+<h1 id="依存パッケージをupgradeしてみる">依存パッケージをupgradeしてみる</h1>
 
 <p>自作ツールで使用しているaws-sdk-goがv1.12.39だったのですが、最新がv1.16.36と乖離が発生していたのでupgradeしてみました。手順としては下記で問題ありません。</p>
 
@@ -123,9 +126,9 @@ $ go mod tidy
 
 <span class="c1"># tidy実行後は、go build, go test, go runあたりを実行して問題ないか動作確認</span></code></pre></div>
 
-<h2 id="ciの設定変更-travis-ci">CIの設定変更（Travis CI）</h2>
+<h1 id="ciの設定変更-travis-ci">CIの設定変更（Travis CI）</h1>
 
-<h3 id="test-ci">test CI</h3>
+<h2 id="test-ci">test CI</h2>
 
 <p>Travis CIの場合は.travis.ymlを下記の通り修正すればOKです。</p>
 
@@ -140,7 +143,7 @@ $ go mod tidy
 </span><span class="w"></span>install<span class="p">:</span><span class="w">
 </span><span class="w">  </span>-<span class="w"> </span>go<span class="w"> </span>mod<span class="w"> </span>download</code></pre></div>
 
-<h2 id="goreleaserでgoアプリのdeploy-ciを行う際の注意点">GoReleaserでGoアプリのdeploy CIを行う際の注意点</h2>
+<h1 id="goreleaserでgoアプリのdeploy-ciを行う際の注意点">GoReleaserでGoアプリのdeploy CIを行う際の注意点</h1>
 
 <p>冒頭にTravis CI + GoReleaserによる成果物自動公開を試みてハマったと書きましたが、調査した結果こういう結論でした。</p>
 
@@ -169,7 +172,7 @@ $ go mod tidy
 
 <p>のいずれかの対応が必要そうです（とはいえ本来取るべき対応策はNo.3ではないかと）。</p>
 
-<h3 id="go-modules対応版-travis-ci-goreleaserの設定">go modules対応版、Travis CI &amp; GoReleaserの設定</h3>
+<h2 id="go-modules対応版-travis-ci-goreleaserの設定">go modules対応版、Travis CI &amp; GoReleaserの設定</h2>
 
 <p>go modulesを使用しているGoプロジェクトをgoreleaserでデプロイする場合、<a href="https://goreleaser.com/build/" target="_blank">公式サイトで紹介されている</a> ように .goreleaser.ymlのbefore hookの設定で <code>go mod download</code> を実行するようにyamlを修正します。</p>
 
@@ -189,7 +192,7 @@ $ go mod tidy
 
 <p>こう設定しておけば、該当プロジェクトをmasterにmerge =&gt; tagを打ったタイミングで、Travis CIの <code>deploy</code> フェーズで設定したGoReleaserによるデプロイも実行されるようになります。</p>
 
-<h2 id="補足-goreleaser-ymlの動作確認について">補足: .goreleaser.ymlの動作確認について</h2>
+<h1 id="補足-goreleaser-ymlの動作確認について">補足: .goreleaser.ymlの動作確認について</h1>
 
 <p><a href="https://goreleaser.com/quick-start/" target="_blank">GoReleaser公式のQuick Start</a> にも書いてるのですが、goreleaserコマンドには <code>--skip-publish</code> という公開（release）をskip出来るオプションと、<code>--snapshot</code> というバージョンタグのチェックを行わず現状のコードベースの成果物を出力するオプションがあり、これらを組み合わせて.goreleaser.ymlの妥当性検証を行うことが可能です。</p>
 
@@ -206,7 +209,7 @@ $ go mod tidy
 
 <p>とはいえ実際にタグを打って成果物deploy用のCIを実行するとローカルで検証した際には見つからなかったエラーが発生する事もあり、そうなるとそのエラー解消の為にさらにreleaseを行って本チャンCIを走らせる、、、という「CIの為にrelease重ねる症候群」が起こりがちです（自分は今回ハマった件の調査の為に5つ6つはreleaseを重ねてrelease historyがだいぶ切ない事に orz&hellip;）。</p>
 
-<h3 id="公式提供のシェススクリプトをカスタマイズする">公式提供のシェススクリプトをカスタマイズする</h3>
+<h2 id="公式提供のシェススクリプトをカスタマイズする">公式提供のシェススクリプトをカスタマイズする</h2>
 
 <p>GoReleaserの場合、成果物公開用のジョブでは <code>curl -sL http://git.io/goreleaser | bash</code> というスクリプトを実行するように設定しますが、<code>http://git.io/goreleaser</code> の実体はタダのシェルスクリプトなので、これを丸っとコピーしてチェック処理やログ出力を追加したオリジナルのスクリプトに置き換えれば、いくらかは調査コストを下げる事が出来そうです。</p>
 
@@ -232,7 +235,7 @@ tar -xf <span class="s2">&#34;</span><span class="nv">$TAR_FILE</span><span clas
 </span>
 <span class="s2">&#34;</span><span class="si">${</span><span class="nv">TMPDIR</span><span class="si">}</span><span class="s2">/goreleaser&#34;</span> <span class="s2">&#34;</span><span class="nv">$@</span><span class="s2">&#34;</span></code></pre></div>
 
-<h2 id="ブックマーク">ブックマーク</h2>
+<h1 id="ブックマーク">ブックマーク</h1>
 
 <ul>
 <li><a href="https://www.wantedly.com/companies/wantedly/post_articles/132270" target="_blank">Go 1.11 の modules・vgo を試す - 実際に使っていく上で考えないといけないこと #golang | Wantedly Engineer Blog</a></li>
@@ -278,10 +281,13 @@ tar -xf <span class="s2">&#34;</span><span class="nv">$TAR_FILE</span><span clas
 <footer class="row text-center footer">
   <hr />
   
-  <h6 class="text-center copyright">© 2019. Fuminori Sakamoto. <a href="http://creativecommons.org/licenses/by/3.0/" target="_blank">Some Rights Reserved</a>.</h6>
+  <h6 class="text-center copyright">© 2019. horizoon. <a href="http://creativecommons.org/licenses/by/3.0/" target="_blank">Some Rights Reserved</a>.</h6>
   
-  <h6 class="text-center powered">Powered by <a href="https://gohugo.io/">Hugo</a> &amp; <a href="https://github.com/shenoybr/hugo-goa">Goa</a>.</h6>
+  <h6 class="text-center powered">Powered by <a href="https://gohugo.io/">Hugo  v0.58.3</a> &amp; <a href="https://github.com/shenoybr/hugo-goa">Goa</a>.</h6>
   
+      
+      <h6><a href="" aria-label="RSS Feed"><i class="fas fa-rss" aria-hidden="true"></i></a></h6>
+    
   
 </footer>
 
@@ -306,6 +312,7 @@ if (!doNotTrack) {
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 <script src="js/main.js"></script>
+<script src="js/custom.js"></script>
 </body>
 </html>
 
