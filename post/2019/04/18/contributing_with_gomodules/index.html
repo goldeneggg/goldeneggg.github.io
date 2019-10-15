@@ -13,7 +13,7 @@
 <base href="https://horizoon.jp">
 
 <title>
-  horizoon - Go: module modeでも躊躇なくcontributeしたければ知っておくと良さそうなこと 
+  horizoon - Go: module modeでのgo.mod, go.sumファイルを用いた依存ライブラリ管理、及びcontributionの方法＆手順 
 </title>
 
 <meta name="generator" content="Hugo 0.58.3" />
@@ -42,7 +42,7 @@
 
 
 <header class="row text-left title">
-  <h1 class="title">Go: module modeでも躊躇なくcontributeしたければ知っておくと良さそうなこと</h1>
+  <h1 class="title">Go: module modeでのgo.mod, go.sumファイルを用いた依存ライブラリ管理、及びcontributionの方法＆手順</h1>
 </header>
 <section id="category-pane" class="row meta">
   
@@ -76,13 +76,23 @@
 
 <h1 id="summary">Summary</h1>
 
-<p>Go1.13がリリースされてGo Modulesの<a href="https://github.com/golang/go/wiki/Modules#when-do-i-get-old-behavior-vs-new-module-based-behavior" target="_blank">module mode</a>がデフォルトになったら、例えばプロジェクトのCONTRIBUTING.mdあたりには何を書いておくと良さそうか？</p>
+<p>Go1.13がリリースされてGo Modulesの<a href="https://github.com/golang/go/wiki/Modules#when-do-i-get-old-behavior-vs-new-module-based-behavior" target="_blank">module mode</a>がデフォルトになってからの、<code>go mod</code>コマンドを駆使した依存ライブラリ管理、及び第三者のOSSプロジェクトへのcontributionの方法＆手順について</p>
 
 <ul>
-<li><del>「<a href="https://blog.golang.org/using-go-modules" target="_blank">公式ブログ</a>（<a href="https://qiita.com/pokeh/items/139d0f1fe56e358ba597" target="_blank">和訳</a>）を読んでくれ」と書いておく</del></li>
-<li><del>「<a href="https://github.com/golang/go/wiki/Modules" target="_blank">公式Wiki</a>を読んでくれ」と書いておく</del></li>
-<li>Module-awareモードに最適化した手順を記載しておいて、開発の敷居を下げておく</li>
+<li>Module-awareモードに最適化した手順を把握・実践する
+
+<ul>
+<li>ライブラリの追加手順</li>
+<li>ライブラリのバージョン更新手順（個別 or 全ライブラリ一括）</li>
+<li>ライブラリの削除手順</li>
+</ul></li>
 <li>Happy Contributing!!</li>
+<li>参考リンク（参考というか、答えは下記リンク先に全て書いてあります）
+
+<ul>
+<li><a href="https://blog.golang.org/using-go-modules" target="_blank">公式ブログ</a>（<a href="https://qiita.com/pokeh/items/139d0f1fe56e358ba597" target="_blank">和訳</a>）</li>
+<li><a href="https://github.com/golang/go/wiki/Modules" target="_blank">公式Wiki</a></li>
+</ul></li>
 </ul>
 
 <h1 id="前提条件">前提条件</h1>
@@ -91,7 +101,9 @@ go version go1.12.4 darwin/amd64
 
 <span class="c1"># GO111MODULE=on して、常にModule-awareモードとなる状態で検証</span>
 $ <span class="nb">export</span> <span class="nv">GO111MODULE</span><span class="o">=</span>on</code></pre></div>
-<h1 id="goプロジェクトにおけるcontributing-md">GoプロジェクトにおけるCONTRIBUTING.md</h1>
+<h1 id="はじめに">はじめに</h1>
+
+<h2 id="githubの-contributing-ドキュメントについて">Githubの&rdquo;contributing ドキュメントについて</h2>
 
 <p>githubにプロジェクトを公開する際に、</p>
 
@@ -105,11 +117,15 @@ $ <span class="nb">export</span> <span class="nv">GO111MODULE</span><span class=
 
 <p>このファイルには主に環境構築・テストの実行方法・pull-requestの送り方 などを記載しますが、Goプロジェクトでは「最初に <code>$GOPATH</code> 下にソースを持ってくる」事が前提になっている手順をよく見かけます（自作プロジェクトでもそうしていました）。</p>
 
+<h2 id="goプロジェクトにおけるcontributing-mdはどうあるべきか">GoプロジェクトにおけるCONTRIBUTING.mdはどうあるべきか？</h2>
+
 <p><a href="https://github.com/golang/go/wiki/Modules" target="_blank">Go ModulesのModule-awareモードがデフォルト挙動になるGo1.13</a>以降では、ソースをcloneしてくるディレクトリは何処でも良い＝必ずしも<code>$GOPATH</code>下にソースを持ってくる必要は無くなりますし、依存ライブラリの追加・削除・バージョン変更を行いたい時の流れも変わります。なので、 <strong>CONTRIBUTING.mdに書く内容もそれに合わせておくとcontributorに親切なガイドラインを提示できそうです。</strong></p>
 
-<p>引き続き$GOPATHベースでの開発を推奨するプロジェクトもあるかも知れませんし、内容や粒度はプロジェクトの運営方針や想定読者レベルによっても変わるとは思いますが、この記事ではModule-awareモードのレールに乗る前提で整理してみます。</p>
+<p>引き続き$GOPATHベースでの開発を推奨するプロジェクトもあるかも知れませんし、内容や粒度はプロジェクトの運営方針や想定読者レベルによっても変わるとは思いますが、この記事ではModule-awareモードのレールに乗る前提で、CONTRIBUTING.mdに書くべき内容と、合わせてmodule modeでのGoプロジェクトにおけるライブラリ管理プラクティスを整理してみます。</p>
 
-<h1 id="1-セットアップについて書く">1. セットアップについて書く</h1>
+<h1 id="1-module-modeでのgo製プロジェクトの初期環境構築">1. module modeでのGo製プロジェクトの初期環境構築</h1>
+
+<p>想定手順</p>
 
 <ol>
 <li><code>cd 任意のディレクトリ</code></li>
@@ -118,7 +134,7 @@ $ <span class="nb">export</span> <span class="nv">GO111MODULE</span><span class=
 <li><code>make</code></li>
 </ol>
 
-<p>CONTRIBUTINGの冒頭は「自分のorganizationにforkしてgit clone」と書かれている事が多いですが、clone先のディレクトリは<code>$GOPATH</code>に拘らず何処でも良くなりましたよという事が伝われば、それこそ <code>git clone 任意のディレクトリ</code> と明記しておくだけでも良いと思います。</p>
+<p>CONTRIBUTING.mdの冒頭は「自分のorganizationにforkしてgit clone」と書かれている事が多いですが、clone先のディレクトリは<code>$GOPATH</code>に拘らず何処でも良くなりましたよという事が伝われば、それこそ <code>git clone 任意のディレクトリ</code> と明記しておくだけでも良いと思います。</p>
 
 <p>git clone後に<code>make</code>（或いは <code>make setup</code> のような名前のターゲット）を叩けば依存ライブラリを取り込んでくれるようなmakeターゲットを用意しておくと初期の敷居を下げられそうです。</p>
 <div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh">$ git clone foo
@@ -136,11 +152,13 @@ go: extracting github.com/urfave/cli v1.20.0
 go: extracting github.com/aws/aws-sdk-go v1.17.14</code></pre></div>
 <p>例えば  <a href="https://github.com/golang/go/wiki/Modules#daily-workflow" target="_blank"><code>go build</code> でもgo.modファイルの内容を元にした依存ライブラリの取り込みが動いてくれる</a>ので、<code>go build</code> をmakeのデフォルトターゲットとして用意しておくのも良さそうです。</p>
 
-<h1 id="2-依存ライブラリを追加したい時の手順を書く">2. 依存ライブラリを追加したい時の手順を書く</h1>
+<h1 id="2-module-modeで依存ライブラリを追加したい時の手順">2. module modeで依存ライブラリを追加したい時の手順</h1>
+
+<p>想定手順</p>
 
 <ol>
 <li>コードを編集・import文を追加</li>
-<li><code>go build</code> or <code>go run</code> or <code>go test</code></li>
+<li><code>go build</code> or <code>go run</code> or <code>go test</code> を実行する（これでgo.mod, go.sumも最新化される）</li>
 </ol>
 
 <p>Go Modulesでは、import文を追加・保存して<a href="https://github.com/golang/go/wiki/Modules#daily-workflow" target="_blank"><code>go build</code>すればそのタイミングで必要なライブラリ取得＆go.modの更新が実行されます</a>。「コードを書いてbuildを動かすという流れの中で（lazyに）依存ライブラリ取得が走ってくれる」というGo Modulesの配慮が伺える設計になっています。</p>
@@ -166,7 +184,9 @@ require (
 
 <p>たまたま今回使わせてもらったppで <code>+incompatible</code> というsuffixがgo.modに出力されましたが、これは <a href="https://github.com/golang/go/wiki/Modules#semantic-import-versioning" target="_blank">「ライブラリがGo Modulesに未対応で、且つMAJORバージョンが2以上」の場合に発生</a>します（が、開発への悪影響がある訳ではありません）</p>
 
-<h1 id="3-ライブラリのminorバージョン又はpatchバージョン-或いはその両方-を更新する手順を書く">3. ライブラリのMINORバージョン又はPATCHバージョン（或いはその両方）を更新する手順を書く</h1>
+<h1 id="3-module-modeでライブラリのminorバージョン又はpatchバージョン-或いはその両方-を更新する手順">3. module modeでライブラリのMINORバージョン又はPATCHバージョン（或いはその両方）を更新する手順</h1>
+
+<p>想定手順</p>
 
 <ol>
 <li><code>go list -u -m PACKAGE</code> - PACKAGEで利用可能な最新バージョンが存在するか確認
@@ -183,7 +203,7 @@ require (
 <li><code>go get foo@'&lt;v1.6.2'</code> - 指定した条件に合致する最新バージョン</li>
 <li><code>go get foo@master</code> - masterブランチの内容</li>
 </ul></li>
-<li><code>go build</code> or <code>go run</code> or <code>go test</code></li>
+<li><code>go build</code> or <code>go run</code> or <code>go test</code> を実行する（これでgo.mod, go.sumも最新化される）</li>
 </ol>
 
 <p><code>go get</code>に代わるもう1つの手段として「go.mod のバージョン指定を直接編集する」事も可能なのですが、go.modに記述できるバージョン形式は<a href="https://tip.golang.org/cmd/go/#hdr-Pseudo_versions" target="_blank">Pseudo-versions</a>形式であり、<code>go get foo@'&lt;v1.6.2'</code> のような<a href="https://golang.org/cmd/go/#hdr-Module_queries" target="_blank">モジュールクエリ</a>の形式で書く事は出来ません。</p>
@@ -204,12 +224,14 @@ go: extracting github.com/aws/aws-sdk-go v1.18.6
 <span class="c1"># go.modの更新内容を確認</span>
 $ cat go.mod <span class="p">|</span> grep aws-sdk-go
         github.com/aws/aws-sdk-go v1.18.6</code></pre></div>
-<h1 id="4-全てのライブラリを最新versionに更新する手順を書く">4. 全てのライブラリを最新versionに更新する手順を書く</h1>
+<h1 id="4-全てのライブラリを最新versionに更新する手順">4. 全てのライブラリを最新versionに更新する手順</h1>
+
+<p>想定手順</p>
 
 <ol>
 <li><code>go list -u -m all</code> - 全依存ライブラリに更新可能バージョン（があればそれ）を付けて一覧表示・確認</li>
 <li><code>go get -u</code></li>
-<li><code>go build</code> or <code>go run</code> or <code>go test</code></li>
+<li><code>go build</code> or <code>go run</code> or <code>go test</code> を実行する（これでgo.mod, go.sumも最新化される）</li>
 </ol>
 
 <p>contributorがこれを行うケースはあまり無さそうではありますが、<a href="https://github.com/golang/go/wiki/Modules#daily-workflow" target="_blank">公式Wikiの Daily Workflow</a> にも書かれている通りパッケージ指定なしで<code>go get -u</code>を実行すると全依存ライブラリの最新のminor versionが、<code>go get -u=patch</code>を実行すると全依存ライブラリの最新のpatch versionが取得されます。</p>
@@ -232,10 +254,12 @@ go: extracting github.com/aws/aws-sdk-go v1.19.11
 :</code></pre></div>
 <h1 id="5-使わなくなったライブラリを削除する手順を書く">5. 使わなくなったライブラリを削除する手順を書く</h1>
 
+<p>想定手順</p>
+
 <ol>
 <li>コードを編集・import文を削除</li>
 <li><code>go mod tidy</code></li>
-<li><code>go build</code> or <code>go run</code> or <code>go test</code></li>
+<li><code>go build</code> or <code>go run</code> or <code>go test</code> を実行する（これでgo.mod, go.sumも最新化される）</li>
 </ol>
 
 <p><code>go build</code> や <code>go test</code> はまだ取得していないライブラリの取得は自動でやってくれますが、<a href="https://github.com/golang/go/wiki/Modules#releasing-modules-all-versions" target="_blank">未使用ライブラリの削除は自動ではやってくれません</a>。<a href="https://tip.golang.org/cmd/go/#hdr-Maintaining_module_requirements" target="_blank">削除も含めてライブラリ依存関係を整理するのに<code>go mod tidy</code>コマンドを実行</a>します。</p>
