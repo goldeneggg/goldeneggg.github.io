@@ -30,14 +30,6 @@ h1.author
 }
 
 /* Customize figs */
-figure.awslogo img {
-    width: 286px;
-    height: 42px;
-}
-figure.awstag img {
-    width: 238px;
-    height: 17px;
-}
 figure.center {
     text-align: center;
 }

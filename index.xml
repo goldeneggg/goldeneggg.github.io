@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>horizoon</title>
@@ -143,11 +143,13 @@ $ git clone git@github.com:goldeneggg/pages.git $ cd pages $ hugo new site .</de
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
       <guid>https://horizoon.jp/about/</guid>
-      <description>I&amp;rsquo;m a web developer and engineer manager, especially good at server side engineering.
-I also like the technology itself, but I like the job of assembling customer&amp;rsquo;s tasks into concrete system requirements and I&amp;rsquo;m good at it. I have plenty of knowledge on fintech.
-And I&amp;rsquo;m a backpacker. I love all south east asian countries!
-Contact Please send a mail here.
-My Resume My resume and skillsets are here (Github Gist).</description>
+      <description>I&amp;rsquo;m Engineering Manager, AWS Solution Architect and Web Developer, especially good at server side engineering.
+I also like the technology itself, but I like the job of assembling customer&amp;rsquo;s tasks into concrete system requirements and I&amp;rsquo;m good at it. I have plenty of knowledge on Fintech.
+
+
+
+
+And I&amp;rsquo;m a backpacker. I love all south east asian countries!! and I like taking photos of my visited places with CANON EOS Kiss M!</description>
     </item>
     
     <item>
