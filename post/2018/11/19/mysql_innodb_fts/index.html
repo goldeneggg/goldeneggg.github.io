@@ -16,7 +16,7 @@
   horizoon - MySQL5.7 InnoDB のN-gram全文検索を検証＆サービス導入した 
 </title>
 
-<meta name="generator" content="Hugo 0.59.1" />
+<meta name="generator" content="Hugo 0.62.0" />
 
 
 
@@ -68,30 +68,22 @@
 <section id="content-pane" class="row">
   <div class="col-md-12 text-justify content">
     
-    
-
-<p>※ この記事は<a href="https://medium.com/@golden_eggg/mysql5-7-innodb-%E3%81%AEn-gram%E5%85%A8%E6%96%87%E6%A4%9C%E7%B4%A2%E3%82%92%E6%A4%9C%E8%A8%BC-%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9%E5%B0%8E%E5%85%A5%E3%81%97%E3%81%9F-a3d733480605" target="_blank">以前Mediumで公開した記事</a> の転載です</p>
-
-<p>MySQL5.7・InnoDB・N-gram という環境下で全文検索の挙動やパフォーマンスについて検証を行った。FULLTEXT INDEXは以前はMyISAMでしか利用できなかったが、 <a href="http://y-ken.hatenablog.com/entry/mysql-casual-talks-vol4-innodb-fts" target="_blank">5.6.4からInnoDBでのサポートが始まっていた</a>。</p>
-
-<p>InnoDBの全文検索は5.7、特に<a href="https://dev.mysql.com/doc/refman/5.7/en/fulltext-search-ngram.html" target="_blank">5.7.6以降でいわゆるCJK（中国語・日本語・韓国語）がN-gramで標準サポート</a>され始め、 <a href="http://mysqlserverteam.com/innodb-%E5%85%A8%E6%96%87%E6%A4%9C%E7%B4%A2-n-gram-parser/" target="_blank">CREATE TABLE文で簡単にパーサーを指定できる構文のサポート</a>、 設定やクエリの組立で考えないといけない事が減った事で導入障壁がかなり下がっている。 ※4.1と5.0でサービス導入経験がある私の個人的な比較感想です。</p>
-
+    <p>※ この記事は<a href="https://medium.com/@golden_eggg/mysql5-7-innodb-%E3%81%AEn-gram%E5%85%A8%E6%96%87%E6%A4%9C%E7%B4%A2%E3%82%92%E6%A4%9C%E8%A8%BC-%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9%E5%B0%8E%E5%85%A5%E3%81%97%E3%81%9F-a3d733480605">以前Mediumで公開した記事</a> の転載です</p>
+<p>MySQL5.7・InnoDB・N-gram という環境下で全文検索の挙動やパフォーマンスについて検証を行った。FULLTEXT INDEXは以前はMyISAMでしか利用できなかったが、 <a href="http://y-ken.hatenablog.com/entry/mysql-casual-talks-vol4-innodb-fts">5.6.4からInnoDBでのサポートが始まっていた</a>。</p>
+<p>InnoDBの全文検索は5.7、特に<a href="https://dev.mysql.com/doc/refman/5.7/en/fulltext-search-ngram.html">5.7.6以降でいわゆるCJK（中国語・日本語・韓国語）がN-gramで標準サポート</a>され始め、 <a href="http://mysqlserverteam.com/innodb-%E5%85%A8%E6%96%87%E6%A4%9C%E7%B4%A2-n-gram-parser/">CREATE TABLE文で簡単にパーサーを指定できる構文のサポート</a>、 設定やクエリの組立で考えないといけない事が減った事で導入障壁がかなり下がっている。 ※4.1と5.0でサービス導入経験がある私の個人的な比較感想です。</p>
 <p>FULLTEXT INDEXも他のINDEXと同様にデータ更新・削除の際にINDEXのrebuildが走るので更新時の負荷には注意が必要で、FULLTEXT INDEXの場合は「rebuild負荷が列に含まれる単語数に比例する」「rebuildでの断片化が起こりやすい」という固有の注意点もあり、「件数が多い」「FULLTEXT INDEXを貼ったカラムの更新頻度が激しい」という条件が揃ったテーブルへの導入は十分な検証の上で実施した方が良さそう。</p>
-
 <p>下記に書いた検証を経て開発したサービスでも導入してみたが、結論だけ書くと「（当たり前だが）用法用量さえ守れば十分使える。バックエンドのDBがMySQLなら、リッチな全文検索機構を導入する前段階なんかは活用場面としてオススメできる」と感じた。</p>
-
-<h1 id="やること">やること</h1>
-
-<p><a href="http://www.houjin-bangou.nta.go.jp/download/zenken/#csv-unicode" target="_blank">国税庁が公開している法人番号データ</a>を使って検証してみる。データ件数が100万件強程度になるように東京・大阪・海外 の3種類をマージしたデータを使った。用意したデータとテーブルについては<a href="https://github.com/practice-goldeneggg/mysql-innodb-fts" target="_blank">githubにupしている</a>。charsetをutf8mb4にしているのは、utf8だと登録時にエラーになる文字を含んだ法人が複数存在する為。collationはデフォルトであるuft8mb4_general_ciを使用する。</p>
-<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="o">&gt;</span> <span class="k">show</span> <span class="k">collation</span> <span class="k">like</span> <span class="s1">&#39;utf8mb4%&#39;</span> <span class="err">\</span><span class="k">G</span><span class="p">;</span>
-<span class="o">***************************</span> <span class="mi">1</span><span class="p">.</span> <span class="k">row</span> <span class="o">***************************</span>
+<h1 id="heading">やること</h1>
+<p><a href="http://www.houjin-bangou.nta.go.jp/download/zenken/#csv-unicode">国税庁が公開している法人番号データ</a>を使って検証してみる。データ件数が100万件強程度になるように東京・大阪・海外 の3種類をマージしたデータを使った。用意したデータとテーブルについては<a href="https://github.com/practice-goldeneggg/mysql-innodb-fts">githubにupしている</a>。charsetをutf8mb4にしているのは、utf8だと登録時にエラーになる文字を含んだ法人が複数存在する為。collationはデフォルトであるuft8mb4_general_ciを使用する。</p>
+<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="o">&gt;</span> <span class="k">show</span> <span class="k">collation</span> <span class="k">like</span> <span class="s1">&#39;</span><span class="s1">utf8mb4%</span><span class="s1">&#39;</span> <span class="err">\</span><span class="k">G</span><span class="p">;</span>
+<span class="o">*</span><span class="o">*</span><span class="o">*</span><span class="o">*</span><span class="o">*</span><span class="o">*</span><span class="o">*</span><span class="o">*</span><span class="o">*</span><span class="o">*</span><span class="o">*</span><span class="o">*</span><span class="o">*</span><span class="o">*</span><span class="o">*</span><span class="o">*</span><span class="o">*</span><span class="o">*</span><span class="o">*</span><span class="o">*</span><span class="o">*</span><span class="o">*</span><span class="o">*</span><span class="o">*</span><span class="o">*</span><span class="o">*</span><span class="o">*</span> <span class="mi">1</span><span class="p">.</span> <span class="k">row</span> <span class="o">*</span><span class="o">*</span><span class="o">*</span><span class="o">*</span><span class="o">*</span><span class="o">*</span><span class="o">*</span><span class="o">*</span><span class="o">*</span><span class="o">*</span><span class="o">*</span><span class="o">*</span><span class="o">*</span><span class="o">*</span><span class="o">*</span><span class="o">*</span><span class="o">*</span><span class="o">*</span><span class="o">*</span><span class="o">*</span><span class="o">*</span><span class="o">*</span><span class="o">*</span><span class="o">*</span><span class="o">*</span><span class="o">*</span><span class="o">*</span>
 <span class="k">Collation</span><span class="p">:</span> <span class="n">utf8mb4_general_ci</span>
   <span class="n">Charset</span><span class="p">:</span> <span class="n">utf8mb4</span>
        <span class="n">Id</span><span class="p">:</span> <span class="mi">45</span>
   <span class="k">Default</span><span class="p">:</span> <span class="n">Yes</span>
  <span class="n">Compiled</span><span class="p">:</span> <span class="n">Yes</span>
-  <span class="n">Sortlen</span><span class="p">:</span> <span class="mi">1</span></code></pre></div>
-<p>今回付けたFULLTEXT INDEXは会社名検索・住所検索を想定したものにしている。</p>
+  <span class="n">Sortlen</span><span class="p">:</span> <span class="mi">1</span>
+</code></pre></div><p>今回付けたFULLTEXT INDEXは会社名検索・住所検索を想定したものにしている。</p>
 <div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="c1">-- 法人番号データ投入用テーブルのCREATE文
 </span><span class="c1"></span><span class="k">CREATE</span> <span class="k">TABLE</span> <span class="o">`</span><span class="n">corporate_nums</span><span class="o">`</span> <span class="p">(</span>
   <span class="o">`</span><span class="n">id</span><span class="o">`</span> <span class="nb">int</span> <span class="k">NOT</span> <span class="k">NULL</span> <span class="n">AUTO_INCREMENT</span><span class="p">,</span>
@@ -117,29 +109,28 @@
   <span class="o">`</span><span class="n">close_cause</span><span class="o">`</span> <span class="nb">char</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="k">DEFAULT</span> <span class="k">NULL</span><span class="p">,</span>
   <span class="o">`</span><span class="n">successor_corporate_number</span><span class="o">`</span> <span class="nb">char</span><span class="p">(</span><span class="mi">13</span><span class="p">)</span> <span class="k">DEFAULT</span> <span class="k">NULL</span><span class="p">,</span>
   <span class="o">`</span><span class="n">change_cause</span><span class="o">`</span> <span class="nb">varchar</span><span class="p">(</span><span class="mi">500</span><span class="p">)</span> <span class="k">DEFAULT</span> <span class="k">NULL</span><span class="p">,</span>
-  <span class="o">`</span><span class="n">assignment_date</span><span class="o">`</span> <span class="nb">char</span><span class="p">(</span><span class="mi">10</span><span class="p">),</span>
+  <span class="o">`</span><span class="n">assignment_date</span><span class="o">`</span> <span class="nb">char</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span><span class="p">,</span>
   <span class="o">`</span><span class="n">latest</span><span class="o">`</span> <span class="nb">char</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="k">DEFAULT</span> <span class="k">NULL</span><span class="p">,</span>
   <span class="o">`</span><span class="n">en_name</span><span class="o">`</span> <span class="nb">varchar</span><span class="p">(</span><span class="mi">300</span><span class="p">)</span> <span class="k">DEFAULT</span> <span class="k">NULL</span><span class="p">,</span>
   <span class="o">`</span><span class="n">en_prefecture_name</span><span class="o">`</span> <span class="nb">varchar</span><span class="p">(</span><span class="mi">9</span><span class="p">)</span> <span class="k">DEFAULT</span> <span class="k">NULL</span><span class="p">,</span>
   <span class="o">`</span><span class="n">en_city_name</span><span class="o">`</span> <span class="nb">varchar</span><span class="p">(</span><span class="mi">600</span><span class="p">)</span> <span class="k">DEFAULT</span> <span class="k">NULL</span><span class="p">,</span>
   <span class="o">`</span><span class="n">en_address_outside</span><span class="o">`</span> <span class="nb">varchar</span><span class="p">(</span><span class="mi">600</span><span class="p">)</span> <span class="k">DEFAULT</span> <span class="k">NULL</span><span class="p">,</span>
-  <span class="k">PRIMARY</span> <span class="k">KEY</span> <span class="p">(</span><span class="o">`</span><span class="n">id</span><span class="o">`</span><span class="p">),</span>
-  <span class="k">KEY</span> <span class="o">`</span><span class="n">cn_i1</span><span class="o">`</span> <span class="p">(</span><span class="o">`</span><span class="n">sequence_number</span><span class="o">`</span><span class="p">),</span>
-  <span class="k">KEY</span> <span class="o">`</span><span class="n">cn_i2</span><span class="o">`</span> <span class="p">(</span><span class="o">`</span><span class="n">corporate_number</span><span class="o">`</span><span class="p">),</span>
+  <span class="k">PRIMARY</span> <span class="k">KEY</span> <span class="p">(</span><span class="o">`</span><span class="n">id</span><span class="o">`</span><span class="p">)</span><span class="p">,</span>
+  <span class="k">KEY</span> <span class="o">`</span><span class="n">cn_i1</span><span class="o">`</span> <span class="p">(</span><span class="o">`</span><span class="n">sequence_number</span><span class="o">`</span><span class="p">)</span><span class="p">,</span>
+  <span class="k">KEY</span> <span class="o">`</span><span class="n">cn_i2</span><span class="o">`</span> <span class="p">(</span><span class="o">`</span><span class="n">corporate_number</span><span class="o">`</span><span class="p">)</span><span class="p">,</span>
   <span class="n">FULLTEXT</span> <span class="k">KEY</span> <span class="o">`</span><span class="n">cn_fti1</span><span class="o">`</span> <span class="p">(</span><span class="o">`</span><span class="n">name</span><span class="o">`</span><span class="p">,</span> <span class="o">`</span><span class="n">en_name</span><span class="o">`</span><span class="p">)</span> <span class="k">WITH</span> <span class="n">PARSER</span> <span class="n">ngram</span><span class="p">,</span>
   <span class="n">FULLTEXT</span> <span class="k">KEY</span> <span class="o">`</span><span class="n">cn_fti2</span><span class="o">`</span> <span class="p">(</span><span class="o">`</span><span class="n">prefecture_name</span><span class="o">`</span><span class="p">,</span> <span class="o">`</span><span class="n">city_name</span><span class="o">`</span><span class="p">,</span> <span class="o">`</span><span class="n">street_number</span><span class="o">`</span><span class="p">,</span> <span class="o">`</span><span class="n">en_prefecture_name</span><span class="o">`</span><span class="p">,</span> <span class="o">`</span><span class="n">en_city_name</span><span class="o">`</span><span class="p">)</span> <span class="k">WITH</span> <span class="n">PARSER</span> <span class="n">ngram</span>
-<span class="p">)</span> <span class="n">ENGINE</span><span class="o">=</span><span class="n">InnoDB</span> <span class="k">DEFAULT</span> <span class="n">CHARSET</span><span class="o">=</span><span class="n">utf8mb4</span> <span class="n">ROW_FORMAT</span><span class="o">=</span><span class="k">DYNAMIC</span></code></pre></div>
-<p>件数は↓この通り</p>
+<span class="p">)</span> <span class="n">ENGINE</span><span class="o">=</span><span class="n">InnoDB</span> <span class="k">DEFAULT</span> <span class="n">CHARSET</span><span class="o">=</span><span class="n">utf8mb4</span> <span class="n">ROW_FORMAT</span><span class="o">=</span><span class="k">DYNAMIC</span>
+</code></pre></div><p>件数は↓この通り</p>
 <div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="n">mysql</span><span class="o">&gt;</span> <span class="k">select</span> <span class="k">count</span><span class="p">(</span><span class="o">*</span><span class="p">)</span> <span class="k">from</span> <span class="n">corporate_nums</span><span class="p">;</span>
 <span class="o">+</span><span class="c1">----------+
 </span><span class="c1"></span><span class="o">|</span> <span class="k">count</span><span class="p">(</span><span class="o">*</span><span class="p">)</span> <span class="o">|</span>
 <span class="o">+</span><span class="c1">----------+
 </span><span class="c1"></span><span class="o">|</span>  <span class="mi">1369037</span> <span class="o">|</span>
-<span class="o">+</span><span class="c1">----------+</span></code></pre></div>
-<h1 id="検証環境">検証環境</h1>
-
+<span class="o">+</span><span class="c1">----------+
+</span></code></pre></div><h1 id="heading-1">検証環境</h1>
 <p>InnoDBのFULLTEXT INDEXに関連するパラメータは全てデフォルトのままで変更はしない。単語分割の単位は通常 <code>innodb_ft_min_token_size</code> と <code>innodb_ft_max_token_size</code> で設定するのだが、N-gramの場合は無視されて代わりに <code>ngram_token_size</code> というパラメータの内容が適用される。デフォルト値は2なので、今回の検証では 2-gram で分割されたwordで転置インデックスが登録される。例として「富士山」というデータの場合は「富士」「士山」の2通りのwordで登録される。</p>
-<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="o">&gt;</span> <span class="k">show</span> <span class="n">variables</span> <span class="k">like</span> <span class="s1">&#39;innodb_ft%&#39;</span><span class="p">;</span>
+<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="o">&gt;</span> <span class="k">show</span> <span class="n">variables</span> <span class="k">like</span> <span class="s1">&#39;</span><span class="s1">innodb_ft%</span><span class="s1">&#39;</span><span class="p">;</span>
 <span class="o">+</span><span class="c1">---------------------------------+----------------+
 </span><span class="c1"></span><span class="o">|</span> <span class="n">Variable_name</span>                   <span class="o">|</span> <span class="n">Value</span>          <span class="o">|</span>
 <span class="o">+</span><span class="c1">---------------------------------+----------------+
@@ -156,63 +147,60 @@
 <span class="o">|</span> <span class="n">innodb_ft_total_cache_size</span>      <span class="o">|</span> <span class="mi">640000000</span>      <span class="o">|</span>
 <span class="o">|</span> <span class="n">innodb_ft_user_stopword_table</span>   <span class="o">|</span>                <span class="o">|</span>
 <span class="o">+</span><span class="c1">---------------------------------+----------------+
-</span><span class="c1"></span><span class="o">&gt;</span> <span class="k">show</span> <span class="n">variables</span> <span class="k">like</span> <span class="s1">&#39;ngram_token_size&#39;</span><span class="p">;</span>
+</span><span class="c1"></span><span class="o">&gt;</span> <span class="k">show</span> <span class="n">variables</span> <span class="k">like</span> <span class="s1">&#39;</span><span class="s1">ngram_token_size</span><span class="s1">&#39;</span><span class="p">;</span>
 <span class="o">+</span><span class="c1">------------------+-------+
 </span><span class="c1"></span><span class="o">|</span> <span class="n">Variable_name</span>    <span class="o">|</span> <span class="n">Value</span> <span class="o">|</span>
 <span class="o">+</span><span class="c1">------------------+-------+
 </span><span class="c1"></span><span class="o">|</span> <span class="n">ngram_token_size</span> <span class="o">|</span> <span class="mi">2</span>     <span class="o">|</span>
-<span class="o">+</span><span class="c1">------------------+-------+</span></code></pre></div>
-<p>INDEXの状態を確認しながら検証したいので、INFORMATION_SCHEMA INNODB_FT_INDEX_TABLE テーブルが使える準備をしておく。このテーブルはInnoDB FULLTEXT INDEXの転置インデックス管理を行う為のテーブルで、2-gramで分けられたwordとそれらに振られるID・出現頻度 などが登録される。</p>
+<span class="o">+</span><span class="c1">------------------+-------+
+</span></code></pre></div><p>INDEXの状態を確認しながら検証したいので、INFORMATION_SCHEMA INNODB_FT_INDEX_TABLE テーブルが使える準備をしておく。このテーブルはInnoDB FULLTEXT INDEXの転置インデックス管理を行う為のテーブルで、2-gramで分けられたwordとそれらに振られるID・出現頻度 などが登録される。</p>
 <div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="n">mysql</span><span class="o">&gt;</span> <span class="k">SET</span> <span class="k">GLOBAL</span> <span class="n">innodb_optimize_fulltext_only</span><span class="o">=</span><span class="k">ON</span><span class="p">;</span>
 <span class="n">mysql</span><span class="o">&gt;</span> <span class="n">OPTIMIZE</span> <span class="k">TABLE</span> <span class="n">corporate_nums</span><span class="p">;</span>
-<span class="n">mysql</span><span class="o">&gt;</span> <span class="k">SET</span> <span class="k">GLOBAL</span> <span class="n">innodb_ft_aux_table</span> <span class="o">=</span> <span class="s1">&#39;dummy/corporate_nums&#39;</span><span class="p">;</span>   <span class="c1">-- &#39;DB名/TBL名&#39;
+<span class="n">mysql</span><span class="o">&gt;</span> <span class="k">SET</span> <span class="k">GLOBAL</span> <span class="n">innodb_ft_aux_table</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="s1">dummy/corporate_nums</span><span class="s1">&#39;</span><span class="p">;</span>   <span class="c1">-- &#39;DB名/TBL名&#39;
 </span><span class="c1"></span><span class="n">mysql</span><span class="o">&gt;</span> <span class="k">SELECT</span> <span class="n">word</span><span class="p">,</span> <span class="n">doc_count</span><span class="p">,</span> <span class="n">doc_id</span><span class="p">,</span> <span class="k">position</span> <span class="k">FROM</span> <span class="n">INFORMATION_SCHEMA</span><span class="p">.</span><span class="n">INNODB_FT_INDEX_TABLE</span> <span class="k">LIMIT</span> <span class="mi">5</span><span class="p">;</span>
 <span class="o">+</span><span class="c1">------+-----------+---------+----------+
 </span><span class="c1"></span><span class="o">|</span> <span class="n">word</span> <span class="o">|</span> <span class="n">doc_count</span> <span class="o">|</span> <span class="n">doc_id</span>  <span class="o">|</span> <span class="k">position</span> <span class="o">|</span>
 <span class="o">+</span><span class="c1">------+-----------+---------+----------+
-</span><span class="c1"></span><span class="o">|</span> <span class="s1">&#39;s   |         1 |  128141 |       82 |
-</span><span class="s1">| &#39;</span><span class="n">s</span>   <span class="o">|</span>         <span class="mi">1</span> <span class="o">|</span> <span class="mi">1347655</span> <span class="o">|</span>       <span class="mi">54</span> <span class="o">|</span>
+</span><span class="c1"></span><span class="o">|</span> <span class="s1">&#39;</span><span class="s1">s   |         1 |  128141 |       82 |
+</span><span class="s1">| </span><span class="s1">&#39;</span><span class="n">s</span>   <span class="o">|</span>         <span class="mi">1</span> <span class="o">|</span> <span class="mi">1347655</span> <span class="o">|</span>       <span class="mi">54</span> <span class="o">|</span>
 <span class="o">|</span> <span class="p">(</span><span class="n">d</span>   <span class="o">|</span>         <span class="mi">1</span> <span class="o">|</span>  <span class="mi">775740</span> <span class="o">|</span>      <span class="mi">106</span> <span class="o">|</span>
 <span class="o">|</span> <span class="p">(</span><span class="n">f</span>   <span class="o">|</span>         <span class="mi">1</span> <span class="o">|</span> <span class="mi">1162473</span> <span class="o">|</span>       <span class="mi">63</span> <span class="o">|</span>
 <span class="o">|</span> <span class="p">(</span><span class="n">j</span>   <span class="o">|</span>         <span class="mi">1</span> <span class="o">|</span>  <span class="mi">134835</span> <span class="o">|</span>      <span class="mi">118</span> <span class="o">|</span>
-<span class="o">+</span><span class="c1">------+-----------+---------+----------+</span></code></pre></div>
-<h1 id="結果と考察">結果と考察</h1>
-
+<span class="o">+</span><span class="c1">------+-----------+---------+----------+
+</span></code></pre></div><h1 id="heading-2">結果と考察</h1>
 <ul>
 <li>INDEXが効かない部分一致LIKE</li>
 <li>FULLTEXT INDEXを使っての部分一致</li>
 </ul>
-
-<p>の2パターンで比較してみる。<a href="https://dev.mysql.com/doc/refman/5.7/en/fulltext-search.html" target="_blank">全文検索モード</a>については、検索対象が固有名詞で自然言語による曖昧検索を行うと検索結果に含まれるノイズが増えそう＝法人番号社名検索という用途には不向き という判断で、<a href="https://dev.mysql.com/doc/refman/5.7/en/fulltext-boolean.html" target="_blank">BOOLEAN MODE</a>で厳密にマッチする検索を行う。</p>
-
+<p>の2パターンで比較してみる。<a href="https://dev.mysql.com/doc/refman/5.7/en/fulltext-search.html">全文検索モード</a>については、検索対象が固有名詞で自然言語による曖昧検索を行うと検索結果に含まれるノイズが増えそう＝法人番号社名検索という用途には不向き という判断で、<a href="https://dev.mysql.com/doc/refman/5.7/en/fulltext-boolean.html">BOOLEAN MODE</a>で厳密にマッチする検索を行う。</p>
 <p>まず name, en_name の2カラムを対象に &ldquo;コード&rdquo; という文字列でLIKE検索(2カラム分のLIKE条件をORで結合）と全文検索の結果を比較してみると、前者が約1.2sec、後者が約0.2secと、全文検索によってパフォーマンスが良くなった。</p>
-<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="n">mysql</span><span class="o">&gt;</span> <span class="k">EXPLAIN</span> <span class="k">SELECT</span> <span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span> <span class="k">FROM</span> <span class="n">corporate_nums</span> <span class="k">WHERE</span> <span class="n">name</span> <span class="k">LIKE</span> <span class="s1">&#39;%コード%&#39;</span> <span class="k">or</span> <span class="n">en_name</span> <span class="k">LIKE</span> <span class="s1">&#39;%コード%&#39;</span><span class="p">;</span>
+<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="n">mysql</span><span class="o">&gt;</span> <span class="k">EXPLAIN</span> <span class="k">SELECT</span> <span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span> <span class="k">FROM</span> <span class="n">corporate_nums</span> <span class="k">WHERE</span> <span class="n">name</span> <span class="k">LIKE</span> <span class="s1">&#39;</span><span class="s1">%コード%</span><span class="s1">&#39;</span> <span class="k">or</span> <span class="n">en_name</span> <span class="k">LIKE</span> <span class="s1">&#39;</span><span class="s1">%コード%</span><span class="s1">&#39;</span><span class="p">;</span>
 <span class="o">+</span><span class="c1">----+-------------+----------------+------------+------+---------------+------+---------+------+---------+----------+-------------+
 </span><span class="c1"></span><span class="o">|</span> <span class="n">id</span> <span class="o">|</span> <span class="n">select_type</span> <span class="o">|</span> <span class="k">table</span>          <span class="o">|</span> <span class="n">partitions</span> <span class="o">|</span> <span class="k">type</span> <span class="o">|</span> <span class="n">possible_keys</span> <span class="o">|</span> <span class="k">key</span>  <span class="o">|</span> <span class="n">key_len</span> <span class="o">|</span> <span class="k">ref</span>  <span class="o">|</span> <span class="k">rows</span>    <span class="o">|</span> <span class="n">filtered</span> <span class="o">|</span> <span class="n">Extra</span>       <span class="o">|</span>
 <span class="o">+</span><span class="c1">----+-------------+----------------+------------+------+---------------+------+---------+------+---------+----------+-------------+
 </span><span class="c1"></span><span class="o">|</span>  <span class="mi">1</span> <span class="o">|</span> <span class="k">SIMPLE</span>      <span class="o">|</span> <span class="n">corporate_nums</span> <span class="o">|</span> <span class="k">NULL</span>       <span class="o">|</span> <span class="k">ALL</span>  <span class="o">|</span> <span class="k">NULL</span>          <span class="o">|</span> <span class="k">NULL</span> <span class="o">|</span> <span class="k">NULL</span>    <span class="o">|</span> <span class="k">NULL</span> <span class="o">|</span> <span class="mi">1273830</span> <span class="o">|</span>    <span class="mi">20</span><span class="p">.</span><span class="mi">99</span> <span class="o">|</span> <span class="k">Using</span> <span class="k">where</span> <span class="o">|</span>
 <span class="o">+</span><span class="c1">----+-------------+----------------+------------+------+---------------+------+---------+------+---------+----------+-------------+
-</span><span class="c1"></span><span class="n">mysql</span><span class="o">&gt;</span> <span class="k">SELECT</span> <span class="n">SQL_NO_CACHE</span> <span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span> <span class="k">FROM</span> <span class="n">corporate_nums</span> <span class="k">WHERE</span> <span class="n">name</span> <span class="k">LIKE</span> <span class="s1">&#39;%コード%&#39;</span> <span class="k">or</span> <span class="n">en_name</span> <span class="k">LIKE</span> <span class="s1">&#39;%コード%&#39;</span><span class="p">;</span>
+</span><span class="c1"></span><span class="n">mysql</span><span class="o">&gt;</span> <span class="k">SELECT</span> <span class="n">SQL_NO_CACHE</span> <span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span> <span class="k">FROM</span> <span class="n">corporate_nums</span> <span class="k">WHERE</span> <span class="n">name</span> <span class="k">LIKE</span> <span class="s1">&#39;</span><span class="s1">%コード%</span><span class="s1">&#39;</span> <span class="k">or</span> <span class="n">en_name</span> <span class="k">LIKE</span> <span class="s1">&#39;</span><span class="s1">%コード%</span><span class="s1">&#39;</span><span class="p">;</span>
 <span class="o">+</span><span class="c1">----------+
 </span><span class="c1"></span><span class="o">|</span> <span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span> <span class="o">|</span>
 <span class="o">+</span><span class="c1">----------+
 </span><span class="c1"></span><span class="o">|</span>      <span class="mi">566</span> <span class="o">|</span>
 <span class="o">+</span><span class="c1">----------+
 </span><span class="c1"></span><span class="mi">1</span> <span class="k">row</span> <span class="k">in</span> <span class="k">set</span><span class="p">,</span> <span class="mi">1</span> <span class="n">warning</span> <span class="p">(</span><span class="mi">1</span><span class="p">.</span><span class="mi">26</span> <span class="n">sec</span><span class="p">)</span>
-<span class="n">mysql</span><span class="o">&gt;</span> <span class="k">EXPLAIN</span> <span class="k">SELECT</span> <span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span> <span class="k">FROM</span> <span class="n">corporate_nums</span> <span class="k">WHERE</span> <span class="k">MATCH</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">en_name</span><span class="p">)</span> <span class="n">AGAINST</span><span class="p">(</span><span class="s1">&#39;コード&#39;</span> <span class="k">IN</span> <span class="nb">BOOLEAN</span> <span class="k">MODE</span><span class="p">);</span>
+<span class="n">mysql</span><span class="o">&gt;</span> <span class="k">EXPLAIN</span> <span class="k">SELECT</span> <span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span> <span class="k">FROM</span> <span class="n">corporate_nums</span> <span class="k">WHERE</span> <span class="k">MATCH</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">en_name</span><span class="p">)</span> <span class="n">AGAINST</span><span class="p">(</span><span class="s1">&#39;</span><span class="s1">コード</span><span class="s1">&#39;</span> <span class="k">IN</span> <span class="nb">BOOLEAN</span> <span class="k">MODE</span><span class="p">)</span><span class="p">;</span>
 <span class="o">+</span><span class="c1">----+-------------+-------+------------+------+---------------+------+---------+------+------+----------+------------------------------+
 </span><span class="c1"></span><span class="o">|</span> <span class="n">id</span> <span class="o">|</span> <span class="n">select_type</span> <span class="o">|</span> <span class="k">table</span> <span class="o">|</span> <span class="n">partitions</span> <span class="o">|</span> <span class="k">type</span> <span class="o">|</span> <span class="n">possible_keys</span> <span class="o">|</span> <span class="k">key</span>  <span class="o">|</span> <span class="n">key_len</span> <span class="o">|</span> <span class="k">ref</span>  <span class="o">|</span> <span class="k">rows</span> <span class="o">|</span> <span class="n">filtered</span> <span class="o">|</span> <span class="n">Extra</span>                        <span class="o">|</span>
 <span class="o">+</span><span class="c1">----+-------------+-------+------------+------+---------------+------+---------+------+------+----------+------------------------------+
 </span><span class="c1"></span><span class="o">|</span>  <span class="mi">1</span> <span class="o">|</span> <span class="k">SIMPLE</span>      <span class="o">|</span> <span class="k">NULL</span>  <span class="o">|</span> <span class="k">NULL</span>       <span class="o">|</span> <span class="k">NULL</span> <span class="o">|</span> <span class="k">NULL</span>          <span class="o">|</span> <span class="k">NULL</span> <span class="o">|</span> <span class="k">NULL</span>    <span class="o">|</span> <span class="k">NULL</span> <span class="o">|</span> <span class="k">NULL</span> <span class="o">|</span>     <span class="k">NULL</span> <span class="o">|</span> <span class="k">Select</span> <span class="n">tables</span> <span class="n">optimized</span> <span class="n">away</span> <span class="o">|</span>
 <span class="o">+</span><span class="c1">----+-------------+-------+------------+------+---------------+------+---------+------+------+----------+------------------------------+
-</span><span class="c1"></span><span class="n">mysql</span><span class="o">&gt;</span> <span class="k">SELECT</span> <span class="n">SQL_NO_CACHE</span> <span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span> <span class="k">FROM</span> <span class="n">corporate_nums</span> <span class="k">WHERE</span> <span class="k">MATCH</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">en_name</span><span class="p">)</span> <span class="n">AGAINST</span><span class="p">(</span><span class="s1">&#39;コード&#39;</span> <span class="k">IN</span> <span class="nb">BOOLEAN</span> <span class="k">MODE</span><span class="p">);</span>
+</span><span class="c1"></span><span class="n">mysql</span><span class="o">&gt;</span> <span class="k">SELECT</span> <span class="n">SQL_NO_CACHE</span> <span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span> <span class="k">FROM</span> <span class="n">corporate_nums</span> <span class="k">WHERE</span> <span class="k">MATCH</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">en_name</span><span class="p">)</span> <span class="n">AGAINST</span><span class="p">(</span><span class="s1">&#39;</span><span class="s1">コード</span><span class="s1">&#39;</span> <span class="k">IN</span> <span class="nb">BOOLEAN</span> <span class="k">MODE</span><span class="p">)</span><span class="p">;</span>
 <span class="o">+</span><span class="c1">----------+
 </span><span class="c1"></span><span class="o">|</span> <span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span> <span class="o">|</span>
 <span class="o">+</span><span class="c1">----------+
 </span><span class="c1"></span><span class="o">|</span>      <span class="mi">566</span> <span class="o">|</span>
 <span class="o">+</span><span class="c1">----------+
-</span><span class="c1"></span><span class="mi">1</span> <span class="k">row</span> <span class="k">in</span> <span class="k">set</span><span class="p">,</span> <span class="mi">1</span> <span class="n">warning</span> <span class="p">(</span><span class="mi">0</span><span class="p">.</span><span class="mi">20</span> <span class="n">sec</span><span class="p">)</span></code></pre></div>
-<p>同じような <code>SELECT COUNT(*)</code> なクエリによる比較調査を検索対象文字列を変えつつ試してみた結果は下記の通りとなった。文字列については「2文字 or NOT」という根拠で選んで、件数と応答速度に関連があるという予想で比較してみた。
+</span><span class="c1"></span><span class="mi">1</span> <span class="k">row</span> <span class="k">in</span> <span class="k">set</span><span class="p">,</span> <span class="mi">1</span> <span class="n">warning</span> <span class="p">(</span><span class="mi">0</span><span class="p">.</span><span class="mi">20</span> <span class="n">sec</span><span class="p">)</span>
+</code></pre></div><p>同じような <code>SELECT COUNT(*)</code> なクエリによる比較調査を検索対象文字列を変えつつ試してみた結果は下記の通りとなった。文字列については「2文字 or NOT」という根拠で選んで、件数と応答速度に関連があるという予想で比較してみた。
 ※応答速度は10回クエリを投げてみての平均値を採用している。</p>
 <div class="highlight"><pre class="chroma"><code class="language-text" data-lang="text">| 文字列       | LIKE検索応答速度 | 全文検索応答速度 | HIT件数 |
 |:-----------:|---------------:|--------------:|--------:|
@@ -222,29 +210,24 @@
 | 開発        | 1.23 sec       | 0.01 sec      | 6,151   |
 | 牧場        | 1.26 sec       | 0.00 sec      | 82      |
 | 佐々木       | 1.24 sec       | 0.01 sec      | 569     |
-| 五反田       | 1.22 sec       | 0.00 sec      | 61      |</code></pre></div>
-<p>文字数が同じでHIT件数も限りなく近い「コード」と「佐々木」が、応答速度では「佐々木」が速い（「コード」が遅い）という結果になった。「コード」に限らず、カタカナでの全文検索は速度が落ちるという結果になった ※これについてはもうちょっと深掘りして調べてみたい。</p>
-
-<h1 id="memo-全文検索結果のソートについて">MEMO: 全文検索結果のソートについて</h1>
-
+| 五反田       | 1.22 sec       | 0.00 sec      | 61      |
+</code></pre></div><p>文字数が同じでHIT件数も限りなく近い「コード」と「佐々木」が、応答速度では「佐々木」が速い（「コード」が遅い）という結果になった。「コード」に限らず、カタカナでの全文検索は速度が落ちるという結果になった ※これについてはもうちょっと深掘りして調べてみたい。</p>
+<h1 id="memo-">MEMO: 全文検索結果のソートについて</h1>
 <ul>
 <li>例えばLIMITによるページングの為に結果をソートするようなケースで、適合性以外でORDER BYすると100% filesortが発生するので避ける。IDのような主キーでORDER BYしても同じ</li>
 <li>全文検索結果のソートは 適合性が高い順 がデフォルトの挙動で、<code>MATCH AGAINST</code> をSELECT対象にも含めると適合性が取得でき、この適合性でソートすると速い</li>
-
-<li><p>↓こういうSQLを書くと速い。<code>ASC</code> だと遅くなってしまう</p>
-<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="k">SELECT</span>
-<span class="o">*</span><span class="p">,</span>
-<span class="k">MATCH</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="n">AGAINST</span> <span class="p">(</span><span class="s1">&#39;東京&#39;</span> <span class="k">IN</span> <span class="nb">BOOLEAN</span> <span class="k">MODE</span><span class="p">)</span> <span class="k">AS</span> <span class="n">score</span>
-<span class="k">FROM</span>
-<span class="n">corporate_nums</span>
-<span class="k">WHERE</span>
-<span class="k">MATCH</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="n">AGAINST</span> <span class="p">(</span><span class="s1">&#39;東京&#39;</span> <span class="k">IN</span> <span class="nb">BOOLEAN</span> <span class="k">MODE</span><span class="p">)</span>
-<span class="k">ORDER</span> <span class="k">BY</span> <span class="n">score</span>  <span class="k">DESC</span>  <span class="c1">-- ASCは遅くなる
-</span><span class="c1"></span><span class="k">LIMIT</span> <span class="mi">0</span><span class="p">,</span><span class="mi">10</span></code></pre></div></li>
+<li>↓こういうSQLを書くと速い。<code>ASC</code> だと遅くなってしまう</li>
 </ul>
-
-<h1 id="memo-fulltext-indexの挙動について">MEMO: FULLTEXT INDEXの挙動について</h1>
-
+<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="k">SELECT</span>
+  <span class="o">*</span><span class="p">,</span>
+  <span class="k">MATCH</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="n">AGAINST</span> <span class="p">(</span><span class="s1">&#39;</span><span class="s1">東京</span><span class="s1">&#39;</span> <span class="k">IN</span> <span class="nb">BOOLEAN</span> <span class="k">MODE</span><span class="p">)</span> <span class="k">AS</span> <span class="n">score</span>
+<span class="k">FROM</span>
+  <span class="n">corporate_nums</span>
+<span class="k">WHERE</span>
+  <span class="k">MATCH</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="n">AGAINST</span> <span class="p">(</span><span class="s1">&#39;</span><span class="s1">東京</span><span class="s1">&#39;</span> <span class="k">IN</span> <span class="nb">BOOLEAN</span> <span class="k">MODE</span><span class="p">)</span>
+<span class="k">ORDER</span> <span class="k">BY</span> <span class="n">score</span>  <span class="k">DESC</span>  <span class="c1">-- ASCは遅くなる
+</span><span class="c1"></span><span class="k">LIMIT</span> <span class="mi">0</span><span class="p">,</span><span class="mi">10</span>
+</code></pre></div><h1 id="memo-fulltext-index">MEMO: FULLTEXT INDEXの挙動について</h1>
 <ul>
 <li>FULLTEXT INDEXのみ付与されたカラムに、MATCH AGAINST文以外の条件指定をした場合、INDEXは効かない</li>
 <li>FULLTEXT INDEXのみ付与されたカラム + 他INDEXが付与されたカラム の複合条件を指定した場合、 「他INDEXが付与されたカラム」による絞込の方が効率的であってもそのINDEXは無視されて、FULLTEXT INDEXによる検索が実行される</li>
@@ -293,9 +276,9 @@
 <footer class="row text-center footer">
   <hr />
   
-  <h6 class="text-center copyright">© 2019. horizoon. <a href="http://creativecommons.org/licenses/by/3.0/" target="_blank">Some Rights Reserved</a>.</h6>
+  <h6 class="text-center copyright">© 2019. horizoon. <a href="http://creativecommons.org/licenses/by/3.0/">Some Rights Reserved</a>.</h6>
   
-  <h6 class="text-center powered">Powered by <a href="https://gohugo.io/">Hugo  v0.59.1</a> &amp; <a href="https://github.com/shenoybr/hugo-goa">Goa</a>.</h6>
+  <h6 class="text-center powered">Powered by <a href="https://gohugo.io/">Hugo  v0.62.0</a> &amp; <a href="https://github.com/shenoybr/hugo-goa">Goa</a>.</h6>
   
       
       <h6><a href="" aria-label="RSS Feed"><i class="fas fa-rss" aria-hidden="true"></i></a></h6>

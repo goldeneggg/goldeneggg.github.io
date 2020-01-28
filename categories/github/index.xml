@@ -18,7 +18,7 @@
       
       <guid>https://horizoon.jp/post/2019/04/18/contributing_with_gomodules/</guid>
       <description>Summary Go1.13がリリースされてGo Modulesのmodule modeがデフォルトになってからの、go modコマンドを駆使した依存ライブラリ管理、及び第三者のOSSプロジェクトへのcontributionの方法＆手順について
- Module-awareモードに最適化した手順を把握・実践する  ライブラリの追加手順 ライブラリのバージョン更新手順（個別 or 全ライブラリ一括） ライブラリの削除手順  Happy Contributing!! 参考リンク（参考というか、答えは下記リンク先に全て書いてあります）  公式ブログ（和訳） 公式Wiki   前提条件 $ go version go version go1.12.4 darwin/amd64 # GO111MODULE=on して、常にModule-awareモードとなる状態で検証 $ export GO111MODULE=on はじめに Githubの&amp;rdquo;contributing ドキュメントについて githubにプロジェクトを公開する際に、
+ Module-awareモードに最適化した手順を把握・実践する  ライブラリの追加手順 ライブラリのバージョン更新手順（個別 or 全ライブラリ一括） ライブラリの削除手順   Happy Contributing!! 参考リンク（参考というか、答えは下記リンク先に全て書いてあります）  公式ブログ（和訳） 公式Wiki    前提条件 $ go version go version go1.12.4 darwin/amd64 # GO111MODULE=on して、常にModule-awareモードとなる状態で検証 $ export GO111MODULE=on はじめに Githubの&amp;quot;contributing ドキュメントについて githubにプロジェクトを公開する際に、
  ルート docs .github  の3つの内いずれかのディレクトリに contributing* というパターン名（大文字でも可）が付いたファイルを置いておくと、pull-request作成時に「ここにガイドラインがあるよ」と通知してくれるようになります。慣例としてこのファイルは CONTRIBUTING.md という名前で用意されている事が多いです。
 このファイルには主に環境構築・テストの実行方法・pull-requestの送り方 などを記載しますが、Goプロジェクトでは「最初に $GOPATH 下にソースを持ってくる」事が前提になっている手順をよく見かけます（自作プロジェクトでもそうしていました）。
 GoプロジェクトにおけるCONTRIBUTING.mdはどうあるべきか？ Go ModulesのModule-awareモードがデフォルト挙動になるGo1.13以降では、ソースをcloneしてくるディレクトリは何処でも良い＝必ずしも$GOPATH下にソースを持ってくる必要は無くなりますし、依存ライブラリの追加・削除・バージョン変更を行いたい時の流れも変わります。なので、 CONTRIBUTING.mdに書く内容もそれに合わせておくとcontributorに親切なガイドラインを提示できそうです。

@@ -18,10 +18,10 @@
       
       <guid>https://horizoon.jp/post/2019/02/26/git_conflict_vim/</guid>
       <description>Summary 下記手順だとボチボチ速い
- vim conflict対象ファイル qa ]x どの内容を残すかで実行コマンドを変える  HEAD側を残すなら co 非・HEAD側を残すなら ct 両方残すなら cb  q :%norm! @a  前提条件  rhysd/conflict-marker.vim プラグイン をインストールしておく HEAD側を残すか/非・HEAD側を残すか？（あるいは両方消すか？）を個々に判断する必要がなく、ファイル全体で一律どちらを残すかが定まっている  vimで高速conflict解消 conflictなんか起こらない事が理想とはいえそれなりの規模の開発が並行で走っているとなかなかそうもいかず、起こる度に「conflict解消めんどいよね〜」という会話をしてたりします。最近もそういう会話からお互いのやり方を共有し合うという機会があったので、自分がVimで行っている方法を小ネタとして備忘。
+ vim conflict対象ファイル qa ]x どの内容を残すかで実行コマンドを変える  HEAD側を残すなら co 非・HEAD側を残すなら ct 両方残すなら cb   q :%norm! @a  前提条件  rhysd/conflict-marker.vim プラグイン をインストールしておく HEAD側を残すか/非・HEAD側を残すか？（あるいは両方消すか？）を個々に判断する必要がなく、ファイル全体で一律どちらを残すかが定まっている  vimで高速conflict解消 conflictなんか起こらない事が理想とはいえそれなりの規模の開発が並行で走っているとなかなかそうもいかず、起こる度に「conflict解消めんどいよね〜」という会話をしてたりします。最近もそういう会話からお互いのやり方を共有し合うという機会があったので、自分がVimで行っている方法を小ネタとして備忘。
 前提条件に書いた通り、conflict箇所のどちらを削除するか？がファイル全体で定まっていると判断できたら、
  conflict箇所にジャンプする =&amp;gt; 残したく無い方を削除する =&amp;gt; これをファイル全体で繰り返す  という作業を行えば良く、私が普段使っているNeoVim（Vim）のやり方を晒してみますと下記のような流れの作業になります。
- qa ： レジスタaへのマクロの記録を開始する ]x ： conflict箇所（下方）へジャンプする  conflict-marker.vim プラグイン の機能です。 [x と入力すると逆に上方のconflict箇所へジャンプします  どの内容を残すかで実行コマンドを変える  HEAD側を残すなら co 非・HEAD側を残すなら ct 両方残すなら cb これらも conflict-marker.vim プラグイン の機能です  q ： マクロの記録を終了する :%norm! @a ： ファイル全体を対象にレジスタaに記録したマクロ（＝conflict箇所へジャンプして不要なコードとconflictマーカーを削除）を実行する  :%norm!</description>
+ qa ： レジスタaへのマクロの記録を開始する ]x ： conflict箇所（下方）へジャンプする  conflict-marker.vim プラグイン の機能です。 [x と入力すると逆に上方のconflict箇所へジャンプします   どの内容を残すかで実行コマンドを変える  HEAD側を残すなら co 非・HEAD側を残すなら ct 両方残すなら cb これらも conflict-marker.vim プラグイン の機能です   q ： マクロの記録を終了する :%norm!</description>
     </item>
     
   </channel>

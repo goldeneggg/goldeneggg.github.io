@@ -19,8 +19,8 @@
       <guid>https://horizoon.jp/post/2019/08/16/aws_sdk_go_assumerole/</guid>
       <description>Summary  aws-sdk-goで、標準入力からのMFAトークン入力によるAssumeRoleを実装する aws-sdk-go-v2で、標準入力からのMFAトークン入力によるAssumeRoleを実装する  前提条件  aws-sdk-go - v1.21.x aws-sdk-go-v2 - v0.10.0  aws-sdk-goで、標準入力からのMFAトークン入力によるAssumeRoleを実装する AssumeRole便利ですよね。AssumeRole自体の詳細な説明は公式のチュートリアル 等の記事に任せるとして、aws-sdk-goもMFAによるAssumeRoleに対応しています。拙作のEC2インスタンス一覧取得ツール で これを実装する機会があったので、実装方法の備忘メモを残しておきます。
 今回の要件は下記を想定しました。
- 一時的セキュリティ認証情報(STS)を利用した実装 にはしない 代わりに 切替用のIAMロールを設定ファイル経由で使用できるようにする 実装にする  ~/.aws/credentials と ~/.aws/config に、IAMユーザのprofileと切替先ロールのprofileを定義し、これを使用する この実装にすることで、コマンドやライブラリを使う側が指定しなければならない情報（例えばRoleARNやSessionTokenなど）を削減できる  実際に利用する際はMFAトークンの入力を（標準入力から）促し、普段使っている2段階認証アプリ等で表示されたトークンを入力することで、切替先ロールの各種リソースにアクセスできるようにする  ~/.aws/credentials と ~/.aws/config の設定内容 公式の例 を参考に下記のような内容で作成しておきます。リンク先でも触れられていますが、aws-sdk-goだけに限らず、他言語のSDKやawscliでもこの設定は使い回す事が出来ます。
-# ~/.aws/credentials # IAMユーザーのアクセスキー情報が hoge という名前のprofileで定義されている [hoge] aws_access_key_id=ACCESS_KEY_ID aws_secret_access_key=SECRET_ACCESS_KEY# ~/.aws/config # hoge profileのconfig（例ではregionのみ）と、 # hogeをsource_profileとするロール切替先のprofile=dev-hoge-role、 # の2つが定義されている [profile hoge] region=ap-northeast-1 [profile dev-hoge-role] region=ap-northeast-1 source_profile=hoge role_arn=arn:aws:iam::123456789012:role/DevHogeRole mfa_serial=arn:aws:iam::987654321098:mfa/hoge.hugao aws.sessionパッケージを活用したprofile読み込み処理の実装 今回の要件をaws-sdk-goで実装する方法は実は複数パターン提供されているのですが、 利用側が指定しなければならない情報を減らしたい（プロファイルさえ設定されていれば、その情報を使うようにしたい） という要件を達成する為に、aws/session パッケージ を活用した実装にします。下記に解説コメント付きでコード例を載せておきます。</description>
+ 一時的セキュリティ認証情報(STS)を利用した実装 にはしない 代わりに 切替用のIAMロールを設定ファイル経由で使用できるようにする 実装にする  ~/.aws/credentials と ~/.aws/config に、IAMユーザのprofileと切替先ロールのprofileを定義し、これを使用する この実装にすることで、コマンドやライブラリを使う側が指定しなければならない情報（例えばRoleARNやSessionTokenなど）を削減できる   実際に利用する際はMFAトークンの入力を（標準入力から）促し、普段使っている2段階認証アプリ等で表示されたトークンを入力することで、切替先ロールの各種リソースにアクセスできるようにする  ~/.aws/credentials と ~/.aws/config の設定内容 公式の例 を参考に下記のような内容で作成しておきます。リンク先でも触れられていますが、aws-sdk-goだけに限らず、他言語のSDKやawscliでもこの設定は使い回す事が出来ます。
+# ~/.aws/credentials # IAMユーザーのアクセスキー情報が hoge という名前のprofileで定義されている [hoge] aws_access_key_id=ACCESS_KEY_ID aws_secret_access_key=SECRET_ACCESS_KEY # ~/.aws/config # hoge profileのconfig（例ではregionのみ）と、 # hogeをsource_profileとするロール切替先のprofile=dev-hoge-role、 # の2つが定義されている [profile hoge] region=ap-northeast-1 [profile dev-hoge-role] region=ap-northeast-1 source_profile=hoge role_arn=arn:aws:iam::123456789012:role/DevHogeRole mfa_serial=arn:aws:iam::987654321098:mfa/hoge.hugao aws.sessionパッケージを活用したprofile読み込み処理の実装 今回の要件をaws-sdk-goで実装する方法は実は複数パターン提供されているのですが、 利用側が指定しなければならない情報を減らしたい（プロファイルさえ設定されていれば、その情報を使うようにしたい） という要件を達成する為に、aws/session パッケージ を活用した実装にします。下記に解説コメント付きでコード例を載せておきます。</description>
     </item>
     
     <item>
@@ -29,9 +29,8 @@
       <pubDate>Tue, 11 Jun 2019 17:16:54 +0900</pubDate>
       
       <guid>https://horizoon.jp/post/2019/06/11/sam_cicd/</guid>
-      <description>Summary  AWS SAMで管理しているLambda Functionのデプロイ自動化を、AWS CodePipelineやAWS CodeBuildを使うことなく Travis CIを活用して行う  今回利用したLambda FunctionはGo製 Pull Requestのmasterブランチへのmerge時に、samコマンドで自動デプロイ   前提条件  Lambdaのリポジトリはgithub 各種バージョン情報は下記の通り
-$ python --version Python 2.7.12 $ pip --version pip 19.0.3 from /usr/local/lib/python2.7/dist-packages/pip (python 2.7) $ aws --version aws-cli/1.16.175 Python/2.7.12 Linux/4.15.0-1028-gcp botocore/1.12.165 $ sam --version SAM CLI, version 0.17.0   SAMで管理しているLambdaのデプロイをTravis CIで自動化したい SAMで管理しているLambdaのデプロイ自動化をTravis CIで行います。SAMで管理しているからにはSAMのテンプレートとaws-sam-cliを使ってデプロイを行いたいです。なのでTravis公式のLambdaデプロイサポートは使用しません。
- branch != master の場合のCI  Lambdaコードのテスト Lambdaコードのlint（golintやgo vetなど） sam validate  branch == master の場合のCI, デプロイ  CI時に実施した事全て sam package sam deploy   これらを.</description>
+      <description>Summary  AWS SAMで管理しているLambda Functionのデプロイ自動化を、AWS CodePipelineやAWS CodeBuildを使うことなく Travis CIを活用して行う  今回利用したLambda FunctionはGo製 Pull Requestのmasterブランチへのmerge時に、samコマンドで自動デプロイ    前提条件  Lambdaのリポジトリはgithub 各種バージョン情報は下記の通り  $ python --version Python 2.7.12 $ pip --version pip 19.0.3 from /usr/local/lib/python2.7/dist-packages/pip (python 2.7) $ aws --version aws-cli/1.16.175 Python/2.7.12 Linux/4.15.0-1028-gcp botocore/1.12.165 $ sam --version SAM CLI, version 0.17.0 SAMで管理しているLambdaのデプロイをTravis CIで自動化したい SAMで管理しているLambdaのデプロイ自動化をTravis CIで行います。SAMで管理しているからにはSAMのテンプレートとaws-sam-cliを使ってデプロイを行いたいです。なのでTravis公式のLambdaデプロイサポートは使用しません。
+ branch != master の場合のCI  Lambdaコードのテスト Lambdaコードのlint（golintやgo vetなど） sam validate   branch == master の場合のCI, デプロイ  CI時に実施した事全て sam package sam deploy    これらを.</description>
     </item>
     
     <item>
@@ -41,7 +40,7 @@ $ python --version Python 2.7.12 $ pip --version pip 19.0.3 from /usr/local/lib/
       
       <guid>https://horizoon.jp/post/2019/04/18/contributing_with_gomodules/</guid>
       <description>Summary Go1.13がリリースされてGo Modulesのmodule modeがデフォルトになってからの、go modコマンドを駆使した依存ライブラリ管理、及び第三者のOSSプロジェクトへのcontributionの方法＆手順について
- Module-awareモードに最適化した手順を把握・実践する  ライブラリの追加手順 ライブラリのバージョン更新手順（個別 or 全ライブラリ一括） ライブラリの削除手順  Happy Contributing!! 参考リンク（参考というか、答えは下記リンク先に全て書いてあります）  公式ブログ（和訳） 公式Wiki   前提条件 $ go version go version go1.12.4 darwin/amd64 # GO111MODULE=on して、常にModule-awareモードとなる状態で検証 $ export GO111MODULE=on はじめに Githubの&amp;rdquo;contributing ドキュメントについて githubにプロジェクトを公開する際に、
+ Module-awareモードに最適化した手順を把握・実践する  ライブラリの追加手順 ライブラリのバージョン更新手順（個別 or 全ライブラリ一括） ライブラリの削除手順   Happy Contributing!! 参考リンク（参考というか、答えは下記リンク先に全て書いてあります）  公式ブログ（和訳） 公式Wiki    前提条件 $ go version go version go1.12.4 darwin/amd64 # GO111MODULE=on して、常にModule-awareモードとなる状態で検証 $ export GO111MODULE=on はじめに Githubの&amp;quot;contributing ドキュメントについて githubにプロジェクトを公開する際に、
  ルート docs .github  の3つの内いずれかのディレクトリに contributing* というパターン名（大文字でも可）が付いたファイルを置いておくと、pull-request作成時に「ここにガイドラインがあるよ」と通知してくれるようになります。慣例としてこのファイルは CONTRIBUTING.md という名前で用意されている事が多いです。
 このファイルには主に環境構築・テストの実行方法・pull-requestの送り方 などを記載しますが、Goプロジェクトでは「最初に $GOPATH 下にソースを持ってくる」事が前提になっている手順をよく見かけます（自作プロジェクトでもそうしていました）。
 GoプロジェクトにおけるCONTRIBUTING.mdはどうあるべきか？ Go ModulesのModule-awareモードがデフォルト挙動になるGo1.13以降では、ソースをcloneしてくるディレクトリは何処でも良い＝必ずしも$GOPATH下にソースを持ってくる必要は無くなりますし、依存ライブラリの追加・削除・バージョン変更を行いたい時の流れも変わります。なので、 CONTRIBUTING.mdに書く内容もそれに合わせておくとcontributorに親切なガイドラインを提示できそうです。
@@ -57,9 +56,7 @@ GoプロジェクトにおけるCONTRIBUTING.mdはどうあるべきか？ Go Mo
       
       <guid>https://horizoon.jp/post/2019/03/16/go_embedded_interface/</guid>
       <description>Summary 構造体へのインタフェース埋め込み活用例 ×2
- 一部メソッドを別処理に差し替え 特定のメソッドだけを実装
- 外部APIアクセスなどを伴う機能のテストをmockで行いたい場合に、gomockのようなmock用ライブラリに依存せずにmock化を実現
-type Intf interface { MethodY() MethodZ() } type B struct { Intf // こういう埋め込み }   例1：一部メソッドを別処理に差し替え 無名インタフェースの埋め込み例として本家コードで参考になるのがsort/sort.go のこの実装 です。reverse構造体のコメントにも書いてある通りこうした無名インタフェースを埋め込んだ構造体を利用する事で「一部のメソッドだけ別の実装に差し替える」という事を実現しています。
+ 一部メソッドを別処理に差し替え 特定のメソッドだけを実装  外部APIアクセスなどを伴う機能のテストをmockで行いたい場合に、gomockのようなmock用ライブラリに依存せずにmock化を実現    type Intf interface { MethodY() MethodZ() } type B struct { Intf // こういう埋め込み } 例1：一部メソッドを別処理に差し替え 無名インタフェースの埋め込み例として本家コードで参考になるのがsort/sort.go のこの実装 です。reverse構造体のコメントにも書いてある通りこうした無名インタフェースを埋め込んだ構造体を利用する事で「一部のメソッドだけ別の実装に差し替える」という事を実現しています。
 単純なサンプルコードはこんな感じで、Intfというinterfaceを実装済のAという構造体を ReplaceMethodZ に渡すと、MethodZの挙動だけが異なる別の構造体を取得するという挙動になります。
 （同じコードはこちら → https://play.golang.org/p/mh803JB5RSt ）
 package main import ( &amp;#34;fmt&amp;#34; ) type Intf interface { MethodY() MethodZ() } type A struct { Str string } func (a *A) MethodY() { fmt.Println(fmt.Sprintf(&amp;#34;%s: MethodY&amp;#34;, a.Str)) } func (a *A) MethodZ() { fmt.</description>
@@ -71,7 +68,7 @@ package main import ( &amp;#34;fmt&amp;#34; ) type Intf interface { MethodY() Me
       <pubDate>Wed, 06 Mar 2019 12:15:00 +0900</pubDate>
       
       <guid>https://horizoon.jp/post/2019/03/06/mysql8_3x/</guid>
-      <description>Summary  ver 5.7.12 で追加された「3つのX」。ver 8.0からGA  X Protocol X DevAPI X Plugin  X Protocol  アプリケーションがX Pluginと通信するために使われる新プロトコル。MySQLへの（これまで通りの）SQLインターフェース ＋ NoSQLインタフェースの両方をサポートしている  X DevAPI  MySQL用のNoSQLソリューションを開発したり、Document StoreとしてMySQLを使用したりすることを可能にするAPI Connectors  X DevAPIをサポートしている、言語別クライアント C++, Java, Node.js, .NET, Python の各言語向けライブラリが公式に提供されている  MySQL Shell  MySQLサーバへの新しい対話型インタフェースで、Connector同様にX DevAPIをサポートしている 以前からのmysqlコマンドと同じSQLインタフェースに加えて、JavaScript, Pythonでもコンソール上での各種操作が可能。 JSやPythonでmysqlコンソールを操作できる   X Plugin  X Protocolをサーバー側で有効にして、X Protocolを使ってクライアントとの通信を可能にする為のプラグイン Document StoreとしてMySQLを使用する為にはX Pluginが有効化されていなければならない  ver 8.0.11以降はデフォルトで有効化されている   Document Store  「3つのX」を使って、JSON DocumentをNoSQL/DocumentDB likeに取り扱う仕組み    X Protocol 公式 - MySQL :: MySQL Internals Manual :: 15 X Protocol</description>
+      <description>Summary  ver 5.7.12 で追加された「3つのX」。ver 8.0からGA  X Protocol X DevAPI X Plugin   X Protocol  アプリケーションがX Pluginと通信するために使われる新プロトコル。MySQLへの（これまで通りの）SQLインターフェース ＋ NoSQLインタフェースの両方をサポートしている   X DevAPI  MySQL用のNoSQLソリューションを開発したり、Document StoreとしてMySQLを使用したりすることを可能にするAPI Connectors  X DevAPIをサポートしている、言語別クライアント C++, Java, Node.js, .NET, Python の各言語向けライブラリが公式に提供されている   MySQL Shell  MySQLサーバへの新しい対話型インタフェースで、Connector同様にX DevAPIをサポートしている 以前からのmysqlコマンドと同じSQLインタフェースに加えて、JavaScript, Pythonでもコンソール上での各種操作が可能。 JSやPythonでmysqlコンソールを操作できる     X Plugin  X Protocolをサーバー側で有効にして、X Protocolを使ってクライアントとの通信を可能にする為のプラグイン Document StoreとしてMySQLを使用する為にはX Pluginが有効化されていなければならない  ver 8.0.11以降はデフォルトで有効化されている     Document Store  「3つのX」を使って、JSON DocumentをNoSQL/DocumentDB likeに取り扱う仕組み     X Protocol 公式 - MySQL :: MySQL Internals Manual :: 15 X Protocol</description>
     </item>
     
     <item>
@@ -81,10 +78,10 @@ package main import ( &amp;#34;fmt&amp;#34; ) type Intf interface { MethodY() Me
       
       <guid>https://horizoon.jp/post/2019/02/26/git_conflict_vim/</guid>
       <description>Summary 下記手順だとボチボチ速い
- vim conflict対象ファイル qa ]x どの内容を残すかで実行コマンドを変える  HEAD側を残すなら co 非・HEAD側を残すなら ct 両方残すなら cb  q :%norm! @a  前提条件  rhysd/conflict-marker.vim プラグイン をインストールしておく HEAD側を残すか/非・HEAD側を残すか？（あるいは両方消すか？）を個々に判断する必要がなく、ファイル全体で一律どちらを残すかが定まっている  vimで高速conflict解消 conflictなんか起こらない事が理想とはいえそれなりの規模の開発が並行で走っているとなかなかそうもいかず、起こる度に「conflict解消めんどいよね〜」という会話をしてたりします。最近もそういう会話からお互いのやり方を共有し合うという機会があったので、自分がVimで行っている方法を小ネタとして備忘。
+ vim conflict対象ファイル qa ]x どの内容を残すかで実行コマンドを変える  HEAD側を残すなら co 非・HEAD側を残すなら ct 両方残すなら cb   q :%norm! @a  前提条件  rhysd/conflict-marker.vim プラグイン をインストールしておく HEAD側を残すか/非・HEAD側を残すか？（あるいは両方消すか？）を個々に判断する必要がなく、ファイル全体で一律どちらを残すかが定まっている  vimで高速conflict解消 conflictなんか起こらない事が理想とはいえそれなりの規模の開発が並行で走っているとなかなかそうもいかず、起こる度に「conflict解消めんどいよね〜」という会話をしてたりします。最近もそういう会話からお互いのやり方を共有し合うという機会があったので、自分がVimで行っている方法を小ネタとして備忘。
 前提条件に書いた通り、conflict箇所のどちらを削除するか？がファイル全体で定まっていると判断できたら、
  conflict箇所にジャンプする =&amp;gt; 残したく無い方を削除する =&amp;gt; これをファイル全体で繰り返す  という作業を行えば良く、私が普段使っているNeoVim（Vim）のやり方を晒してみますと下記のような流れの作業になります。
- qa ： レジスタaへのマクロの記録を開始する ]x ： conflict箇所（下方）へジャンプする  conflict-marker.vim プラグイン の機能です。 [x と入力すると逆に上方のconflict箇所へジャンプします  どの内容を残すかで実行コマンドを変える  HEAD側を残すなら co 非・HEAD側を残すなら ct 両方残すなら cb これらも conflict-marker.vim プラグイン の機能です  q ： マクロの記録を終了する :%norm! @a ： ファイル全体を対象にレジスタaに記録したマクロ（＝conflict箇所へジャンプして不要なコードとconflictマーカーを削除）を実行する  :%norm!</description>
+ qa ： レジスタaへのマクロの記録を開始する ]x ： conflict箇所（下方）へジャンプする  conflict-marker.vim プラグイン の機能です。 [x と入力すると逆に上方のconflict箇所へジャンプします   どの内容を残すかで実行コマンドを変える  HEAD側を残すなら co 非・HEAD側を残すなら ct 両方残すなら cb これらも conflict-marker.vim プラグイン の機能です   q ： マクロの記録を終了する :%norm!</description>
     </item>
     
     <item>
@@ -94,7 +91,7 @@ package main import ( &amp;#34;fmt&amp;#34; ) type Intf interface { MethodY() Me
       
       <guid>https://horizoon.jp/post/2019/02/25/dep_to_go_mod/</guid>
       <description>Summary  depで管理していた既存のGo製ツールをdepからgo moduleに移行してみたが、移行自体は特にハマりどころも無くスンナリいった go moduleへの移行後に依存パッケージのupgradeを実施、これもスンナリいった Travis CI + GoReleaser で、ビルド成果物をGithub Releasesに登録する作業 ＆ GoアプリのHomeBrewパッケージ作成・公開作業 を自動化しようと試みたが、そのCIが git is currently in a dirty state というコケ方をしてちょっとハマった GoReleaserは本当に便利  前提条件 # goのバージョン $ go version go version go1.11.5 darwin/amd64 切り替え手順 depを使っていたので、go mod init して go build の成功を確認できたらdep関連のファイルを削除する、という手順で完了します（対応例）
-# go mod利用時に必要な環境変数、direnvでプロジェクトディレクトリ下のみ適用されるようにしても良さそう $ export GO111MODULE=on # go modulesの初期設定 $ go mod init # go runしてスタンドアロンで実行すれば、そのタイミングでgo.sumファイルが作成される $ go run *.go --help # dep関連ファイルを削除する $ rm Gopkg.toml Gopkg.</description>
+# go mod利用時に必要な環境変数、direnvでプロジェクトディレクトリ下のみ適用されるようにしても良さそう $ export GO111MODULE=on # go modulesの初期設定 $ go mod init # go runしてスタンドアロンで実行すれば、そのタイミングでgo.sumファイルが作成される $ go run *.go --help # dep関連ファイルを削除する $ rm Gopkg.toml Gopkg.lock $ rm -fr vendor/ # Makefileを修正 # CIの設定ファイル（今回の場合は .</description>
     </item>
     
     <item>
@@ -103,7 +100,7 @@ package main import ( &amp;#34;fmt&amp;#34; ) type Intf interface { MethodY() Me
       <pubDate>Thu, 07 Feb 2019 14:42:54 +0900</pubDate>
       
       <guid>https://horizoon.jp/post/2019/02/07/lambda_layer_nodejs8/</guid>
-      <description>Summary  axiosなどのモジュールに依存した既存のNode.js Lambda Functionがある このfunctionで使用しているモジュールをAWS Lambda Layersに移行し、aws-sam-cliでデプロイする 既存functionで個別にnpm installしていたモジュールを削除し、デプロイしたLayerを使用するように変更する Layer移行後も既存functionが sam local invoke コマンドでローカルで実行できる事を確認する Layerを使うように変更した既存functionをデプロイする 移行した結果  既存functionのサイズを半分以下に削減できた 既存functionの実行時間を半分以下に削減できた  AWS SAM 便利  Lambda Layerも便利、だけど、チーム開発でCIの仕組み構築まで考え始めると一工夫必要かも？   前提条件 # aws-cliのバージョン $ aws --version aws-cli/1.16.80 Python/3.7.1 Darwin/18.2.0 botocore/1.12.70 # aws-sam-cliのバージョン $ sam --version SAM CLI, version 0.10.0 既存Functionで使用中のモジュールをLayersに移行する Layer用のプロジェクトディレクトリを作成し、Layer化したいnpmモジュールをインストールします。 ディレクトリの構成は公式ドキュメントの記載 の通り nodejs/node_modules という構成になるようにします。
+      <description>Summary  axiosなどのモジュールに依存した既存のNode.js Lambda Functionがある このfunctionで使用しているモジュールをAWS Lambda Layersに移行し、aws-sam-cliでデプロイする 既存functionで個別にnpm installしていたモジュールを削除し、デプロイしたLayerを使用するように変更する Layer移行後も既存functionが sam local invoke コマンドでローカルで実行できる事を確認する Layerを使うように変更した既存functionをデプロイする 移行した結果  既存functionのサイズを半分以下に削減できた 既存functionの実行時間を半分以下に削減できた   AWS SAM 便利  Lambda Layerも便利、だけど、チーム開発でCIの仕組み構築まで考え始めると一工夫必要かも？    前提条件 # aws-cliのバージョン $ aws --version aws-cli/1.16.80 Python/3.7.1 Darwin/18.2.0 botocore/1.12.70 # aws-sam-cliのバージョン $ sam --version SAM CLI, version 0.10.0 既存Functionで使用中のモジュールをLayersに移行する Layer用のプロジェクトディレクトリを作成し、Layer化したいnpmモジュールをインストールします。 ディレクトリの構成は公式ドキュメントの記載 の通り nodejs/node_modules という構成になるようにします。
 $ cd &amp;lt;PROJECT_ROOT&amp;gt; $ mkdir nodejs $ cd nodejs $ npm init -y $ npm install [必要なモジュール群] ここまで完了すると、PROJECT_ROOTの下には下記のディレクトリとファイルが作成された状態になります</description>
     </item>
     
@@ -131,10 +128,9 @@ FULLTEXT INDEXも他のINDEXと同様にデータ更新・削除の際にINDEX�
       <guid>https://horizoon.jp/post/2017/05/21/hugo_github_pages/</guid>
       <description>ブログサービスを使わずブログを公開するというのが初めての作業だったので、備忘も兼ねてメモしておく。
 Github Pages用のリポジトリを作成 Github Pages にブログを公開するに辺り、まずは こちらの公式の記事を参考に
- pages というリポジトリ - 記事のソースファイル置き場 ACCOUNT名.github.io というリポジトリ - Github Pages 公開用リポジトリ  私の場合 ACCOUNT名 は goldeneggg になる。   という2つのリポジトリを作成した。pagesリポジトリで作成したコンテンツのビルド成果物を goldeneggg.github.io リポジトリに出力→pushして公開する、という流れを想定している。
+ pages というリポジトリ - 記事のソースファイル置き場 ACCOUNT名.github.io というリポジトリ - Github Pages 公開用リポジトリ  私の場合 ACCOUNT名 は goldeneggg になる。    という2つのリポジトリを作成した。pagesリポジトリで作成したコンテンツのビルド成果物を goldeneggg.github.io リポジトリに出力→pushして公開する、という流れを想定している。
 Hugoの導入 サイトジェネレータの選定だが、Go製の hugo が生成処理が速いという評判だったのと、個人的にGoが好き という理由であまり深くは考えずHugoを使う事にした。
-# brew か go get でインストール $ brew install hugo ## Or $ go get -u -v github.com/spf13/hugo Hugoの初期設定  最初に作成した 記事のソースファイル置き場 用のリポジトリを git clone する cloneしたディレクトリにcdし、hugo new site . する。これで雛形となるディレクトリ群が生成される
-$ git clone git@github.com:goldeneggg/pages.git $ cd pages $ hugo new site .</description>
+# brew か go get でインストール $ brew install hugo ## Or $ go get -u -v github.com/spf13/hugo Hugoの初期設定  最初に作成した 記事のソースファイル置き場 用のリポジトリを git clone する cloneしたディレクトリにcdし、hugo new site . する。これで雛形となるディレクトリ群が生成される  $ git clone git@github.</description>
     </item>
     
   </channel>

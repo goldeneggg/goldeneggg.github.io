@@ -16,7 +16,7 @@
   horizoon - Travis CIによるLambdaの自動デプロイ with AWS SAM in Go 
 </title>
 
-<meta name="generator" content="Hugo 0.59.1" />
+<meta name="generator" content="Hugo 0.62.0" />
 
 
 
@@ -76,26 +76,20 @@
 <section id="content-pane" class="row">
   <div class="col-md-12 text-justify content">
     
-    
-
-<h1 id="summary">Summary</h1>
-
+    <h1 id="summary">Summary</h1>
 <ul>
 <li>AWS SAMで管理しているLambda Functionのデプロイ自動化を、<strong>AWS CodePipelineやAWS CodeBuildを使うことなく</strong> Travis CIを活用して行う
-
 <ul>
 <li>今回利用したLambda FunctionはGo製</li>
 <li>Pull Requestのmasterブランチへのmerge時に、samコマンドで自動デプロイ</li>
-</ul></li>
 </ul>
-
-<h1 id="前提条件">前提条件</h1>
-
+</li>
+</ul>
+<h1 id="heading">前提条件</h1>
 <ul>
 <li>Lambdaのリポジトリはgithub</li>
-
-<li><p>各種バージョン情報は下記の通り</p>
-
+<li>各種バージョン情報は下記の通り</li>
+</ul>
 <pre><code>$ python --version
 Python 2.7.12
 
@@ -107,43 +101,33 @@ aws-cli/1.16.175 Python/2.7.12 Linux/4.15.0-1028-gcp botocore/1.12.165
 
 $ sam --version
 SAM CLI, version 0.17.0
-</code></pre></li>
-</ul>
-
-<h1 id="samで管理しているlambdaのデプロイをtravis-ciで自動化したい">SAMで管理しているLambdaのデプロイをTravis CIで自動化したい</h1>
-
-<p>SAMで管理しているLambdaのデプロイ自動化をTravis CIで行います。SAMで管理しているからにはSAMのテンプレートとaws-sam-cliを使ってデプロイを行いたいです。なので<a href="https://docs.travis-ci.com/user/deployment/lambda/" target="_blank">Travis公式のLambdaデプロイサポート</a>は使用しません。</p>
-
+</code></pre><h1 id="samlambdatravis-ci">SAMで管理しているLambdaのデプロイをTravis CIで自動化したい</h1>
+<p>SAMで管理しているLambdaのデプロイ自動化をTravis CIで行います。SAMで管理しているからにはSAMのテンプレートとaws-sam-cliを使ってデプロイを行いたいです。なので<a href="https://docs.travis-ci.com/user/deployment/lambda/">Travis公式のLambdaデプロイサポート</a>は使用しません。</p>
 <ul>
 <li>branch != master の場合のCI
-
 <ol>
 <li>Lambdaコードのテスト</li>
 <li>Lambdaコードのlint（golintやgo vetなど）</li>
 <li><code>sam validate</code></li>
-</ol></li>
+</ol>
+</li>
 <li>branch == master の場合のCI, デプロイ
-
 <ol>
 <li>CI時に実施した事全て</li>
 <li><code>sam package</code></li>
 <li><code>sam deploy</code></li>
-</ol></li>
+</ol>
+</li>
 </ul>
-
 <p>これらを.travis.ymlで定義してデプロイを自動化します。</p>
-
-<h2 id="セキュアな環境変数の設定">セキュアな環境変数の設定</h2>
-
+<h2 id="heading-1">セキュアな環境変数の設定</h2>
 <p>Travis CIでsamコマンドを実行したい場合に必要な環境変数は下記の3つです。</p>
-
 <ul>
 <li>AWS_ACCESS_KEY_ID</li>
 <li>AWS_SECRET_ACCESS_KEY</li>
 <li>AWS_DEFAULT_REGION</li>
 </ul>
-
-<p>セキュアな変数は <a href="https://docs.travis-ci.com/user/environment-variables/#defining-encrypted-variables-in-travisyml" target="_blank"><code>travis encrypt</code> コマンドで暗号化して.travis.yml に設定します</a>。</p>
+<p>セキュアな変数は <a href="https://docs.travis-ci.com/user/environment-variables/#defining-encrypted-variables-in-travisyml"><code>travis encrypt</code> コマンドで暗号化して.travis.yml に設定します</a>。</p>
 <div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh">$ travis encrypt <span class="nv">AWS_ACCESS_KEY_ID</span><span class="o">=</span>YOUR_KEY_ID
 
 Please add the following to your .travis.yml file:
@@ -154,8 +138,8 @@ $ travis encrypt <span class="nv">AWS_SECRET_ACCESS_KEY</span><span class="o">=<
 
 Please add the following to your .travis.yml file:
 
-  secure: <span class="s2">&#34;XXX&#34;</span>  <span class="c1"># この内容を.travis.ymlに設定する</span></code></pre></div>
-<h2 id="travis-yml">.travis.yml</h2>
+  secure: <span class="s2">&#34;XXX&#34;</span>  <span class="c1"># この内容を.travis.ymlに設定する</span>
+</code></pre></div><h2 id="travisyml">.travis.yml</h2>
 <div class="highlight"><pre class="chroma"><code class="language-yaml" data-lang="yaml">dist<span class="p">:</span><span class="w"> </span>xenial<span class="w">
 </span><span class="w">
 </span><span class="w"></span>go<span class="p">:</span><span class="w">
@@ -191,18 +175,14 @@ Please add the following to your .travis.yml file:
 </span><span class="w">
 </span><span class="w"></span>notifications<span class="p">:</span><span class="w">
 </span><span class="w">  </span>email<span class="p">:</span><span class="w">
-</span><span class="w">    </span>on_success<span class="p">:</span><span class="w"> </span>never</code></pre></div>
-<p>pythonのバージョンが古いと<code>sam</code>コマンドがコケるので<a href="https://docs.travis-ci.com/user/reference/xenial/#python-support" target="_blank"><code>dist: xenial</code>でXenialベースのイメージを指定し、極力新しいバージョンのpythonを利用</a>できるようにします。</p>
-
+</span><span class="w">    </span>on_success<span class="p">:</span><span class="w"> </span>never<span class="w">
+</span></code></pre></div><p>pythonのバージョンが古いと<code>sam</code>コマンドがコケるので<a href="https://docs.travis-ci.com/user/reference/xenial/#python-support"><code>dist: xenial</code>でXenialベースのイメージを指定し、極力新しいバージョンのpythonを利用</a>できるようにします。</p>
 <p><code>language: go</code>なビルドイメージにインストールされているpythonのバージョンは、<code>dist: xenial</code>を指定しない＝<code>dist: trusty</code>が選択されれば（この記事の執筆時点では）2.7.6になります。例えば<code>sam validate</code>をver 2.7.6なpython環境で実行すると、SNIMissingWarningが発生してしまいます。</p>
-
 <pre><code>/home/travis/.local/lib/python2.7/site-packages/urllib3/util/ssl_.py:365: SNIMissingWarning: An HTTPS request has been made, but the SNI (Server Name Indication) extension to TLS is not available on this platform.
 This may cause the server to present an incorrect TLS certificate, which can cause validation failures.
 You can upgrade to a newer version of Python to solve this. For more information, see https://urllib3.readthedocs.io/en/latest/advanced-usage.html#ssl-warnings
   SNIMissingWarning
-</code></pre>
-
-<p>deployセクションのscriptで<code>go build</code> =&gt; <code>sam package</code> =&gt; <code>sam deploy</code>を実行するスクリプトを用意・指定します。</p>
+</code></pre><p>deployセクションのscriptで<code>go build</code> =&gt; <code>sam package</code> =&gt; <code>sam deploy</code>を実行するスクリプトを用意・指定します。</p>
 <div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh"><span class="cp">#!/bin/bash
 </span><span class="cp"></span>
 <span class="c1"># ./deploy.sh</span>
@@ -220,7 +200,7 @@ You can upgrade to a newer version of Python to solve this. For more information
 
 <span class="nv">CODE_URI</span><span class="o">=</span>hoge/
 <span class="nv">HANDLER</span><span class="o">=</span>huga
-<span class="nv">GOOS</span><span class="o">=</span>linux <span class="nv">GOARCH</span><span class="o">=</span>amd64 go build -o <span class="si">${</span><span class="nv">CODE_URI</span><span class="si">}${</span><span class="nv">HANDLER</span><span class="si">}</span> <span class="si">${</span><span class="nv">CODE_URI</span><span class="si">}</span>main.go
+<span class="nv">GOOS</span><span class="o">=</span>linux <span class="nv">GOARCH</span><span class="o">=</span>amd64 go build -o <span class="si">${</span><span class="nv">CODE_URI</span><span class="si">}</span><span class="si">${</span><span class="nv">HANDLER</span><span class="si">}</span> <span class="si">${</span><span class="nv">CODE_URI</span><span class="si">}</span>main.go
 
 <span class="nv">TEMPLATE</span><span class="o">=</span>./template.yaml
 <span class="nv">OUTPUT_TEMPLATE</span><span class="o">=</span>./serverless-output.yaml  <span class="c1"># デプロイ用の中間生成物なのでgitignoreしておくのが良いです</span>
@@ -235,23 +215,20 @@ sam package --template-file <span class="si">${</span><span class="nv">TEMPLATE<
 
 sam deploy --template-file <span class="si">${</span><span class="nv">OUTPUT_TEMPLATE</span><span class="si">}</span> <span class="se">\
 </span><span class="se"></span>  --stack-name <span class="si">${</span><span class="nv">STACK</span><span class="si">}</span> <span class="se">\
-</span><span class="se"></span>  --capabilities CAPABILITY_IAM</code></pre></div>
-<p>これで、今後masterブランチへのpushをトリガーに<code>go build</code> =&gt; <code>sam package</code> =&gt; <code>sam deploy</code> によるデプロイが自動で行われるようになります。</p>
-
+</span><span class="se"></span>  --capabilities CAPABILITY_IAM
+</code></pre></div><p>これで、今後masterブランチへのpushをトリガーに<code>go build</code> =&gt; <code>sam package</code> =&gt; <code>sam deploy</code> によるデプロイが自動で行われるようになります。</p>
 <p>今回の例のように<code>sam package</code> =&gt; <code>sam deploy</code> をシンプルに実行するだけのフローであれば（且つCodePipeline導入によるメリットを享受したい強い理由が無ければ）、Travis CIでも十分でした、という所感です。</p>
-
-<h1 id="ブックマーク">ブックマーク</h1>
-
+<h1 id="heading-2">ブックマーク</h1>
 <ul>
-<li><a href="https://dev.to/codevbus/deploy-aws-lambda-functions-with-aws-sam-cli-and-travis-ci-3m9m" target="_blank">Deploy AWS Lambda functions with aws-sam-cli and Travis-CI - DEV Community 👩‍💻👨‍💻</a></li>
-<li><a href="https://dev.to/codevbus/deploy-aws-lambda-functions-with-aws-sam-cli-and-travis-ci-part-2-2goh" target="_blank">Deploy AWS Lambda functions with aws-sam-cli and Travis-CI: Part 2 - DEV Community 👩‍💻👨‍💻</a></li>
-<li><a href="https://docs.aws.amazon.com/ja_jp/lambda/latest/dg/build-pipeline.html" target="_blank">AWS CodePipeline を使用して Lambda アプリケーションの継続的な配信パイプラインを構築する - AWS Lambda</a></li>
-<li><a href="https://github.com/aws-samples/cookiecutter-aws-sam-pipeline" target="_blank">aws-samples/cookiecutter-aws-sam-pipeline: Cookiecutter is an Open Source BSD-3 licensed that provides a template engine to scaffold projects. This project is a a cookiecutter template to create a generic CI/CD pipeline for Serverless App based on Serverless Application Model (SAM).</a></li>
-<li><a href="https://github.com/Giftbit/sam-scaffold" target="_blank">Giftbit/sam-scaffold: A template for an AWS SAM project with continuous integration.</a>
-
+<li><a href="https://dev.to/codevbus/deploy-aws-lambda-functions-with-aws-sam-cli-and-travis-ci-3m9m">Deploy AWS Lambda functions with aws-sam-cli and Travis-CI - DEV Community 👩‍💻👨‍💻</a></li>
+<li><a href="https://dev.to/codevbus/deploy-aws-lambda-functions-with-aws-sam-cli-and-travis-ci-part-2-2goh">Deploy AWS Lambda functions with aws-sam-cli and Travis-CI: Part 2 - DEV Community 👩‍💻👨‍💻</a></li>
+<li><a href="https://docs.aws.amazon.com/ja_jp/lambda/latest/dg/build-pipeline.html">AWS CodePipeline を使用して Lambda アプリケーションの継続的な配信パイプラインを構築する - AWS Lambda</a></li>
+<li><a href="https://github.com/aws-samples/cookiecutter-aws-sam-pipeline">aws-samples/cookiecutter-aws-sam-pipeline: Cookiecutter is an Open Source BSD-3 licensed that provides a template engine to scaffold projects. This project is a a cookiecutter template to create a generic CI/CD pipeline for Serverless App based on Serverless Application Model (SAM).</a></li>
+<li><a href="https://github.com/Giftbit/sam-scaffold">Giftbit/sam-scaffold: A template for an AWS SAM project with continuous integration.</a>
 <ul>
 <li>AWS SAMで管理しているLambdaプロジェクト向けのCI雛形集</li>
-</ul></li>
+</ul>
+</li>
 </ul>
 
   </div>
@@ -296,9 +273,9 @@ sam deploy --template-file <span class="si">${</span><span class="nv">OUTPUT_TEM
 <footer class="row text-center footer">
   <hr />
   
-  <h6 class="text-center copyright">© 2019. horizoon. <a href="http://creativecommons.org/licenses/by/3.0/" target="_blank">Some Rights Reserved</a>.</h6>
+  <h6 class="text-center copyright">© 2019. horizoon. <a href="http://creativecommons.org/licenses/by/3.0/">Some Rights Reserved</a>.</h6>
   
-  <h6 class="text-center powered">Powered by <a href="https://gohugo.io/">Hugo  v0.59.1</a> &amp; <a href="https://github.com/shenoybr/hugo-goa">Goa</a>.</h6>
+  <h6 class="text-center powered">Powered by <a href="https://gohugo.io/">Hugo  v0.62.0</a> &amp; <a href="https://github.com/shenoybr/hugo-goa">Goa</a>.</h6>
   
       
       <h6><a href="" aria-label="RSS Feed"><i class="fas fa-rss" aria-hidden="true"></i></a></h6>

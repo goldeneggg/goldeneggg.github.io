@@ -1,4 +1,8 @@
 /* Add custom CSS here. */
+div.content {
+  font-size: 18px;
+  line-height: 2.0;
+}
 
 /* Customize link */
 a:visited
