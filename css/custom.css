@@ -5,6 +5,11 @@ div.content {
 }
 
 /* Customize link */
+a:link
+{
+    color: #4498d1;
+}
+
 a:visited
 {
     color: #a9347e;
