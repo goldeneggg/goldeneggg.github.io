@@ -16,7 +16,7 @@
   horizoon - Go: module modeでのgo.mod, go.sumファイルを用いた依存ライブラリ管理、及びcontributionの方法＆手順 
 </title>
 
-<meta name="generator" content="Hugo 0.62.0" />
+<meta name="generator" content="Hugo 0.67.0" />
 
 
 
@@ -90,14 +90,14 @@
 </ul>
 </li>
 </ul>
-<h1 id="heading">前提条件</h1>
+<h1 id="前提条件">前提条件</h1>
 <div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh">$ go version
 go version go1.12.4 darwin/amd64
 
 <span class="c1"># GO111MODULE=on して、常にModule-awareモードとなる状態で検証</span>
 $ <span class="nb">export</span> <span class="nv">GO111MODULE</span><span class="o">=</span>on
-</code></pre></div><h1 id="heading-1">はじめに</h1>
-<h2 id="githubcontributing-">Githubの&quot;contributing ドキュメントについて</h2>
+</code></pre></div><h1 id="はじめに">はじめに</h1>
+<h2 id="githubのcontributing-ドキュメントについて">Githubの&quot;contributing ドキュメントについて</h2>
 <p>githubにプロジェクトを公開する際に、</p>
 <ol>
 <li>ルート</li>
@@ -106,10 +106,10 @@ $ <span class="nb">export</span> <span class="nv">GO111MODULE</span><span class=
 </ol>
 <p>の3つの内いずれかのディレクトリに <code>contributing*</code> というパターン名（大文字でも可）が付いたファイルを置いておくと、<a href="https://help.github.com/en/articles/setting-guidelines-for-repository-contributors">pull-request作成時に「ここにガイドラインがあるよ」と通知してくれるようになります</a>。慣例としてこのファイルは CONTRIBUTING.md という名前で用意されている事が多いです。</p>
 <p>このファイルには主に環境構築・テストの実行方法・pull-requestの送り方 などを記載しますが、Goプロジェクトでは「最初に <code>$GOPATH</code> 下にソースを持ってくる」事が前提になっている手順をよく見かけます（自作プロジェクトでもそうしていました）。</p>
-<h2 id="gocontributingmd">GoプロジェクトにおけるCONTRIBUTING.mdはどうあるべきか？</h2>
+<h2 id="goプロジェクトにおけるcontributingmdはどうあるべきか">GoプロジェクトにおけるCONTRIBUTING.mdはどうあるべきか？</h2>
 <p><a href="https://github.com/golang/go/wiki/Modules">Go ModulesのModule-awareモードがデフォルト挙動になるGo1.13</a>以降では、ソースをcloneしてくるディレクトリは何処でも良い＝必ずしも<code>$GOPATH</code>下にソースを持ってくる必要は無くなりますし、依存ライブラリの追加・削除・バージョン変更を行いたい時の流れも変わります。なので、 <strong>CONTRIBUTING.mdに書く内容もそれに合わせておくとcontributorに親切なガイドラインを提示できそうです。</strong></p>
 <p>引き続き$GOPATHベースでの開発を推奨するプロジェクトもあるかも知れませんし、内容や粒度はプロジェクトの運営方針や想定読者レベルによっても変わるとは思いますが、この記事ではModule-awareモードのレールに乗る前提で、CONTRIBUTING.mdに書くべき内容と、合わせてmodule modeでのGoプロジェクトにおけるライブラリ管理プラクティスを整理してみます。</p>
-<h1 id="1-module-modego">1. module modeでのGo製プロジェクトの初期環境構築</h1>
+<h1 id="1-module-modeでのgo製プロジェクトの初期環境構築">1. module modeでのGo製プロジェクトの初期環境構築</h1>
 <p>想定手順</p>
 <ol>
 <li><code>cd 任意のディレクトリ</code></li>
@@ -133,7 +133,7 @@ go: downloading github.com/aws/aws-sdk-go v1.17.14
 go: extracting github.com/urfave/cli v1.20.0
 go: extracting github.com/aws/aws-sdk-go v1.17.14
 </code></pre></div><p>例えば  <a href="https://github.com/golang/go/wiki/Modules#daily-workflow"><code>go build</code> でもgo.modファイルの内容を元にした依存ライブラリの取り込みが動いてくれる</a>ので、<code>go build</code> をmakeのデフォルトターゲットとして用意しておくのも良さそうです。</p>
-<h1 id="2-module-mode">2. module modeで依存ライブラリを追加したい時の手順</h1>
+<h1 id="2-module-modeで依存ライブラリを追加したい時の手順">2. module modeで依存ライブラリを追加したい時の手順</h1>
 <p>想定手順</p>
 <ol>
 <li>コードを編集・import文を追加</li>
@@ -157,9 +157,9 @@ require (
   github.com/k0kubun/pp v3.0.1+incompatible
   :
 )
-</code></pre><h2 id="incompatible-"><code>+incompatible</code> と出力されるのはどういう時か？</h2>
+</code></pre><h2 id="incompatible-と出力されるのはどういう時か"><code>+incompatible</code> と出力されるのはどういう時か？</h2>
 <p>たまたま今回使わせてもらったppで <code>+incompatible</code> というsuffixがgo.modに出力されましたが、これは <a href="https://github.com/golang/go/wiki/Modules#semantic-import-versioning">「ライブラリがGo Modulesに未対応で、且つMAJORバージョンが2以上」の場合に発生</a>します（が、開発への悪影響がある訳ではありません）</p>
-<h1 id="3-module-modeminorpatch">3. module modeでライブラリのMINORバージョン又はPATCHバージョン（或いはその両方）を更新する手順</h1>
+<h1 id="3-module-modeでライブラリのminorバージョン又はpatchバージョン或いはその両方を更新する手順">3. module modeでライブラリのMINORバージョン又はPATCHバージョン（或いはその両方）を更新する手順</h1>
 <p>想定手順</p>
 <ol>
 <li><code>go list -u -m PACKAGE</code> - PACKAGEで利用可能な最新バージョンが存在するか確認
@@ -195,7 +195,7 @@ go: extracting github.com/aws/aws-sdk-go v1.18.6
 <span class="c1"># go.modの更新内容を確認</span>
 $ cat go.mod <span class="p">|</span> grep aws-sdk-go
         github.com/aws/aws-sdk-go v1.18.6
-</code></pre></div><h1 id="4-version">4. 全てのライブラリを最新versionに更新する手順</h1>
+</code></pre></div><h1 id="4-全てのライブラリを最新versionに更新する手順">4. 全てのライブラリを最新versionに更新する手順</h1>
 <p>想定手順</p>
 <ol>
 <li><code>go list -u -m all</code> - 全依存ライブラリに更新可能バージョン（があればそれ）を付けて一覧表示・確認</li>
@@ -220,7 +220,7 @@ go: downloading github.com/aws/aws-sdk-go v1.19.11
 go: extracting github.com/aws/aws-sdk-go v1.19.11
 :
 :
-</code></pre></div><h1 id="5-">5. 使わなくなったライブラリを削除する手順を書く</h1>
+</code></pre></div><h1 id="5-使わなくなったライブラリを削除する手順を書く">5. 使わなくなったライブラリを削除する手順を書く</h1>
 <p>想定手順</p>
 <ol>
 <li>コードを編集・import文を削除</li>
@@ -280,7 +280,7 @@ go: extracting github.com/aws/aws-sdk-go v1.19.11
   
   <h6 class="text-center copyright">© 2019. horizoon. <a href="http://creativecommons.org/licenses/by/3.0/">Some Rights Reserved</a>.</h6>
   
-  <h6 class="text-center powered">Powered by <a href="https://gohugo.io/">Hugo  v0.62.0</a> &amp; <a href="https://github.com/shenoybr/hugo-goa">Goa</a>.</h6>
+  <h6 class="text-center powered">Powered by <a href="https://gohugo.io/">Hugo  v0.67.0</a> &amp; <a href="https://github.com/shenoybr/hugo-goa">Goa</a>.</h6>
   
       
       <h6><a href="" aria-label="RSS Feed"><i class="fas fa-rss" aria-hidden="true"></i></a></h6>

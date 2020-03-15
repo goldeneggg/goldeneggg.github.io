@@ -16,7 +16,7 @@
   horizoon - 既存のLambda FunctionにLambda Layersを導入し、AWS SAMで管理する（Node.js） 
 </title>
 
-<meta name="generator" content="Hugo 0.62.0" />
+<meta name="generator" content="Hugo 0.67.0" />
 
 
 
@@ -97,7 +97,7 @@
 </ul>
 </li>
 </ul>
-<h1 id="heading">前提条件</h1>
+<h1 id="前提条件">前提条件</h1>
 <div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh"><span class="c1"># aws-cliのバージョン</span>
 $ aws --version
 aws-cli/1.16.80 Python/3.7.1 Darwin/18.2.0 botocore/1.12.70
@@ -105,7 +105,7 @@ aws-cli/1.16.80 Python/3.7.1 Darwin/18.2.0 botocore/1.12.70
 <span class="c1"># aws-sam-cliのバージョン</span>
 $ sam --version
 SAM CLI, version 0.10.0
-</code></pre></div><h1 id="functionlayers">既存Functionで使用中のモジュールをLayersに移行する</h1>
+</code></pre></div><h1 id="既存functionで使用中のモジュールをlayersに移行する">既存Functionで使用中のモジュールをLayersに移行する</h1>
 <p>Layer用のプロジェクトディレクトリを作成し、Layer化したいnpmモジュールをインストールします。
 ディレクトリの構成は<a href="https://docs.aws.amazon.com/ja_jp/lambda/latest/dg/configuration-layers.html#configuration-layers-path">公式ドキュメントの記載</a> の通り <code>nodejs/node_modules</code> という構成になるようにします。</p>
 <div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh">$ <span class="nb">cd</span> &lt;PROJECT_ROOT&gt;
@@ -120,11 +120,11 @@ $ npm install <span class="o">[</span>必要なモジュール群<span class="o"
     ├── node_modules
     ├── package-lock.json
     └── package.json
-</code></pre><h2 id="zip">zipでアーカイブ</h2>
+</code></pre><h2 id="zipでアーカイブ">zipでアーカイブ</h2>
 <p>成果物を<code>nodejs</code> ディレクトリがトップディレクトリとなるようにアーカイブします。</p>
 <div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh">$ <span class="nb">cd</span> &lt;PROJECT_ROOT&gt;
 $ zip -r layer.zip ./
-</code></pre></div><h2 id="zips3">zipをS3にアップロード</h2>
+</code></pre></div><h2 id="zipをs3にアップロード">zipをS3にアップロード</h2>
 <p>作成したzipをS3にアップロードします。バケットが別途必要であれば事前に作成しておきます。</p>
 <div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh"><span class="c1"># BUCKET, REGION, FOLDERは適宜各自の環境の内容に置き換え</span>
 
@@ -133,36 +133,36 @@ $ aws s3 mb s3://<span class="si">${</span><span class="nv">S3_BUCKET</span><spa
 
 <span class="c1"># この例では、zipを指定バケット・指定フォルダの下にアップロード</span>
 $ aws s3 cp layer.zip s3://<span class="si">${</span><span class="nv">S3_BUCKET</span><span class="si">}</span>/<span class="si">${</span><span class="nv">S3_FOLDER</span><span class="si">}</span>/
-</code></pre></div><h2 id="aws-sam">AWS SAMのテンプレートを作成</h2>
+</code></pre></div><h2 id="aws-samのテンプレートを作成">AWS SAMのテンプレートを作成</h2>
 <p>デプロイテンプレートを作成します。テンプレートの形式は<a href="https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlesslayerversion">SAMの公式ドキュメント</a> を参考にします。<code>ContentUri</code> がS3にアップロードしたzipのURLになっている事がポイントです。</p>
 <div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh">$ vi template.yaml
-</code></pre></div><div class="highlight"><pre class="chroma"><code class="language-yaml" data-lang="yaml">AWSTemplateFormatVersion<span class="p">:</span><span class="w"> </span><span class="s1">&#39;2010-09-09&#39;</span><span class="w">
-</span><span class="w"></span>Transform<span class="p">:</span><span class="w"> </span>AWS<span class="p">:</span><span class="p">:</span>Serverless<span class="m">-2016</span><span class="m">-10</span><span class="m">-31</span><span class="w">
-</span><span class="w"></span>Description<span class="p">:</span><span class="w"> </span><span class="sd">&gt;
-</span><span class="sd"> </span><span class="sd"> </span><span class="sd">My Node.js modules Layer</span><span class="w">
+</code></pre></div><div class="highlight"><pre class="chroma"><code class="language-yaml" data-lang="yaml"><span class="k">AWSTemplateFormatVersion</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;2010-09-09&#39;</span><span class="w">
+</span><span class="w"></span><span class="k">Transform</span><span class="p">:</span><span class="w"> </span>AWS<span class="p">::</span>Serverless<span class="m">-2016-10-31</span><span class="w">
+</span><span class="w"></span><span class="k">Description</span><span class="p">:</span><span class="w"> </span><span class="sd">&gt;
+</span><span class="sd">  My Node.js modules Layer</span><span class="w">
 </span><span class="w">
-</span><span class="w"></span>Resources<span class="p">:</span><span class="w">
-</span><span class="w">  </span>MyLayer<span class="p">:</span><span class="w">
-</span><span class="w">    </span>Type<span class="p">:</span><span class="w"> </span>AWS<span class="p">:</span><span class="p">:</span>Serverless<span class="p">:</span><span class="p">:</span>LayerVersion<span class="w">
-</span><span class="w">    </span>Properties<span class="p">:</span><span class="w">
-</span><span class="w">      </span>LayerName<span class="p">:</span><span class="w"> </span>my-layer<span class="w">
-</span><span class="w">      </span>Description<span class="p">:</span><span class="w"> </span>My<span class="w"> </span>Node.js<span class="w"> </span>modules<span class="w"> </span>layer<span class="w">
-</span><span class="w">      </span>ContentUri<span class="p">:</span><span class="w"> </span><span class="s1">&#39;s3://S3_BUCKET/S3_FOLDER/layer.zip&#39;</span><span class="w">
-</span><span class="w">      </span>CompatibleRuntimes<span class="p">:</span><span class="w">
-</span><span class="w">        </span>-<span class="w"> </span>nodejs8<span class="m">.10</span><span class="w">
-</span><span class="w">      </span>LicenseInfo<span class="p">:</span><span class="w"> </span><span class="s1">&#39;Available under the MIT-0 license.&#39;</span><span class="w">
-</span><span class="w">      </span>RetentionPolicy<span class="p">:</span><span class="w"> </span>Retain<span class="w">
+</span><span class="w"></span><span class="k">Resources</span><span class="p">:</span><span class="w">
+</span><span class="w">  </span><span class="k">MyLayer</span><span class="p">:</span><span class="w">
+</span><span class="w">    </span><span class="k">Type</span><span class="p">:</span><span class="w"> </span>AWS<span class="p">::</span>Serverless<span class="p">::</span>LayerVersion<span class="w">
+</span><span class="w">    </span><span class="k">Properties</span><span class="p">:</span><span class="w">
+</span><span class="w">      </span><span class="k">LayerName</span><span class="p">:</span><span class="w"> </span>my-layer<span class="w">
+</span><span class="w">      </span><span class="k">Description</span><span class="p">:</span><span class="w"> </span>My<span class="w"> </span>Node.js<span class="w"> </span>modules<span class="w"> </span>layer<span class="w">
+</span><span class="w">      </span><span class="k">ContentUri</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;s3://S3_BUCKET/S3_FOLDER/layer.zip&#39;</span><span class="w">
+</span><span class="w">      </span><span class="k">CompatibleRuntimes</span><span class="p">:</span><span class="w">
+</span><span class="w">        </span>- nodejs8<span class="m">.10</span><span class="w">
+</span><span class="w">      </span><span class="k">LicenseInfo</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;Available under the MIT-0 license.&#39;</span><span class="w">
+</span><span class="w">      </span><span class="k">RetentionPolicy</span><span class="p">:</span><span class="w"> </span>Retain<span class="w">
 </span></code></pre></div><p>作成したらaws-sam-cliでyamlのvalidationをしておくと良いです。</p>
 <div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh">$ sam validate
 
-</code></pre></div><h2 id="heading-1">デプロイ/公開</h2>
+</code></pre></div><h2 id="デプロイ公開">デプロイ/公開</h2>
 <p>aws-sam-cliでデプロイします。</p>
 <div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh">$ sam deploy --template-file ./template.yaml --stack-name layer-stack --capabilities CAPABILITY_IAM
 
 Waiting <span class="k">for</span> changeset to be created..
 Waiting <span class="k">for</span> stack create/update to <span class="nb">complete</span>
 Successfully created/updated stack - layer-stack
-</code></pre></div><h1 id="functionlayer">既存functionをLayerを使用する形式に変更する</h1>
+</code></pre></div><h1 id="既存functionをlayerを使用する形式に変更する">既存functionをLayerを使用する形式に変更する</h1>
 <p>今回筆者が対象にしたfunctionは下記のようなディレクトリ構成で、API Gatewayをeventトリガーとして処理を行うfunctionです。</p>
 <pre><code>.
 ├── Makefile
@@ -186,7 +186,7 @@ Successfully created/updated stack - layer-stack
 <li>デプロイ＆動作確認</li>
 </ul>
 <p>という流れで移行作業を進めていきます。</p>
-<h2 id="layer">Layer移行済のモジュールを削除</h2>
+<h2 id="layer移行済のモジュールを削除">Layer移行済のモジュールを削除</h2>
 <p>まずLayerに移行したモジュールを対象のfunctionから削除します。package.jsonのdependenciesから不要モジュールの記述を削除し、<code>npm install</code> を再実行します。</p>
 <p>例えば私のfunctionを例にすると、aws-sdk, axios, cheerioの3モジュールを全てLayerに移行したので、下記のdependenciesは全て不要になるので削除しました。</p>
 <div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh"><span class="c1"># CODE_URIは適宜各自の環境の内容に置き換え</span>
@@ -201,7 +201,7 @@ $ vi <span class="si">${</span><span class="nv">CODE_URI</span><span class="si">
   <span class="err">:</span>
 </code></pre></div><div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh">$ <span class="nb">cd</span> hello_world
 $ npm install
-</code></pre></div><h2 id="templateyaml">template.yamlの修正</h2>
+</code></pre></div><h2 id="templateyamlの修正">template.yamlの修正</h2>
 <p>デプロイしたLayerのARNを下記コマンドで確認します。 <code>--layer-name</code> にはLayerのtemplate.yamlで設定した <code>LayerName</code> を指定します。正常終了すると下記形式の結果が返ってきます。（REGION と ACCOUNT_ID は適宜ご自身の環境に読み替えてください）</p>
 <div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh">$ aws lambda list-layer-versions --layer-name my-layer <span class="p">|</span> grep LayerVersionArn
 
@@ -209,19 +209,19 @@ $ npm install
 </code></pre></div><p>確認したARNを使用して、functionのテンプレートファイルをLayerを使用する形式に修正します。<a href="https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction">こちらのドキュメント</a> に記載の通り、functionのリソース定義のProperties指定に <code>Layers</code> というセクションを追加し、そこにLayerのARNを設定します。</p>
 <div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh">$ <span class="nb">cd</span> &lt;FUNCTION_ROOT&gt;
 $ vi template.yaml
-</code></pre></div><div class="highlight"><pre class="chroma"><code class="language-yaml" data-lang="yaml">Resources<span class="p">:</span><span class="w">
-</span><span class="w">  </span>HelloWorldFunction<span class="p">:</span><span class="w">
-</span><span class="w">    </span>Type<span class="p">:</span><span class="w"> </span>AWS<span class="p">:</span><span class="p">:</span>Serverless<span class="p">:</span><span class="p">:</span>Function<span class="w"> </span><span class="c"># More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction</span><span class="w">
-</span><span class="w">    </span>Properties<span class="p">:</span><span class="w">
-</span><span class="w">      </span>CodeUri<span class="p">:</span><span class="w"> </span>hello_world/<span class="w">
-</span><span class="w">      </span>Handler<span class="p">:</span><span class="w"> </span>app.lambdaHandler<span class="w">
-</span><span class="w">      </span>Runtime<span class="p">:</span><span class="w"> </span>nodejs8<span class="m">.10</span><span class="w">
+</code></pre></div><div class="highlight"><pre class="chroma"><code class="language-yaml" data-lang="yaml"><span class="k">Resources</span><span class="p">:</span><span class="w">
+</span><span class="w">  </span><span class="k">HelloWorldFunction</span><span class="p">:</span><span class="w">
+</span><span class="w">    </span><span class="k">Type: AWS::Serverless::Function # More info about Function Resource</span><span class="p">:</span><span class="w"> </span>https<span class="p">:</span>//github.com/awslabs/serverless-application-model/blob/master/versions/<span class="ld">2016-10-31</span>.md<span class="c">#awsserverlessfunction</span><span class="w">
+</span><span class="w">    </span><span class="k">Properties</span><span class="p">:</span><span class="w">
+</span><span class="w">      </span><span class="k">CodeUri</span><span class="p">:</span><span class="w"> </span>hello_world/<span class="w">
+</span><span class="w">      </span><span class="k">Handler</span><span class="p">:</span><span class="w"> </span>app.lambdaHandler<span class="w">
+</span><span class="w">      </span><span class="k">Runtime</span><span class="p">:</span><span class="w"> </span>nodejs8<span class="m">.10</span><span class="w">
 </span><span class="w">
 </span><span class="w">      </span>(中略)<span class="w">
 </span><span class="w">
-</span><span class="w">      </span>Layers<span class="p">:</span><span class="w">
-</span><span class="w">        </span>-<span class="w"> </span>arn<span class="p">:</span>aws<span class="p">:</span>lambda<span class="p">:</span>ap-northeast<span class="m">-1</span><span class="p">:</span><span class="m">123456789012</span><span class="p">:</span>layer<span class="p">:</span>my-layer<span class="p">:</span><span class="m">1</span><span class="w">
-</span></code></pre></div><h2 id="function">ローカルでfunctionの動作確認</h2>
+</span><span class="w">      </span><span class="k">Layers</span><span class="p">:</span><span class="w">
+</span><span class="w">        </span>- arn<span class="p">:</span>aws<span class="p">:</span>lambda<span class="p">:</span>ap-northeast<span class="m">-1</span><span class="p">:</span><span class="m">123456789012</span><span class="p">:</span>layer<span class="p">:</span>my-layer<span class="p">:</span><span class="m">1</span><span class="w">
+</span></code></pre></div><h2 id="ローカルでfunctionの動作確認">ローカルでfunctionの動作確認</h2>
 <p>Layerに移行した＆移行済モジュールを削除したので、ローカルでの実行がこれまで通り行えるかを確認しておきます。ローカルでの実行コマンドはLayer移行前から変える必要は無く、これまで通り <code>sal local invoke</code> コマンドを使用します。</p>
 <p>1点挙動が異なるのは、Layer移行後初回の実行時にデプロイ済のLayer Functionのダウンロードが実行される事です。デフォルトではダウンロード結果は <code>${HOME}/.aws-sam/layers-pkg/</code> 下に保存（キャッシュ）され、Layerのバージョンアップを行わない限りは2回目以降の実行時はキャッシュが利用されます。</p>
 <div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh">$ sam <span class="nb">local</span> invoke -e event.json HelloWorldFunction
@@ -229,9 +229,9 @@ $ vi template.yaml
 Downloading arn:aws:lambda:ap-northeast-1:123456789012:layer:my-layer:1  <span class="o">[</span><span class="c1">####################################]  7298732/7298732</span>
 :
 
-</code></pre></div><h2 id="-layers">注意点: Layers設定時のハマりどころ</h2>
+</code></pre></div><h2 id="注意点-layers設定時のハマりどころ">注意点: Layers設定時のハマりどころ</h2>
 <p><a href="https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction">こちらのドキュメント</a>の例では、template.yamlの <code>Layers</code> セクションで組み込み関数 <code>Fn::Sub</code> の短縮形 <code>!Sub</code> が使われているのですが、これはlocalでの実行時は機能しません。この内容で <code>sam local invoke</code> を行うと、<code>Fn::Sub</code> 関数で期待している変数置換が実行されずLayerのARNが正しい内容で処理されない為、Layer Functionのダウンロードが実行されません。その結果「layerに含まれているモジュールが見つからない」という旨のエラーになってしまいます。localでの実行も考慮するなら、LayersのARNは文字列のみで記載するか、あるいは <code>Ref</code> 関数で「文字列のみで記載された別リソースを参照する」という手段で記述します。</p>
-<h2 id="heading-2">デプロイ/公開</h2>
+<h2 id="デプロイ公開-1">デプロイ/公開</h2>
 <p>aws-sam-cliでデプロイします。</p>
 <div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh"><span class="c1"># BUCKET, FOLDER, STACKは適宜各自の環境の内容に置き換え</span>
 
@@ -243,7 +243,7 @@ $ sam deploy --template-file ./serverless-output.yaml --stack-name <span class="
 Waiting <span class="k">for</span> changeset to be created..
 Waiting <span class="k">for</span> stack create/update to <span class="nb">complete</span>
 Successfully created/updated stack - layer-stack
-</code></pre></div><h1 id="layer-1">Layerの更新</h1>
+</code></pre></div><h1 id="layerの更新">Layerの更新</h1>
 <p>node moduleの追加/削除などでLayerの更新が必要になった場合も作業の流れはほとんど変わりません。</p>
 <p>まずzipアーカイブとS3へのアップロードを再度実行します。</p>
 <div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh">$ <span class="nb">cd</span> &lt;PROJECT_ROOT&gt;
@@ -260,20 +260,20 @@ $ aws s3 cp layer.zip s3://<span class="si">${</span><span class="nv">S3_BUCKET<
 </code></pre></div><p>上記コマンドでLayerの更新が完了したら、Layerのバージョンが更新された旨が処理結果として返ってきます。利用側functionのtemplate.yamlのLayersバージョンも合わせて更新し、functionの再デプロイが必要になります。</p>
 <div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh">$ <span class="nb">cd</span> &lt;FUNCTION_ROOT&gt;
 $ vi template.yaml
-</code></pre></div><div class="highlight"><pre class="chroma"><code class="language-yaml" data-lang="yaml">Resources<span class="p">:</span><span class="w">
-</span><span class="w">  </span>HelloWorldFunction<span class="p">:</span><span class="w">
-</span><span class="w">    </span>Type<span class="p">:</span><span class="w"> </span>AWS<span class="p">:</span><span class="p">:</span>Serverless<span class="p">:</span><span class="p">:</span>Function<span class="w"> </span><span class="c"># More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction</span><span class="w">
-</span><span class="w">    </span>Properties<span class="p">:</span><span class="w">
-</span><span class="w">      </span>CodeUri<span class="p">:</span><span class="w"> </span>hello_world/<span class="w">
-</span><span class="w">      </span>Handler<span class="p">:</span><span class="w"> </span>app.lambdaHandler<span class="w">
-</span><span class="w">      </span>Runtime<span class="p">:</span><span class="w"> </span>nodejs8<span class="m">.10</span><span class="w">
+</code></pre></div><div class="highlight"><pre class="chroma"><code class="language-yaml" data-lang="yaml"><span class="k">Resources</span><span class="p">:</span><span class="w">
+</span><span class="w">  </span><span class="k">HelloWorldFunction</span><span class="p">:</span><span class="w">
+</span><span class="w">    </span><span class="k">Type: AWS::Serverless::Function # More info about Function Resource</span><span class="p">:</span><span class="w"> </span>https<span class="p">:</span>//github.com/awslabs/serverless-application-model/blob/master/versions/<span class="ld">2016-10-31</span>.md<span class="c">#awsserverlessfunction</span><span class="w">
+</span><span class="w">    </span><span class="k">Properties</span><span class="p">:</span><span class="w">
+</span><span class="w">      </span><span class="k">CodeUri</span><span class="p">:</span><span class="w"> </span>hello_world/<span class="w">
+</span><span class="w">      </span><span class="k">Handler</span><span class="p">:</span><span class="w"> </span>app.lambdaHandler<span class="w">
+</span><span class="w">      </span><span class="k">Runtime</span><span class="p">:</span><span class="w"> </span>nodejs8<span class="m">.10</span><span class="w">
 </span><span class="w">
 </span><span class="w">      </span>(中略)<span class="w">
 </span><span class="w">
 </span><span class="w">      </span><span class="c"># my-layer:2 にバージョンアップ</span><span class="w">
-</span><span class="w">      </span>Layers<span class="p">:</span><span class="w">
-</span><span class="w">        </span>-<span class="w"> </span>arn<span class="p">:</span>aws<span class="p">:</span>lambda<span class="p">:</span>ap-northeast<span class="m">-1</span><span class="p">:</span><span class="m">123456789012</span><span class="p">:</span>layer<span class="p">:</span>my-layer<span class="p">:</span><span class="m">2</span><span class="w">
-</span></code></pre></div><h1 id="heading-3">ブックマーク</h1>
+</span><span class="w">      </span><span class="k">Layers</span><span class="p">:</span><span class="w">
+</span><span class="w">        </span>- arn<span class="p">:</span>aws<span class="p">:</span>lambda<span class="p">:</span>ap-northeast<span class="m">-1</span><span class="p">:</span><span class="m">123456789012</span><span class="p">:</span>layer<span class="p">:</span>my-layer<span class="p">:</span><span class="m">2</span><span class="w">
+</span></code></pre></div><h1 id="ブックマーク">ブックマーク</h1>
 <ul>
 <li><a href="https://docs.aws.amazon.com/ja_jp/lambda/latest/dg/configuration-layers.html">AWS Lambda レイヤー - AWS Lambda</a></li>
 <li><a href="https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md">serverless-application-model/2016-10-31.md</a></li>
@@ -322,7 +322,7 @@ $ vi template.yaml
   
   <h6 class="text-center copyright">© 2019. horizoon. <a href="http://creativecommons.org/licenses/by/3.0/">Some Rights Reserved</a>.</h6>
   
-  <h6 class="text-center powered">Powered by <a href="https://gohugo.io/">Hugo  v0.62.0</a> &amp; <a href="https://github.com/shenoybr/hugo-goa">Goa</a>.</h6>
+  <h6 class="text-center powered">Powered by <a href="https://gohugo.io/">Hugo  v0.67.0</a> &amp; <a href="https://github.com/shenoybr/hugo-goa">Goa</a>.</h6>
   
       
       <h6><a href="" aria-label="RSS Feed"><i class="fas fa-rss" aria-hidden="true"></i></a></h6>

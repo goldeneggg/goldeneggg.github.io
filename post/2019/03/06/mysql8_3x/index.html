@@ -16,7 +16,7 @@
   horizoon - MySQL8.0 Document Store関連技術まとめ 
 </title>
 
-<meta name="generator" content="Hugo 0.62.0" />
+<meta name="generator" content="Hugo 0.67.0" />
 
 
 
@@ -194,25 +194,25 @@
 <p>Macなどでサクッとver8のMySQLを立ち上げて試したければ、<a href="https://hub.docker.com/_/mysql?tab=tags">8系のDockerfileが公開されているので</a>これを使うのが良いでしょう。</p>
 <div class="highlight"><pre class="chroma"><code class="language-yml" data-lang="yml"><span class="c"># docker-compose.yml</span><span class="w">
 </span><span class="w">
-</span><span class="w"></span>version<span class="p">:</span><span class="w"> </span><span class="s1">&#39;3&#39;</span><span class="w">
-</span><span class="w"></span>services<span class="p">:</span><span class="w">
-</span><span class="w">  </span>mysql<span class="p">:</span><span class="w">
-</span><span class="w">    </span>image<span class="p">:</span><span class="w"> </span>mysql<span class="p">:</span><span class="m">8.0</span><span class="w">
-</span><span class="w">    </span>environment<span class="p">:</span><span class="w">
-</span><span class="w">      </span>-<span class="w"> </span>MYSQL_ROOT_PASSWORD=root<span class="w">
-</span><span class="w">    </span>volumes<span class="p">:</span><span class="w">
-</span><span class="w">      </span>-<span class="w"> </span>./.data/mysql<span class="p">:</span>/var/lib/mysql<span class="w">
-</span><span class="w">    </span>ports<span class="p">:</span><span class="w">
-</span><span class="w">      </span>-<span class="w"> </span><span class="s2">&#34;3306:3306&#34;</span><span class="w">
-</span><span class="w">      </span>-<span class="w"> </span><span class="s2">&#34;33060:33060&#34;</span><span class="w">
+</span><span class="w"></span><span class="k">version</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;3&#39;</span><span class="w">
+</span><span class="w"></span><span class="k">services</span><span class="p">:</span><span class="w">
+</span><span class="w">  </span><span class="k">mysql</span><span class="p">:</span><span class="w">
+</span><span class="w">    </span><span class="k">image</span><span class="p">:</span><span class="w"> </span>mysql<span class="p">:</span><span class="m">8.0</span><span class="w">
+</span><span class="w">    </span><span class="k">environment</span><span class="p">:</span><span class="w">
+</span><span class="w">      </span>- MYSQL_ROOT_PASSWORD=root<span class="w">
+</span><span class="w">    </span><span class="k">volumes</span><span class="p">:</span><span class="w">
+</span><span class="w">      </span>- ./.data/mysql<span class="p">:</span>/var/lib/mysql<span class="w">
+</span><span class="w">    </span><span class="k">ports</span><span class="p">:</span><span class="w">
+</span><span class="w">      </span>- <span class="s2">&#34;3306:3306&#34;</span><span class="w">
+</span><span class="w">      </span>- <span class="s2">&#34;33060:33060&#34;</span><span class="w">
 </span></code></pre></div><div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh">$ docker-compose up
 </code></pre></div><p>Mac向けのMySQL Shellは<a href="https://dev.mysql.com/downloads/shell/">dmgで公開されている</a>のでこれをインストールし、SQLモードでshellを立ち上げてみるとプロンプトがシャレオツなmysqlコンソールが立ち上がります。ポート番号は後述のX Pluginが接続を待ち受ける番号を指定します（デフォルトが33060）</p>
 <p><code>--sql</code> とSQLモードで立ち上げたMySQL Shellは、過去バージョンのmysqlコマンドで利用可能な機能が全てそのまま使えます。</p>
 <div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh">$ mysqlsh -u root -proot -h localhost -P33060 --sql
 </code></pre></div><div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="p">:</span>
 
-<span class="n">Creating</span> <span class="n">a</span> <span class="k">session</span> <span class="k">to</span> <span class="s1">&#39;</span><span class="s1">root@localhost:33060</span><span class="s1">&#39;</span>
-<span class="n">Fetching</span> <span class="k">schema</span> <span class="k">names</span> <span class="k">for</span> <span class="n">autocompletion</span><span class="p">.</span><span class="p">.</span><span class="p">.</span> <span class="n">Press</span> <span class="o">^</span><span class="k">C</span> <span class="k">to</span> <span class="n">stop</span><span class="p">.</span>
+<span class="n">Creating</span> <span class="n">a</span> <span class="k">session</span> <span class="k">to</span> <span class="s1">&#39;root@localhost:33060&#39;</span>
+<span class="n">Fetching</span> <span class="k">schema</span> <span class="k">names</span> <span class="k">for</span> <span class="n">autocompletion</span><span class="p">...</span> <span class="n">Press</span> <span class="o">^</span><span class="k">C</span> <span class="k">to</span> <span class="n">stop</span><span class="p">.</span>
 <span class="n">Your</span> <span class="n">MySQL</span> <span class="k">connection</span> <span class="n">id</span> <span class="k">is</span> <span class="mi">1</span> <span class="p">(</span><span class="n">X</span> <span class="n">protocol</span><span class="p">)</span>
 
 <span class="p">:</span>
@@ -221,10 +221,10 @@
 <span class="n">MySQL</span>  <span class="n">localhost</span><span class="p">:</span><span class="mi">33060</span><span class="o">+</span> <span class="n">ssl</span>  <span class="k">SQL</span> <span class="o">&gt;</span>
 </code></pre></div><p><code>\js</code>と入力するとJavaScriptモードに、<code>\py</code>と入力するとPythonモードに切り替わります</p>
 <div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="n">MySQL</span>  <span class="n">localhost</span><span class="p">:</span><span class="mi">33060</span><span class="o">+</span> <span class="n">ssl</span>  <span class="k">SQL</span> <span class="o">&gt;</span> <span class="err">\</span><span class="n">js</span>
-<span class="n">Switching</span> <span class="k">to</span> <span class="n">JavaScript</span> <span class="k">mode</span><span class="p">.</span><span class="p">.</span><span class="p">.</span>
+<span class="n">Switching</span> <span class="k">to</span> <span class="n">JavaScript</span> <span class="k">mode</span><span class="p">...</span>
 
 <span class="n">MySQL</span>  <span class="n">localhost</span><span class="p">:</span><span class="mi">33060</span><span class="o">+</span> <span class="n">ssl</span>  <span class="n">JS</span> <span class="o">&gt;</span> <span class="err">\</span><span class="n">py</span>
-<span class="n">Switching</span> <span class="k">to</span> <span class="n">Python</span> <span class="k">mode</span><span class="p">.</span><span class="p">.</span><span class="p">.</span>
+<span class="n">Switching</span> <span class="k">to</span> <span class="n">Python</span> <span class="k">mode</span><span class="p">...</span>
 
 <span class="n">MySQL</span>  <span class="n">localhost</span><span class="p">:</span><span class="mi">33060</span><span class="o">+</span> <span class="n">ssl</span>  <span class="n">Py</span> <span class="o">&gt;</span>
 </code></pre></div><p>mysqlshコマンドで、従来のmysqlコマンド（C/Sプロトコル）による接続を行う事も可能です。その場合portにはサーバが使用している待受ポートを指定し、合わせて<code>--classic</code>というオプションを指定します。X Protocolで接続した場合と異なり、</p>
@@ -236,8 +236,8 @@
 <div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh">$ mysqlsh -u root -proot -h localhost -P3306 --sql --classic
 </code></pre></div><div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql"><span class="p">:</span>
 
-<span class="n">Creating</span> <span class="n">a</span> <span class="n">Classic</span> <span class="k">session</span> <span class="k">to</span> <span class="s1">&#39;</span><span class="s1">root@localhost:3306</span><span class="s1">&#39;</span>
-<span class="n">Fetching</span> <span class="k">schema</span> <span class="k">names</span> <span class="k">for</span> <span class="n">autocompletion</span><span class="p">.</span><span class="p">.</span><span class="p">.</span> <span class="n">Press</span> <span class="o">^</span><span class="k">C</span> <span class="k">to</span> <span class="n">stop</span><span class="p">.</span>
+<span class="n">Creating</span> <span class="n">a</span> <span class="n">Classic</span> <span class="k">session</span> <span class="k">to</span> <span class="s1">&#39;root@localhost:3306&#39;</span>
+<span class="n">Fetching</span> <span class="k">schema</span> <span class="k">names</span> <span class="k">for</span> <span class="n">autocompletion</span><span class="p">...</span> <span class="n">Press</span> <span class="o">^</span><span class="k">C</span> <span class="k">to</span> <span class="n">stop</span><span class="p">.</span>
 <span class="n">Your</span> <span class="n">MySQL</span> <span class="k">connection</span> <span class="n">id</span> <span class="k">is</span> <span class="mi">2</span>
 
 <span class="p">:</span>
@@ -284,23 +284,23 @@ $ mysqlsh -u root -proot -h localhost -P33060 --sql
 </span><span class="c1"></span><span class="o">|</span> <span class="n">Name</span>                            <span class="o">|</span> <span class="n">Status</span>   <span class="o">|</span> <span class="k">Type</span>               <span class="o">|</span> <span class="n">Library</span> <span class="o">|</span> <span class="n">License</span> <span class="o">|</span>
 <span class="o">+</span><span class="c1">---------------------------------+----------+--------------------+---------+---------+
 </span><span class="c1"></span><span class="o">|</span> <span class="n">mysqlx</span>                          <span class="o">|</span> <span class="n">ACTIVE</span>   <span class="o">|</span> <span class="n">DAEMON</span>             <span class="o">|</span> <span class="k">NULL</span>    <span class="o">|</span> <span class="n">GPL</span>     <span class="o">|</span>
-</code></pre></div><h1 id="heading">ブックマーク</h1>
+</code></pre></div><h1 id="ブックマーク">ブックマーク</h1>
 <ul>
 <li><a href="https://insidemysql.com/tag/x-devapi/">x-devapi | InsideMySQL.com</a></li>
 <li><a href="https://mysqlserverteam.com/import-json-to-mysql-made-easy-with-the-mysql-shell/">Import JSON to MySQL made easy with the MySQL Shell | MySQL Server Blog</a></li>
 <li>X ProtocolのGo実装？と思しきリポジトリ
 <ul>
-<li><a href="https://github.com/AlekSi/mysqlx">AlekSi/mysqlx: MySQL driver for Go's (golang) database/sql package and MySQL X Protocol</a>
+<li><a href="https://github.com/AlekSi/mysqlx">AlekSi/mysqlx: MySQL driver for Go&rsquo;s (golang) database/sql package and MySQL X Protocol</a>
 <ul>
 <li>直近の更新頻度はこのプロジェクトが一番活発</li>
 </ul>
 </li>
-<li><a href="https://github.com/sjmudd/go-mysqlx-driver">sjmudd/go-mysqlx-driver: A MySQL X protocol driver for Go's database/sql package</a>
+<li><a href="https://github.com/sjmudd/go-mysqlx-driver">sjmudd/go-mysqlx-driver: A MySQL X protocol driver for Go&rsquo;s database/sql package</a>
 <ul>
 <li>おそらく最古</li>
 </ul>
 </li>
-<li><a href="https://github.com/pingcap/mysqlx-driver">pingcap/mysqlx-driver: A MySQL X protocol driver for Go's database/sql package</a></li>
+<li><a href="https://github.com/pingcap/mysqlx-driver">pingcap/mysqlx-driver: A MySQL X protocol driver for Go&rsquo;s database/sql package</a></li>
 </ul>
 </li>
 <li><a href="https://severalnines.com/blog/mysql-performance-benchmarking-mysql-57-vs-mysql-80">MySQL Performance Benchmarking: MySQL 5.7 vs MySQL 8.0 | Severalnines</a></li>
@@ -347,7 +347,7 @@ $ mysqlsh -u root -proot -h localhost -P33060 --sql
   
   <h6 class="text-center copyright">© 2019. horizoon. <a href="http://creativecommons.org/licenses/by/3.0/">Some Rights Reserved</a>.</h6>
   
-  <h6 class="text-center powered">Powered by <a href="https://gohugo.io/">Hugo  v0.62.0</a> &amp; <a href="https://github.com/shenoybr/hugo-goa">Goa</a>.</h6>
+  <h6 class="text-center powered">Powered by <a href="https://gohugo.io/">Hugo  v0.67.0</a> &amp; <a href="https://github.com/shenoybr/hugo-goa">Goa</a>.</h6>
   
       
       <h6><a href="" aria-label="RSS Feed"><i class="fas fa-rss" aria-hidden="true"></i></a></h6>

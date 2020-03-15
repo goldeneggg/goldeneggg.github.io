@@ -16,7 +16,7 @@
   horizoon - Goで構造体へのインタフェース埋め込み活用例（aws-sdk-goの事例など） 
 </title>
 
-<meta name="generator" content="Hugo 0.62.0" />
+<meta name="generator" content="Hugo 0.67.0" />
 
 
 
@@ -83,14 +83,14 @@
 </li>
 </ol>
 <div class="highlight"><pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">type</span> <span class="nx">Intf</span> <span class="kd">interface</span> <span class="p">{</span>
-  <span class="nf">MethodY</span><span class="p">(</span><span class="p">)</span>
-  <span class="nf">MethodZ</span><span class="p">(</span><span class="p">)</span>
+  <span class="nf">MethodY</span><span class="p">()</span>
+  <span class="nf">MethodZ</span><span class="p">()</span>
 <span class="p">}</span>
 
 <span class="kd">type</span> <span class="nx">B</span> <span class="kd">struct</span> <span class="p">{</span>
   <span class="nx">Intf</span>  <span class="c1">// こういう埋め込み
 </span><span class="c1"></span><span class="p">}</span>
-</code></pre></div><h1 id="1">例1：一部メソッドを別処理に差し替え</h1>
+</code></pre></div><h1 id="例1一部メソッドを別処理に差し替え">例1：一部メソッドを別処理に差し替え</h1>
 <p>無名インタフェースの埋め込み例として本家コードで参考になるのが<a href="https://github.com/golang/go/blob/master/src/sort/sort.go#L242">sort/sort.go のこの実装</a> です。<code>reverse</code>構造体のコメントにも書いてある通りこうした無名インタフェースを埋め込んだ構造体を利用する事で「一部のメソッドだけ別の実装に差し替える」という事を実現しています。</p>
 <p>単純なサンプルコードはこんな感じで、Intfというinterfaceを実装済のAという構造体を <code>ReplaceMethodZ</code> に渡すと、MethodZの挙動だけが異なる別の構造体を取得するという挙動になります。</p>
 <p>（同じコードはこちら → <a href="https://play.golang.org/p/mh803JB5RSt">https://play.golang.org/p/mh803JB5RSt</a> ）</p>
@@ -101,27 +101,27 @@
 <span class="p">)</span>
 
 <span class="kd">type</span> <span class="nx">Intf</span> <span class="kd">interface</span> <span class="p">{</span>
-  <span class="nf">MethodY</span><span class="p">(</span><span class="p">)</span>
-  <span class="nf">MethodZ</span><span class="p">(</span><span class="p">)</span>
+  <span class="nf">MethodY</span><span class="p">()</span>
+  <span class="nf">MethodZ</span><span class="p">()</span>
 <span class="p">}</span>
 
 <span class="kd">type</span> <span class="nx">A</span> <span class="kd">struct</span> <span class="p">{</span>
   <span class="nx">Str</span> <span class="kt">string</span>
 <span class="p">}</span>
 
-<span class="kd">func</span> <span class="p">(</span><span class="nx">a</span> <span class="o">*</span><span class="nx">A</span><span class="p">)</span> <span class="nf">MethodY</span><span class="p">(</span><span class="p">)</span> <span class="p">{</span>
-  <span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="nx">fmt</span><span class="p">.</span><span class="nf">Sprintf</span><span class="p">(</span><span class="s">&#34;%s: MethodY&#34;</span><span class="p">,</span> <span class="nx">a</span><span class="p">.</span><span class="nx">Str</span><span class="p">)</span><span class="p">)</span>
+<span class="kd">func</span> <span class="p">(</span><span class="nx">a</span> <span class="o">*</span><span class="nx">A</span><span class="p">)</span> <span class="nf">MethodY</span><span class="p">()</span> <span class="p">{</span>
+  <span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="nx">fmt</span><span class="p">.</span><span class="nf">Sprintf</span><span class="p">(</span><span class="s">&#34;%s: MethodY&#34;</span><span class="p">,</span> <span class="nx">a</span><span class="p">.</span><span class="nx">Str</span><span class="p">))</span>
 <span class="p">}</span>
 
-<span class="kd">func</span> <span class="p">(</span><span class="nx">a</span> <span class="o">*</span><span class="nx">A</span><span class="p">)</span> <span class="nf">MethodZ</span><span class="p">(</span><span class="p">)</span> <span class="p">{</span>
-  <span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="nx">fmt</span><span class="p">.</span><span class="nf">Sprintf</span><span class="p">(</span><span class="s">&#34;%s: MethodZ&#34;</span><span class="p">,</span> <span class="nx">a</span><span class="p">.</span><span class="nx">Str</span><span class="p">)</span><span class="p">)</span>
+<span class="kd">func</span> <span class="p">(</span><span class="nx">a</span> <span class="o">*</span><span class="nx">A</span><span class="p">)</span> <span class="nf">MethodZ</span><span class="p">()</span> <span class="p">{</span>
+  <span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="nx">fmt</span><span class="p">.</span><span class="nf">Sprintf</span><span class="p">(</span><span class="s">&#34;%s: MethodZ&#34;</span><span class="p">,</span> <span class="nx">a</span><span class="p">.</span><span class="nx">Str</span><span class="p">))</span>
 <span class="p">}</span>
 
 <span class="kd">type</span> <span class="nx">B</span> <span class="kd">struct</span> <span class="p">{</span>
   <span class="nx">Intf</span>
 <span class="p">}</span>
 
-<span class="kd">func</span> <span class="p">(</span><span class="nx">b</span> <span class="o">*</span><span class="nx">B</span><span class="p">)</span> <span class="nf">MethodZ</span><span class="p">(</span><span class="p">)</span> <span class="p">{</span>
+<span class="kd">func</span> <span class="p">(</span><span class="nx">b</span> <span class="o">*</span><span class="nx">B</span><span class="p">)</span> <span class="nf">MethodZ</span><span class="p">()</span> <span class="p">{</span>
   <span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;Replaced MethodZ&#34;</span><span class="p">)</span>
 <span class="p">}</span>
 
@@ -129,16 +129,16 @@
   <span class="k">return</span> <span class="o">&amp;</span><span class="nx">B</span><span class="p">{</span><span class="nx">org</span><span class="p">}</span>
 <span class="p">}</span>
 
-<span class="kd">func</span> <span class="nf">main</span><span class="p">(</span><span class="p">)</span> <span class="p">{</span>
+<span class="kd">func</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
   <span class="nx">a</span> <span class="o">:=</span> <span class="o">&amp;</span><span class="nx">A</span><span class="p">{</span><span class="nx">Str</span><span class="p">:</span> <span class="s">&#34;I am A&#34;</span><span class="p">}</span>
-  <span class="nx">a</span><span class="p">.</span><span class="nf">MethodY</span><span class="p">(</span><span class="p">)</span> <span class="c1">// print &#34;I am A: MethodY&#34;
-</span><span class="c1"></span>  <span class="nx">a</span><span class="p">.</span><span class="nf">MethodZ</span><span class="p">(</span><span class="p">)</span> <span class="c1">// print &#34;I am A: MethodZ&#34;
+  <span class="nx">a</span><span class="p">.</span><span class="nf">MethodY</span><span class="p">()</span> <span class="c1">// print &#34;I am A: MethodY&#34;
+</span><span class="c1"></span>  <span class="nx">a</span><span class="p">.</span><span class="nf">MethodZ</span><span class="p">()</span> <span class="c1">// print &#34;I am A: MethodZ&#34;
 </span><span class="c1"></span>
   <span class="nx">r</span> <span class="o">:=</span> <span class="nf">ReplaceMethodZ</span><span class="p">(</span><span class="nx">a</span><span class="p">)</span>
-  <span class="nx">r</span><span class="p">.</span><span class="nf">MethodY</span><span class="p">(</span><span class="p">)</span> <span class="c1">// print &#34;I am A: MethodY&#34;
-</span><span class="c1"></span>  <span class="nx">r</span><span class="p">.</span><span class="nf">MethodZ</span><span class="p">(</span><span class="p">)</span> <span class="c1">// print &#34;Replaced MethodZ&#34; &lt;= replaced
+  <span class="nx">r</span><span class="p">.</span><span class="nf">MethodY</span><span class="p">()</span> <span class="c1">// print &#34;I am A: MethodY&#34;
+</span><span class="c1"></span>  <span class="nx">r</span><span class="p">.</span><span class="nf">MethodZ</span><span class="p">()</span> <span class="c1">// print &#34;Replaced MethodZ&#34; &lt;= replaced
 </span><span class="c1"></span><span class="p">}</span>
-</code></pre></div><h1 id="2">例2：特定のメソッドだけを実装</h1>
+</code></pre></div><h1 id="例2特定のメソッドだけを実装">例2：特定のメソッドだけを実装</h1>
 <p>sort.goの例は「インタフェースの全メソッドを実装済である構造体をあるメソッドに渡し、渡されたメソッド内で一部メソッドの実装を差し替える（上書きする）」という例でしたが、 下記のような「そもそもインタフェースのメソッドが部分的にしか実装されていない」ようなコードも書くことが出来ます。</p>
 <p>（同じコードはこちら → <a href="https://play.golang.org/p/8YvXVtw91Mc">https://play.golang.org/p/8YvXVtw91Mc</a> ）</p>
 <div class="highlight"><pre class="chroma"><code class="language-go" data-lang="go"><span class="kn">package</span> <span class="nx">main</span>
@@ -146,53 +146,53 @@
 <span class="kn">import</span> <span class="s">&#34;fmt&#34;</span>
 
 <span class="kd">type</span> <span class="nx">Intf</span> <span class="kd">interface</span> <span class="p">{</span>
-  <span class="nf">GetStrVal</span><span class="p">(</span><span class="p">)</span> <span class="kt">string</span>
-  <span class="nf">GetIntVal</span><span class="p">(</span><span class="p">)</span> <span class="kt">int</span>
+  <span class="nf">GetStrVal</span><span class="p">()</span> <span class="kt">string</span>
+  <span class="nf">GetIntVal</span><span class="p">()</span> <span class="kt">int</span>
 <span class="p">}</span>
 
 <span class="c1">// Intfを実装するHoge1構造体
-</span><span class="c1"></span><span class="c1">// 2メソッド漏れなく実装する
+</span><span class="c1">// 2メソッド漏れなく実装する
 </span><span class="c1"></span><span class="kd">type</span> <span class="nx">Hoge1</span> <span class="kd">struct</span> <span class="p">{</span>
   <span class="nx">StrVal</span> <span class="kt">string</span>
   <span class="nx">IntVal</span> <span class="kt">int</span>
 <span class="p">}</span>
 
-<span class="kd">func</span> <span class="p">(</span><span class="nx">h</span> <span class="o">*</span><span class="nx">Hoge1</span><span class="p">)</span> <span class="nf">GetStrVal</span><span class="p">(</span><span class="p">)</span> <span class="kt">string</span> <span class="p">{</span>
+<span class="kd">func</span> <span class="p">(</span><span class="nx">h</span> <span class="o">*</span><span class="nx">Hoge1</span><span class="p">)</span> <span class="nf">GetStrVal</span><span class="p">()</span> <span class="kt">string</span> <span class="p">{</span>
   <span class="k">return</span> <span class="nx">h</span><span class="p">.</span><span class="nx">StrVal</span>
 <span class="p">}</span>
 
-<span class="kd">func</span> <span class="p">(</span><span class="nx">h</span> <span class="o">*</span><span class="nx">Hoge1</span><span class="p">)</span> <span class="nf">GetIntVal</span><span class="p">(</span><span class="p">)</span> <span class="kt">int</span> <span class="p">{</span>
+<span class="kd">func</span> <span class="p">(</span><span class="nx">h</span> <span class="o">*</span><span class="nx">Hoge1</span><span class="p">)</span> <span class="nf">GetIntVal</span><span class="p">()</span> <span class="kt">int</span> <span class="p">{</span>
   <span class="k">return</span> <span class="nx">h</span><span class="p">.</span><span class="nx">IntVal</span>
 <span class="p">}</span>
 
 <span class="c1">// 無名インタフェース Intf を埋め込んだHoge2構造体
-</span><span class="c1"></span><span class="c1">// GetIntVal メソッドのみを実装する
+</span><span class="c1">// GetIntVal メソッドのみを実装する
 </span><span class="c1"></span><span class="kd">type</span> <span class="nx">Hoge2</span> <span class="kd">struct</span> <span class="p">{</span>
   <span class="nx">Intf</span>
 <span class="p">}</span>
 
-<span class="kd">func</span> <span class="p">(</span><span class="nx">h</span> <span class="o">*</span><span class="nx">Hoge2</span><span class="p">)</span> <span class="nf">GetIntVal</span><span class="p">(</span><span class="p">)</span> <span class="kt">int</span> <span class="p">{</span>
+<span class="kd">func</span> <span class="p">(</span><span class="nx">h</span> <span class="o">*</span><span class="nx">Hoge2</span><span class="p">)</span> <span class="nf">GetIntVal</span><span class="p">()</span> <span class="kt">int</span> <span class="p">{</span>
   <span class="k">return</span> <span class="mi">100</span>
 <span class="p">}</span>
 
 <span class="c1">// interfaceの実装済チェック
-</span><span class="c1"></span><span class="c1">// Hoge2はGetStrValメソッドを実装していないがコンパイルエラーにならない
-</span><span class="c1"></span><span class="kd">var</span> <span class="nx">_</span> <span class="nx">Intf</span> <span class="p">=</span> <span class="p">(</span><span class="o">*</span><span class="nx">Hoge1</span><span class="p">)</span><span class="p">(</span><span class="kc">nil</span><span class="p">)</span>
-<span class="kd">var</span> <span class="nx">_</span> <span class="nx">Intf</span> <span class="p">=</span> <span class="p">(</span><span class="o">*</span><span class="nx">Hoge2</span><span class="p">)</span><span class="p">(</span><span class="kc">nil</span><span class="p">)</span>
+</span><span class="c1">// Hoge2はGetStrValメソッドを実装していないがコンパイルエラーにならない
+</span><span class="c1"></span><span class="kd">var</span> <span class="nx">_</span> <span class="nx">Intf</span> <span class="p">=</span> <span class="p">(</span><span class="o">*</span><span class="nx">Hoge1</span><span class="p">)(</span><span class="kc">nil</span><span class="p">)</span>
+<span class="kd">var</span> <span class="nx">_</span> <span class="nx">Intf</span> <span class="p">=</span> <span class="p">(</span><span class="o">*</span><span class="nx">Hoge2</span><span class="p">)(</span><span class="kc">nil</span><span class="p">)</span>
 
-<span class="kd">func</span> <span class="nf">main</span><span class="p">(</span><span class="p">)</span> <span class="p">{</span>
-  <span class="nf">doIntfMethod</span><span class="p">(</span><span class="nb">new</span><span class="p">(</span><span class="nx">Hoge1</span><span class="p">)</span><span class="p">)</span>
-  <span class="nf">doIntfMethod</span><span class="p">(</span><span class="nb">new</span><span class="p">(</span><span class="nx">Hoge2</span><span class="p">)</span><span class="p">)</span>
+<span class="kd">func</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
+  <span class="nf">doIntfMethod</span><span class="p">(</span><span class="nb">new</span><span class="p">(</span><span class="nx">Hoge1</span><span class="p">))</span>
+  <span class="nf">doIntfMethod</span><span class="p">(</span><span class="nb">new</span><span class="p">(</span><span class="nx">Hoge2</span><span class="p">))</span>
 <span class="p">}</span>
 
 <span class="kd">func</span> <span class="nf">doIntfMethod</span><span class="p">(</span><span class="nx">intf</span> <span class="nx">Intf</span><span class="p">)</span> <span class="p">{</span>
-  <span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="nx">intf</span><span class="p">.</span><span class="nf">GetIntVal</span><span class="p">(</span><span class="p">)</span><span class="p">)</span>
+  <span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="nx">intf</span><span class="p">.</span><span class="nf">GetIntVal</span><span class="p">())</span>
 
   <span class="c1">// GetStrValメソッドはHoge2では実装されていないので、呼び出そうとするとpanicが発生する
 </span><span class="c1"></span>  <span class="c1">// fmt.Println(intf.GetStrVal())
 </span><span class="c1"></span><span class="p">}</span>
 </code></pre></div><p>活用例として、「テストコードでテスト用の構造体を用意し、インタフェースのメソッド全部ではなくmockしたいメソッドだけを実装したい」というケースを、gomockのような外部ライブラリに頼る事なく実現出来ます。</p>
-<h2 id="aws-sdk-go-">aws-sdk-go での例</h2>
+<h2 id="aws-sdk-go-での例">aws-sdk-go での例</h2>
 <p>SQSへのアクセスが発生するアプリケーションのテストを、アクセス部分だけmockして書く例が<a href="https://aws.amazon.com/jp/blogs/developer/mocking-out-then-aws-sdk-for-go-for-unit-testing/">AWS Developer Blogで紹介されています</a>。詳細はリンク先を読んでいただくとして、リンク先のSQSでの例以外にも、例えばEC2でも<a href="https://docs.aws.amazon.com/sdk-for-go/api/service/ec2/ec2iface/">ec2iface というパッケージ</a>が用意されています。このパッケージの<code>EC2API</code>というインタフェースが公式の、</p>
 <blockquote>
 <p>Package ec2iface provides an interface to enable mocking the Amazon Elastic Compute Cloud service client for testing your code.</p>
@@ -202,21 +202,21 @@
 <div class="highlight"><pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// 本体のコード
 </span><span class="c1"></span>
 <span class="c1">// ec2ifaceのインタフェースを無名で埋め込んだクライアント用構造体
-</span><span class="c1"></span><span class="c1">// DescribeInstances メソッド もこのインタフェースのメンバーとして定義されている
+</span><span class="c1">// DescribeInstances メソッド もこのインタフェースのメンバーとして定義されている
 </span><span class="c1"></span><span class="kd">type</span> <span class="nx">Client</span> <span class="kd">struct</span> <span class="p">{</span>
   <span class="nx">ec2iface</span><span class="p">.</span><span class="nx">EC2API</span>
 <span class="p">}</span>
 
 <span class="c1">// EC2のインスタンス一覧を取得するメソッドを先程の構造体に用意しておく
-</span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">client</span> <span class="o">*</span><span class="nx">Client</span><span class="p">)</span> <span class="nf">GetInstances</span><span class="p">(</span><span class="p">)</span> <span class="p">(</span><span class="p">[</span><span class="p">]</span><span class="o">*</span><span class="nx">ec2</span><span class="p">.</span><span class="nx">Instance</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
+</span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">client</span> <span class="o">*</span><span class="nx">Client</span><span class="p">)</span> <span class="nf">GetInstances</span><span class="p">()</span> <span class="p">([]</span><span class="o">*</span><span class="nx">ec2</span><span class="p">.</span><span class="nx">Instance</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
   <span class="c1">// AWSへのアクセスが発生するのはこの箇所
-</span><span class="c1"></span>  <span class="nx">is</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">client</span><span class="p">.</span><span class="nx">EC2API</span><span class="p">.</span><span class="nf">DescribeInstances</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">ec2</span><span class="p">.</span><span class="nx">DescribeInstancesInput</span><span class="p">{</span><span class="p">}</span><span class="p">)</span>
+</span><span class="c1"></span>  <span class="nx">is</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">client</span><span class="p">.</span><span class="nx">EC2API</span><span class="p">.</span><span class="nf">DescribeInstances</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">ec2</span><span class="p">.</span><span class="nx">DescribeInstancesInput</span><span class="p">{})</span>
 
   <span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
     <span class="k">return</span> <span class="kc">nil</span><span class="p">,</span> <span class="nx">fmt</span><span class="p">.</span><span class="nf">Errorf</span><span class="p">(</span><span class="s">&#34;error: %v&#34;</span><span class="p">,</span> <span class="nx">err</span><span class="p">)</span>
   <span class="p">}</span>
 
-  <span class="kd">var</span> <span class="nx">res</span> <span class="p">[</span><span class="p">]</span><span class="o">*</span><span class="nx">ec2</span><span class="p">.</span><span class="nx">Instance</span>
+  <span class="kd">var</span> <span class="nx">res</span> <span class="p">[]</span><span class="o">*</span><span class="nx">ec2</span><span class="p">.</span><span class="nx">Instance</span>
   <span class="k">for</span> <span class="nx">_</span><span class="p">,</span> <span class="nx">r</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">is</span><span class="p">.</span><span class="nx">Reservations</span> <span class="p">{</span>
     <span class="nx">res</span> <span class="p">=</span> <span class="nb">append</span><span class="p">(</span><span class="nx">res</span><span class="p">,</span> <span class="nx">r</span><span class="p">.</span><span class="nx">Instances</span><span class="o">...</span><span class="p">)</span>
   <span class="p">}</span>
@@ -224,9 +224,9 @@
   <span class="k">return</span> <span class="nx">res</span><span class="p">,</span> <span class="kc">nil</span>
 <span class="p">}</span>
 
-<span class="kd">func</span> <span class="nf">NewClient</span><span class="p">(</span><span class="p">)</span> <span class="o">*</span><span class="nx">Client</span> <span class="p">{</span>
+<span class="kd">func</span> <span class="nf">NewClient</span><span class="p">()</span> <span class="o">*</span><span class="nx">Client</span> <span class="p">{</span>
   <span class="nx">client</span> <span class="o">:=</span> <span class="nb">new</span><span class="p">(</span><span class="nx">Client</span><span class="p">)</span>
-  <span class="nx">sess</span> <span class="o">:=</span> <span class="nx">session</span><span class="p">.</span><span class="nf">Must</span><span class="p">(</span><span class="nx">session</span><span class="p">.</span><span class="nf">NewSession</span><span class="p">(</span><span class="nx">aws</span><span class="p">.</span><span class="nf">NewConfig</span><span class="p">(</span><span class="p">)</span><span class="p">)</span><span class="p">)</span>
+  <span class="nx">sess</span> <span class="o">:=</span> <span class="nx">session</span><span class="p">.</span><span class="nf">Must</span><span class="p">(</span><span class="nx">session</span><span class="p">.</span><span class="nf">NewSession</span><span class="p">(</span><span class="nx">aws</span><span class="p">.</span><span class="nf">NewConfig</span><span class="p">()))</span>
   <span class="nx">client</span><span class="p">.</span><span class="nx">EC2API</span> <span class="p">=</span> <span class="nx">ec2</span><span class="p">.</span><span class="nf">New</span><span class="p">(</span><span class="nx">sess</span><span class="p">)</span>  <span class="c1">// 本体コードでは素のEC2オブジェクトをセット
 </span><span class="c1"></span>
   <span class="k">return</span> <span class="nx">client</span>
@@ -234,7 +234,7 @@
 </code></pre></div><div class="highlight"><pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// テストコード
 </span><span class="c1"></span>
 <span class="c1">// ec2iface.EC2APIインタフェースを無名で埋め込んだ、mockを行う為の構造体
-</span><span class="c1"></span><span class="c1">// この構造体に独自のDescribeInstancesメソッドを用意してmockする
+</span><span class="c1">// この構造体に独自のDescribeInstancesメソッドを用意してmockする
 </span><span class="c1"></span><span class="kd">type</span> <span class="nx">mock</span> <span class="kd">struct</span> <span class="p">{</span>
   <span class="nx">ec2iface</span><span class="p">.</span><span class="nx">EC2API</span>
 <span class="p">}</span>
@@ -242,36 +242,36 @@
 <span class="c1">// DescribeInstances メソッドだけを、仮の内容でmock
 </span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">m</span> <span class="o">*</span><span class="nx">mock</span><span class="p">)</span> <span class="nf">DescribeInstances</span><span class="p">(</span><span class="nx">input</span> <span class="o">*</span><span class="nx">ec2</span><span class="p">.</span><span class="nx">DescribeInstancesInput</span><span class="p">)</span> <span class="p">(</span><span class="o">*</span><span class="nx">ec2</span><span class="p">.</span><span class="nx">DescribeInstancesOutput</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
   <span class="nx">out</span> <span class="o">:=</span> <span class="o">&amp;</span><span class="nx">ec2</span><span class="p">.</span><span class="nx">DescribeInstancesOutput</span><span class="p">{</span>
-    <span class="nx">Reservations</span><span class="p">:</span> <span class="p">[</span><span class="p">]</span><span class="o">*</span><span class="nx">ec2</span><span class="p">.</span><span class="nx">Reservation</span><span class="p">{</span>
-      <span class="o">&amp;</span><span class="nx">ec2</span><span class="p">.</span><span class="nx">Reservation</span><span class="p">{</span><span class="nx">Instances</span><span class="p">:</span> <span class="p">[</span><span class="p">]</span><span class="o">*</span><span class="nx">ec2</span><span class="p">.</span><span class="nx">Instance</span><span class="p">{</span><span class="nx">dummy</span><span class="p">}</span><span class="p">}</span><span class="p">,</span>
-    <span class="p">}</span><span class="p">,</span>
+    <span class="nx">Reservations</span><span class="p">:</span> <span class="p">[]</span><span class="o">*</span><span class="nx">ec2</span><span class="p">.</span><span class="nx">Reservation</span><span class="p">{</span>
+      <span class="o">&amp;</span><span class="nx">ec2</span><span class="p">.</span><span class="nx">Reservation</span><span class="p">{</span><span class="nx">Instances</span><span class="p">:</span> <span class="p">[]</span><span class="o">*</span><span class="nx">ec2</span><span class="p">.</span><span class="nx">Instance</span><span class="p">{</span><span class="nx">dummy</span><span class="p">}},</span>
+    <span class="p">},</span>
   <span class="p">}</span>
 
   <span class="k">return</span> <span class="nx">out</span><span class="p">,</span> <span class="kc">nil</span>
 <span class="p">}</span>
 
 <span class="kd">var</span> <span class="nx">dummy</span> <span class="p">=</span> <span class="o">&amp;</span><span class="nx">ec2</span><span class="p">.</span><span class="nx">Instance</span><span class="p">{</span>
-  <span class="nx">InstanceId</span><span class="p">:</span>       <span class="nx">aws</span><span class="p">.</span><span class="nf">String</span><span class="p">(</span><span class="s">&#34;i-xxxxxxxxxx&#34;</span><span class="p">)</span><span class="p">,</span>
-  <span class="nx">PrivateIpAddress</span><span class="p">:</span> <span class="nx">aws</span><span class="p">.</span><span class="nf">String</span><span class="p">(</span><span class="s">&#34;172.31.1.1&#34;</span><span class="p">)</span><span class="p">,</span>
-  <span class="nx">InstanceType</span><span class="p">:</span>     <span class="nx">aws</span><span class="p">.</span><span class="nf">String</span><span class="p">(</span><span class="s">&#34;t2.nano&#34;</span><span class="p">)</span><span class="p">,</span>
+  <span class="nx">InstanceId</span><span class="p">:</span>       <span class="nx">aws</span><span class="p">.</span><span class="nf">String</span><span class="p">(</span><span class="s">&#34;i-xxxxxxxxxx&#34;</span><span class="p">),</span>
+  <span class="nx">PrivateIpAddress</span><span class="p">:</span> <span class="nx">aws</span><span class="p">.</span><span class="nf">String</span><span class="p">(</span><span class="s">&#34;172.31.1.1&#34;</span><span class="p">),</span>
+  <span class="nx">InstanceType</span><span class="p">:</span>     <span class="nx">aws</span><span class="p">.</span><span class="nf">String</span><span class="p">(</span><span class="s">&#34;t2.nano&#34;</span><span class="p">),</span>
   <span class="nx">State</span><span class="p">:</span> <span class="o">&amp;</span><span class="nx">ec2</span><span class="p">.</span><span class="nx">InstanceState</span><span class="p">{</span>
-    <span class="nx">Name</span><span class="p">:</span> <span class="nx">aws</span><span class="p">.</span><span class="nf">String</span><span class="p">(</span><span class="s">&#34;running&#34;</span><span class="p">)</span><span class="p">,</span>
-  <span class="p">}</span><span class="p">,</span>
+    <span class="nx">Name</span><span class="p">:</span> <span class="nx">aws</span><span class="p">.</span><span class="nf">String</span><span class="p">(</span><span class="s">&#34;running&#34;</span><span class="p">),</span>
+  <span class="p">},</span>
 <span class="p">}</span>
 
 <span class="kd">func</span> <span class="nf">TestGetInstances</span><span class="p">(</span><span class="nx">t</span> <span class="o">*</span><span class="nx">testing</span><span class="p">.</span><span class="nx">T</span><span class="p">)</span> <span class="p">{</span>
-  <span class="nx">client</span> <span class="o">:=</span> <span class="o">&amp;</span><span class="nx">Client</span><span class="p">{</span><span class="nx">EC2API</span><span class="p">:</span> <span class="o">&amp;</span><span class="nx">mock</span><span class="p">{</span><span class="p">}</span><span class="p">}</span>  <span class="c1">// テスト用にmockオブジェクトをセット
-</span><span class="c1"></span>  <span class="nx">insts</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">client</span><span class="p">.</span><span class="nf">GetInstances</span><span class="p">(</span><span class="p">)</span>  <span class="c1">// mockしたDescribeInstancesメソッドで返しているインスタンス情報が取得される
+  <span class="nx">client</span> <span class="o">:=</span> <span class="o">&amp;</span><span class="nx">Client</span><span class="p">{</span><span class="nx">EC2API</span><span class="p">:</span> <span class="o">&amp;</span><span class="nx">mock</span><span class="p">{}}</span>  <span class="c1">// テスト用にmockオブジェクトをセット
+</span><span class="c1"></span>  <span class="nx">insts</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">client</span><span class="p">.</span><span class="nf">GetInstances</span><span class="p">()</span>  <span class="c1">// mockしたDescribeInstancesメソッドで返しているインスタンス情報が取得される
 </span><span class="c1"></span>
   <span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
     <span class="nx">t</span><span class="p">.</span><span class="nf">Errorf</span><span class="p">(</span><span class="s">&#34;error occured. err: %#v&#34;</span><span class="p">,</span> <span class="nx">err</span><span class="p">)</span>
   <span class="p">}</span>
 
-  <span class="k">if</span> <span class="nx">insts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="p">.</span><span class="nx">InstanceId</span> <span class="o">!=</span> <span class="nx">dummy</span><span class="p">.</span><span class="nx">InstanceId</span> <span class="p">{</span>
-    <span class="nx">t</span><span class="p">.</span><span class="nf">Errorf</span><span class="p">(</span><span class="s">&#34;expected: %#v, but actual: %#v&#34;</span><span class="p">,</span> <span class="nx">dummy</span><span class="p">.</span><span class="nx">InstanceId</span><span class="p">,</span> <span class="nx">insts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="p">.</span><span class="nx">InstanceId</span><span class="p">)</span>
+  <span class="k">if</span> <span class="nx">insts</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">InstanceId</span> <span class="o">!=</span> <span class="nx">dummy</span><span class="p">.</span><span class="nx">InstanceId</span> <span class="p">{</span>
+    <span class="nx">t</span><span class="p">.</span><span class="nf">Errorf</span><span class="p">(</span><span class="s">&#34;expected: %#v, but actual: %#v&#34;</span><span class="p">,</span> <span class="nx">dummy</span><span class="p">.</span><span class="nx">InstanceId</span><span class="p">,</span> <span class="nx">insts</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">InstanceId</span><span class="p">)</span>
   <span class="p">}</span>
 <span class="p">}</span>
-</code></pre></div><h1 id="heading">ブックマーク</h1>
+</code></pre></div><h1 id="ブックマーク">ブックマーク</h1>
 <ul>
 <li><a href="https://stackoverflow.com/questions/24537443/meaning-of-a-struct-with-embedded-anonymous-interface">go - Meaning of a struct with embedded anonymous interface? - Stack Overflow</a></li>
 <li><a href="https://aws.amazon.com/jp/blogs/developer/mocking-out-then-aws-sdk-for-go-for-unit-testing/">Mocking Out the AWS SDK for Go for Unit Testing | AWS Developer Blog</a></li>
@@ -320,7 +320,7 @@
   
   <h6 class="text-center copyright">© 2019. horizoon. <a href="http://creativecommons.org/licenses/by/3.0/">Some Rights Reserved</a>.</h6>
   
-  <h6 class="text-center powered">Powered by <a href="https://gohugo.io/">Hugo  v0.62.0</a> &amp; <a href="https://github.com/shenoybr/hugo-goa">Goa</a>.</h6>
+  <h6 class="text-center powered">Powered by <a href="https://gohugo.io/">Hugo  v0.67.0</a> &amp; <a href="https://github.com/shenoybr/hugo-goa">Goa</a>.</h6>
   
       
       <h6><a href="" aria-label="RSS Feed"><i class="fas fa-rss" aria-hidden="true"></i></a></h6>
