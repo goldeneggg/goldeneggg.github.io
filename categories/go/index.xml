@@ -6,10 +6,24 @@
     <description>Recent content in go on horizoon</description>
     <generator>Hugo -- gohugo.io</generator>
     <copyright>&amp;copy; horizoon 2019</copyright>
-    <lastBuildDate>Fri, 16 Aug 2019 17:10:35 +0900</lastBuildDate>
+    <lastBuildDate>Wed, 25 Mar 2020 19:15:00 +0900</lastBuildDate>
     
 	<atom:link href="https://horizoon.jp/categories/go/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Go: GoReleaserの設定ファイルをGithub ActionsのPull Request時CIでテスト/検証する</title>
+      <link>https://horizoon.jp/post/2020/03/25/goreleaser_github_actions/</link>
+      <pubDate>Wed, 25 Mar 2020 19:15:00 +0900</pubDate>
+      
+      <guid>https://horizoon.jp/post/2020/03/25/goreleaser_github_actions/</guid>
+      <description>Summary  GoReleaserの設定ファイル = .goreleaser.yml のテスト/検証もGithub ActionsのPull Request時CIで実行したい GitHub Action for GoReleaser を活用して実現する  前提条件 $ go version go version go1.13.9 darwin/amd64 CIで.goreleaser.ymlをテストしたい（with Github Actions） Go製ツールのReleaseでGoReleaserを使っている場合、いざReleaseを実施してみたら.goreleaser.ymlに不備があってコケてしまった → ymlを修正してやむを得ずバージョンもupした、、、という切ないケースに遭遇してしまう事がありますよね（自分は以前度々ありました&amp;hellip;）。
+もしCIで.goreleaser.ymlのテスト/検証が出来れば、Release前にymlの不備を検知する事が出来ます。以前書いたdepからgo modulesへの移行に関する記事にも載せた のですが、GoReleaserにはdry-runの機能があります。具体的にはgoreleaserコマンドに --skip-publish という公開（release）をskip出来るオプションと、 --snapshot というバージョンタグのチェックを行わず現状のコードベースの成果物を出力するオプションがあり、GoReleaserのgithub actions でもこれらのオプションはそのまま利用可能です。
+yamlの例 yaml内に (番号) 形式でコメントしている箇所については後述します。
+.github/workflows/ci.yml ※ 拙作ツールのファイル全体像は こちら
+name:CIon:# (1)push:branches:- masterpull_request:jobs:validate-goreleaser:name:Validate.goreleaser.ymlruns-on:${{matrix.os}}strategy:matrix:os:[&amp;#39;ubuntu-latest&amp;#39;]go:[&amp;#39;1.13&amp;#39;]steps:- name:SetupGo${{matrix.go}}id:setup-gouses:actions/setup-go@v2-betawith:go-version:${{matrix.go}}- name:Checkoutrepositoriesid:checkoutuses:actions/checkout@v2- name:SetGOVERSIONenvid:set-goversion-env# (2)run:echo&amp;#34;::set-env name=GOVERSION::$(go version)&amp;#34;- name:Validate.goreleaser.ymlwithgoreleaser-actionuses:goreleaser/goreleaser-action@v1with:version:latest# (3)args:release--snapshot--skip-publish--rm-dist--debug.goreleaser.yml ※ 拙作ツールのファイル全体像は こちら
+# This is an example goreleaser.yaml file with some sane defaults.# Make sure to check the documentation at http://goreleaser.</description>
+    </item>
     
     <item>
       <title>aws-sdk-go, aws-sdk-go-v2 でMFAトークンによるAssumeRoleに対応する</title>

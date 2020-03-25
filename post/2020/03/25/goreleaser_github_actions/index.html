@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+<meta name="description" content="This is my portfolio. I&#39;m Web Developer, Software Engineer, Engineering Manager and Backpacker. Ruby/Rails/Go/PHP/Java/Linux/MySQL/Docker/AWS/Fintech/Payment">
+<meta name="keywords" content="developer,software engineer,technology,web,blog,freelance,hugo">
+
+<base href="https://horizoon.jp">
+
+<title>
+  horizoon - Go: GoReleaserの設定ファイルをGithub ActionsのPull Request時CIでテスト/検証する 
+</title>
+
+<meta name="generator" content="Hugo 0.67.1" />
+
+
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:300,400|Roboto+Slab:400,700|Roboto:300,300i,400,400i,500,500i,700,700i">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css" integrity="sha384-oS3vJWv+0UjzBfQzYUhtDYW+Pj2yciDJxpsK1OYPAYjqT085Qq/1cq5FLXAZQ7Ay" crossorigin="anonymous">
+<link rel="stylesheet" href="https://horizoon.jp/css/main.css">
+<link rel="stylesheet" href="https://horizoon.jp/css/custom.css">
+
+
+
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="/favicon-32x32.png" sizes="32x32">
+<link rel="icon" type="image/png" href="/favicon-16x16.png" sizes="16x16">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+<meta name="theme-color" content="#ffffff">
+
+</head>
+<body lang="">
+<div class="container">
+
+
+<header class="row text-left title">
+  <h1 class="title">Go: GoReleaserの設定ファイルをGithub ActionsのPull Request時CIでテスト/検証する</h1>
+</header>
+<section id="category-pane" class="row meta">
+  
+  <div class="col-md-12">
+    <h6 class="text-left meta">
+        PUBLISHED ON 2020-03-25 
+      
+      
+      
+      —
+      
+      
+      <a class="meta" href="/categories/github">GITHUB</a>, 
+      
+      <a class="meta" href="/categories/github-actions">GITHUB ACTIONS</a>, 
+      
+      <a class="meta" href="/categories/go">GO</a>, 
+      
+      <a class="meta" href="/categories/go-modules">GO MODULES</a>, 
+      
+      <a class="meta" href="/categories/golang">GOLANG</a>
+      
+      
+      
+    </h6>
+  </div>
+  
+</section>
+<section id="content-pane" class="row">
+  <div class="col-md-12 text-justify content">
+    
+    <h2 id="summary">Summary</h2>
+<ul>
+<li>GoReleaserの設定ファイル = .goreleaser.yml のテスト/検証もGithub ActionsのPull Request時CIで実行したい</li>
+<li><a href="https://github.com/goreleaser/goreleaser-action">GitHub Action for GoReleaser</a> を活用して実現する</li>
+</ul>
+<h2 id="前提条件">前提条件</h2>
+<div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh">$ go version
+go version go1.13.9 darwin/amd64
+</code></pre></div><h2 id="ciでgoreleaserymlをテストしたいwith-github-actions">CIで.goreleaser.ymlをテストしたい（with Github Actions）</h2>
+<p>Go製ツールのReleaseでGoReleaserを使っている場合、いざReleaseを実施してみたら.goreleaser.ymlに不備があってコケてしまった → ymlを修正してやむを得ずバージョンもupした、、、という切ないケースに遭遇してしまう事がありますよね（自分は以前度々ありました&hellip;）。</p>
+<p>もしCIで.goreleaser.ymlのテスト/検証が出来れば、Release前にymlの不備を検知する事が出来ます。<a href="https://horizoon.jp/post/2019/02/25/dep_to_go_mod/">以前書いたdepからgo modulesへの移行に関する記事にも載せた</a> のですが、GoReleaserにはdry-runの機能があります。具体的にはgoreleaserコマンドに <code>--skip-publish</code> という公開（release）をskip出来るオプションと、 <code>--snapshot</code> というバージョンタグのチェックを行わず現状のコードベースの成果物を出力するオプションがあり、<a href="https://github.com/goreleaser/goreleaser-action">GoReleaserのgithub actions</a> でもこれらのオプションはそのまま利用可能です。</p>
+<h3 id="yamlの例">yamlの例</h3>
+<p>yaml内に <code>(番号)</code> 形式でコメントしている箇所については後述します。</p>
+<p><code>.github/workflows/ci.yml</code> ※ 拙作ツールのファイル全体像は <a href="https://github.com/goldeneggg/lsec2/blob/master/.github/workflows/ci.yml#L71">こちら</a></p>
+<div class="highlight"><pre class="chroma"><code class="language-yml" data-lang="yml"><span class="k">name</span><span class="p">:</span><span class="w"> </span>CI<span class="w">
+</span><span class="w">
+</span><span class="w"></span><span class="k">on</span><span class="p">:</span><span class="w">  </span><span class="c"># (1)</span><span class="w">
+</span><span class="w">  </span><span class="k">push</span><span class="p">:</span><span class="w">
+</span><span class="w">    </span><span class="k">branches</span><span class="p">:</span><span class="w">
+</span><span class="w">      </span>- master<span class="w">
+</span><span class="w">  </span><span class="k">pull_request</span><span class="p">:</span><span class="w">
+</span><span class="w">
+</span><span class="w"></span><span class="k">jobs</span><span class="p">:</span><span class="w">
+</span><span class="w">  </span><span class="k">validate-goreleaser</span><span class="p">:</span><span class="w">
+</span><span class="w">    </span><span class="k">name</span><span class="p">:</span><span class="w"> </span>Validate<span class="w"> </span>.goreleaser.yml<span class="w">
+</span><span class="w">    </span><span class="k">runs-on</span><span class="p">:</span><span class="w"> </span>${{<span class="w"> </span>matrix.os<span class="w"> </span>}}<span class="w">
+</span><span class="w">    </span><span class="k">strategy</span><span class="p">:</span><span class="w">
+</span><span class="w">      </span><span class="k">matrix</span><span class="p">:</span><span class="w">
+</span><span class="w">        </span><span class="k">os</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="s1">&#39;ubuntu-latest&#39;</span><span class="w"> </span><span class="p">]</span><span class="w">
+</span><span class="w">        </span><span class="k">go</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="s1">&#39;1.13&#39;</span><span class="w"> </span><span class="p">]</span><span class="w">
+</span><span class="w">
+</span><span class="w">    </span><span class="k">steps</span><span class="p">:</span><span class="w">
+</span><span class="w">    </span>- <span class="k">name</span><span class="p">:</span><span class="w"> </span>Set<span class="w"> </span>up<span class="w"> </span>Go<span class="w"> </span>${{<span class="w"> </span>matrix.go<span class="w"> </span>}}<span class="w">
+</span><span class="w">      </span><span class="k">id</span><span class="p">:</span><span class="w"> </span>setup-go<span class="w">
+</span><span class="w">      </span><span class="k">uses</span><span class="p">:</span><span class="w"> </span>actions/setup-go@v2-beta<span class="w">
+</span><span class="w">      </span><span class="k">with</span><span class="p">:</span><span class="w">
+</span><span class="w">        </span><span class="k">go-version</span><span class="p">:</span><span class="w"> </span>${{<span class="w"> </span>matrix.go<span class="w"> </span>}}<span class="w">
+</span><span class="w">
+</span><span class="w">    </span>- <span class="k">name</span><span class="p">:</span><span class="w"> </span>Check<span class="w"> </span>out<span class="w"> </span>repositories<span class="w">
+</span><span class="w">      </span><span class="k">id</span><span class="p">:</span><span class="w"> </span>checkout<span class="w">
+</span><span class="w">      </span><span class="k">uses</span><span class="p">:</span><span class="w"> </span>actions/checkout@v2<span class="w">
+</span><span class="w">
+</span><span class="w">    </span>- <span class="k">name</span><span class="p">:</span><span class="w"> </span>Set<span class="w"> </span>GOVERSION<span class="w"> </span>env<span class="w">
+</span><span class="w">      </span><span class="k">id</span><span class="p">:</span><span class="w"> </span>set-goversion-env<span class="w">
+</span><span class="w">      </span><span class="c"># (2)</span><span class="w">
+</span><span class="w">      </span><span class="k">run</span><span class="p">:</span><span class="w"> </span>echo<span class="w"> </span><span class="s2">&#34;::set-env name=GOVERSION::$(go version)&#34;</span><span class="w">
+</span><span class="w">
+</span><span class="w">    </span>- <span class="k">name</span><span class="p">:</span><span class="w"> </span>Validate<span class="w"> </span>.goreleaser.yml<span class="w"> </span>with<span class="w"> </span>goreleaser-action<span class="w">
+</span><span class="w">      </span><span class="k">uses</span><span class="p">:</span><span class="w"> </span>goreleaser/goreleaser-action@v1<span class="w">
+</span><span class="w">      </span><span class="k">with</span><span class="p">:</span><span class="w">
+</span><span class="w">        </span><span class="k">version</span><span class="p">:</span><span class="w"> </span>latest<span class="w">
+</span><span class="w">        </span><span class="c"># (3)</span><span class="w">
+</span><span class="w">        </span><span class="k">args</span><span class="p">:</span><span class="w"> </span>release<span class="w"> </span>--snapshot<span class="w"> </span>--skip-publish<span class="w"> </span>--rm-dist<span class="w"> </span>--debug<span class="w">
+</span></code></pre></div><p><code>.goreleaser.yml</code> ※ 拙作ツールのファイル全体像は <a href="https://github.com/goldeneggg/lsec2/blob/master/.github/workflows/ci.yml#L71">こちら</a></p>
+<div class="highlight"><pre class="chroma"><code class="language-yml" data-lang="yml"><span class="c"># This is an example goreleaser.yaml file with some sane defaults.</span><span class="w">
+</span><span class="w"></span><span class="c"># Make sure to check the documentation at http://goreleaser.com</span><span class="w">
+</span><span class="w"></span><span class="k">before</span><span class="p">:</span><span class="w">
+</span><span class="w">  </span><span class="k">hooks</span><span class="p">:</span><span class="w">
+</span><span class="w">    </span><span class="c"># you may remove this if you don&#39;t use vgo</span><span class="w">
+</span><span class="w">    </span>- go<span class="w"> </span>mod<span class="w"> </span>download<span class="w">
+</span><span class="w">
+</span><span class="w"></span><span class="k">builds</span><span class="p">:</span><span class="w">
+</span><span class="w"></span>- <span class="k">env</span><span class="p">:</span><span class="w">
+</span><span class="w">  </span>- CGO_ENABLED=<span class="m">0</span><span class="w">
+</span><span class="w">  </span>- GO111MODULE=on<span class="w">
+</span><span class="w">  </span><span class="k">main</span><span class="p">:</span><span class="w"> </span>./cmd/lsec2/main.go<span class="w">
+</span><span class="w">  </span><span class="k">ldflags</span><span class="p">:</span><span class="w">
+</span><span class="w">    </span><span class="c"># (2)</span><span class="w">
+</span><span class="w">    </span>- -X<span class="w"> </span><span class="s2">&#34;github.com/goldeneggg/lsec2/cmd/lsec2/cli.GoVersion={{.Env.GOVERSION}}&#34;</span><span class="w">
+</span><span class="w">
+</span><span class="w"></span><span class="c"># 以下略</span><span class="w">
+</span><span class="w">
+</span></code></pre></div><h3 id="yamlの内容について">yamlの内容について</h3>
+<ul>
+<li>(1) この例では、masterへのpush時、及びpull request（の各種イベント発生）時に実行しようとしています</li>
+<li>goreleaser-actionを実行する前の事前stepとして、setup-goとcheckoutの2アクションが必要です</li>
+<li>(2) 「.goreleaser.ymlから参照したい環境変数」を <a href="https://help.github.com/en/actions/reference/workflow-commands-for-github-actions#setting-an-environment-variable"><code>set-env</code> コマンド</a> でセットしています（このstepは任意）
+<ul>
+<li>この例では、<code>GOVERSION</code> というGoのバージョンを設定した環境変数を、GoReleaserでのビルド時に埋め込みたい、という意図です</li>
+</ul>
+</li>
+<li>(3) <strong>goreleaser-action の <code>with</code> <code>args</code> セクションで <code>--snapshot</code> と <code>--skip-publish</code> の2つのオプションを指定します</strong></li>
+</ul>
+<p>上記内容で実際にCI時のyamlテストを実行した時のログ（拙作ツールのもの）は <a href="https://github.com/goldeneggg/lsec2/runs/529421930?check_suite_focus=true">こちら</a> になります。参考までに。</p>
+
+  </div>
+</section>
+<section id="tag-pane" class="row meta">
+  
+  <div class="col-md-12">
+    <h6 class="text-right meta">
+      
+    </h6>
+  </div>
+  
+</section>
+
+
+
+
+
+
+
+
+<section id="menu-pane" class="row menu text-center">
+  
+  
+  <span><a class="menu-item" href="https://horizoon.jp/post/2019/08/16/aws_sdk_go_assumerole/">&lt; prev | </a></span>
+  
+  
+  <span><a class="menu-item" href="/post">post</a></span>
+  
+  
+  
+  <h4 class="text-center"><a class="menu-item" href="https://horizoon.jp">home</a></h4>
+</section>
+
+
+
+<footer class="row text-center footer">
+  <hr />
+  
+  <h6 class="text-center copyright">© 2019. horizoon. <a href="http://creativecommons.org/licenses/by/3.0/">Some Rights Reserved</a>.</h6>
+  
+  <h6 class="text-center powered">Powered by <a href="https://gohugo.io/">Hugo  v0.67.1</a> &amp; <a href="https://github.com/shenoybr/hugo-goa">Goa</a>.</h6>
+  
+      
+      <h6><a href="" aria-label="RSS Feed"><i class="fas fa-rss" aria-hidden="true"></i></a></h6>
+    
+  
+</footer>
+
+</div>
+
+
+
+
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-129776715-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script src="js/main.js"></script>
+<script src="js/custom.js"></script>
+</body>
+</html>
+
+

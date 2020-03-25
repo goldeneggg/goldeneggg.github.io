@@ -3,6 +3,56 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
+    <loc>https://horizoon.jp/categories/</loc>
+    <lastmod>2020-03-25T19:15:00+09:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://horizoon.jp/categories/git/</loc>
+    <lastmod>2020-03-25T19:15:00+09:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://horizoon.jp/categories/github/</loc>
+    <lastmod>2020-03-25T19:15:00+09:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://horizoon.jp/categories/github-actions/</loc>
+    <lastmod>2020-03-25T19:15:00+09:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://horizoon.jp/categories/go/</loc>
+    <lastmod>2020-03-25T19:15:00+09:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://horizoon.jp/categories/go-modules/</loc>
+    <lastmod>2020-03-25T19:15:00+09:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://horizoon.jp/post/2020/03/25/goreleaser_github_actions/</loc>
+    <lastmod>2020-03-25T19:15:00+09:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://horizoon.jp/categories/golang/</loc>
+    <lastmod>2020-03-25T19:15:00+09:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://horizoon.jp/</loc>
+    <lastmod>2020-03-25T19:15:00+09:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://horizoon.jp/post/</loc>
+    <lastmod>2020-03-25T19:15:00+09:00</lastmod>
+  </url>
+  
+  <url>
     <loc>https://horizoon.jp/categories/aws/</loc>
     <lastmod>2019-08-16T17:10:35+09:00</lastmod>
   </url>
@@ -14,31 +64,6 @@
   
   <url>
     <loc>https://horizoon.jp/post/2019/08/16/aws_sdk_go_assumerole/</loc>
-    <lastmod>2019-08-16T17:10:35+09:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://horizoon.jp/categories/</loc>
-    <lastmod>2019-08-16T17:10:35+09:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://horizoon.jp/categories/go/</loc>
-    <lastmod>2019-08-16T17:10:35+09:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://horizoon.jp/categories/golang/</loc>
-    <lastmod>2019-08-16T17:10:35+09:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://horizoon.jp/</loc>
-    <lastmod>2019-08-16T17:10:35+09:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://horizoon.jp/post/</loc>
     <lastmod>2019-08-16T17:10:35+09:00</lastmod>
   </url>
   
@@ -60,21 +85,6 @@
   <url>
     <loc>https://horizoon.jp/post/2019/06/11/sam_cicd/</loc>
     <lastmod>2019-06-11T17:16:54+09:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://horizoon.jp/categories/git/</loc>
-    <lastmod>2019-04-18T09:43:00+09:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://horizoon.jp/categories/github/</loc>
-    <lastmod>2019-04-18T09:43:00+09:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://horizoon.jp/categories/go-modules/</loc>
-    <lastmod>2019-04-18T09:43:00+09:00</lastmod>
   </url>
   
   <url>
