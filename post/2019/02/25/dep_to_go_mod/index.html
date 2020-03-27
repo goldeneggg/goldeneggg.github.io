@@ -1,77 +1,116 @@
 <!DOCTYPE html>
-<html lang="">
-<head>
+<html lang="en">
 
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta http-equiv="content-type" content="text/html; charset=utf-8">
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<meta name="description" content="This is my portfolio. I&#39;m Web Developer, Software Engineer, Engineering Manager and Backpacker. Ruby/Rails/Go/PHP/Java/Linux/MySQL/Docker/AWS/Fintech/Payment">
-<meta name="keywords" content="developer,software engineer,technology,web,blog,freelance,hugo">
+    <meta name="author" content="Fuminori Sakamoto">
+    <meta name="description" content="horizoon&#39;s website">
+    <meta name="keywords" content="blog,developer,backpacker,personal">
 
-<base href="https://horizoon.jp">
+    <meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="depからgo modulesへの移行と、移行時にTravis CI &amp; GoReleaserでハマる（かもしれない）ポイント"/>
+<meta name="twitter:description" content="Summary  depで管理していた既存のGo製ツールをdepからgo moduleに移行してみたが、移行自体は特にハマりどころも無くスンナリいった go moduleへの移行後に依存パッケージのupgradeを実施、これもスンナリいった Travis CI &#43; GoReleaser で、ビルド成果物をGithub Releasesに登録する作業 ＆ GoアプリのHomeBrewパッケージ作成・公開作業 を自動化しようと試みたが、そのCIが git is currently in a dirty state というコケ方をしてちょっとハマった GoReleaserは本当に便利  前提条件 1 2 3  # goのバージョン $ go version go version go1.11.5 darwin/amd64   切り替え手順 depを使っていたので、go mod init して go build の成功を確認できたらdep関連のファイルを削除する、という手順で完了します（対応例）
+1 2 3 4 5 6 7 8 9 10 11 12 13 14 15  # go mod利用時に必要な環境変数、direnvでプロジェクトディレクトリ下のみ適用されるようにしても良さそう $ export GO111MODULE=on # go modulesの初期設定 $ go mod init # go runしてスタンドアロンで実行すれば、そのタイミングでgo."/>
 
-<title>
-  horizoon - depからgo modulesへの移行と、移行時にTravis CI &amp; GoReleaserでハマる（かもしれない）ポイント 
+    <meta property="og:title" content="depからgo modulesへの移行と、移行時にTravis CI &amp; GoReleaserでハマる（かもしれない）ポイント" />
+<meta property="og:description" content="Summary  depで管理していた既存のGo製ツールをdepからgo moduleに移行してみたが、移行自体は特にハマりどころも無くスンナリいった go moduleへの移行後に依存パッケージのupgradeを実施、これもスンナリいった Travis CI &#43; GoReleaser で、ビルド成果物をGithub Releasesに登録する作業 ＆ GoアプリのHomeBrewパッケージ作成・公開作業 を自動化しようと試みたが、そのCIが git is currently in a dirty state というコケ方をしてちょっとハマった GoReleaserは本当に便利  前提条件 1 2 3  # goのバージョン $ go version go version go1.11.5 darwin/amd64   切り替え手順 depを使っていたので、go mod init して go build の成功を確認できたらdep関連のファイルを削除する、という手順で完了します（対応例）
+1 2 3 4 5 6 7 8 9 10 11 12 13 14 15  # go mod利用時に必要な環境変数、direnvでプロジェクトディレクトリ下のみ適用されるようにしても良さそう $ export GO111MODULE=on # go modulesの初期設定 $ go mod init # go runしてスタンドアロンで実行すれば、そのタイミングでgo." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://horizoon.jp/post/2019/02/25/dep_to_go_mod/" />
+<meta property="article:published_time" content="2019-02-25T08:17:54+09:00" />
+<meta property="article:modified_time" content="2019-02-25T08:17:54+09:00" />
+
+
+    
+      <base href="https://horizoon.jp/post/2019/02/25/dep_to_go_mod/">
+    
+    <title>
+  depからgo modulesへの移行と、移行時にTravis CI &amp; GoReleaserでハマる（かもしれない）ポイント · horizoon
 </title>
 
-<meta name="generator" content="Hugo 0.67.1" />
-
-
-
-<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:300,400|Roboto+Slab:400,700|Roboto:300,300i,400,400i,500,500i,700,700i">
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css" integrity="sha384-oS3vJWv+0UjzBfQzYUhtDYW+Pj2yciDJxpsK1OYPAYjqT085Qq/1cq5FLXAZQ7Ay" crossorigin="anonymous">
-<link rel="stylesheet" href="https://horizoon.jp/css/main.css">
-<link rel="stylesheet" href="https://horizoon.jp/css/custom.css">
-
-
-
-
-<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-<link rel="icon" type="image/png" href="/favicon-32x32.png" sizes="32x32">
-<link rel="icon" type="image/png" href="/favicon-16x16.png" sizes="16x16">
-<link rel="manifest" href="/manifest.json">
-<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
-<meta name="theme-color" content="#ffffff">
-
-</head>
-<body lang="">
-<div class="container">
-
-
-<header class="row text-left title">
-  <h1 class="title">depからgo modulesへの移行と、移行時にTravis CI &amp; GoReleaserでハマる（かもしれない）ポイント</h1>
-</header>
-<section id="category-pane" class="row meta">
-  
-  <div class="col-md-12">
-    <h6 class="text-left meta">
-        PUBLISHED ON 2019-02-25 
-      
-      
-      
-      —
-      
-      
-      <a class="meta" href="/categories/go">GO</a>, 
-      
-      <a class="meta" href="/categories/golang">GOLANG</a>, 
-      
-      <a class="meta" href="/categories/goreleaser">GORELEASER</a>, 
-      
-      <a class="meta" href="/categories/travis-ci">TRAVIS CI</a>
-      
-      
-      
-    </h6>
-  </div>
-  
-</section>
-<section id="content-pane" class="row">
-  <div class="col-md-12 text-justify content">
     
+      <link rel="canonical" href="https://horizoon.jp/post/2019/02/25/dep_to_go_mod/">
+    
+
+    <link href="https://fonts.googleapis.com/css?family=Lato:400,700%7CMerriweather:300,700%7CSource+Code+Pro:400,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.11.2/css/all.css" integrity="sha384-KA6wR/X5RY4zFAHpv/CnoG2UW1uogYfdnP67Uv7eULvTveboZJg0qUpmJZb5VqzN" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css" integrity="sha256-l85OmPOjvil/SOvVt3HnSSjzF1TUMyT9eV0c2BzEGzU=" crossorigin="anonymous" />
+
+    
+      
+      
+      <link rel="stylesheet" href="https://horizoon.jp/css/coder.min.a4f332213a21ce8eb521670c614470c58923aaaf385e2a73982c31dd7642decb.css" integrity="sha256-pPMyITohzo61IWcMYURwxYkjqq84XipzmCwx3XZC3ss=" crossorigin="anonymous" media="screen" />
+    
+
+    
+
+    
+      
+        
+        
+        <link rel="stylesheet" href="https://horizoon.jp/css/coder-dark.min.83a2010dac9f59f943b3004cd6c4f230507ad036da635d3621401d42ec4e2835.css" integrity="sha256-g6IBDayfWflDswBM1sTyMFB60DbaY102IUAdQuxOKDU=" crossorigin="anonymous" media="screen" />
+      
+    
+
+    
+
+    
+
+    
+
+    <link rel="icon" type="image/png" href="https://horizoon.jp/favicon-32x32.png" sizes="32x32">
+    <link rel="icon" type="image/png" href="https://horizoon.jp/favicon-16x16.png" sizes="16x16">
+
+    <meta name="generator" content="Hugo 0.67.1" />
+  </head>
+
+  
+  
+    
+  
+  <body class="colorscheme-auto">
+    <main class="wrapper">
+      <nav class="navigation">
+  <section class="container">
+    <a class="navigation-title" href="https://horizoon.jp/">
+      horizoon
+    </a>
+    
+    <input type="checkbox" id="menu-toggle" />
+    <label class="menu-button float-right" for="menu-toggle"><i class="fas fa-bars"></i></label>
+    <ul class="navigation-list">
+      
+        
+          <li class="navigation-item">
+            <a class="navigation-link" href="https://horizoon.jp/post/">Blog</a>
+          </li>
+        
+          <li class="navigation-item">
+            <a class="navigation-link" href="https://horizoon.jp/projects/">Projects</a>
+          </li>
+        
+          <li class="navigation-item">
+            <a class="navigation-link" href="https://horizoon.jp/about/">About</a>
+          </li>
+        
+      
+      
+    </ul>
+    
+  </section>
+</nav>
+
+
+      <div class="content">
+        
+  <section class="container page">
+  <article>
+    <header>
+      <h1>depからgo modulesへの移行と、移行時にTravis CI &amp; GoReleaserでハマる（かもしれない）ポイント</h1>
+    </header>
+
     <h1 id="summary">Summary</h1>
 <ul>
 <li>depで管理していた既存のGo製ツールをdepからgo moduleに移行してみたが、移行自体は特にハマりどころも無くスンナリいった</li>
@@ -80,38 +119,96 @@
 <li><strong>GoReleaserは本当に便利</strong></li>
 </ul>
 <h1 id="前提条件">前提条件</h1>
-<div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh"><span class="c1"># goのバージョン</span>
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh"><span style="color:#60a0b0;font-style:italic"># goのバージョン</span>
 $ go version
-go version go1.11.5 darwin/amd64</code></pre></div>
+go version go1.11.5 darwin/amd64</code></pre></td></tr></table>
+</div>
+</div>
 <h1 id="切り替え手順">切り替え手順</h1>
 <p>depを使っていたので、<code>go mod init</code> して <code>go build</code> の成功を確認できたらdep関連のファイルを削除する、という手順で完了します（<a href="https://github.com/goldeneggg/lsec2/pull/10">対応例</a>）</p>
-<div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh"><span class="c1"># go mod利用時に必要な環境変数、direnvでプロジェクトディレクトリ下のみ適用されるようにしても良さそう</span>
-$ <span class="nb">export</span> <span class="nv">GO111MODULE</span><span class="o">=</span>on
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh"><span style="color:#60a0b0;font-style:italic"># go mod利用時に必要な環境変数、direnvでプロジェクトディレクトリ下のみ適用されるようにしても良さそう</span>
+$ <span style="color:#007020">export</span> <span style="color:#bb60d5">GO111MODULE</span><span style="color:#666">=</span>on
 
-<span class="c1"># go modulesの初期設定</span>
+<span style="color:#60a0b0;font-style:italic"># go modulesの初期設定</span>
 $ go mod init
 
-<span class="c1"># go runしてスタンドアロンで実行すれば、そのタイミングでgo.sumファイルが作成される</span>
+<span style="color:#60a0b0;font-style:italic"># go runしてスタンドアロンで実行すれば、そのタイミングでgo.sumファイルが作成される</span>
 $ go run *.go --help
 
-<span class="c1"># dep関連ファイルを削除する</span>
+<span style="color:#60a0b0;font-style:italic"># dep関連ファイルを削除する</span>
 $ rm Gopkg.toml Gopkg.lock
 $ rm -fr vendor/
 
-<span class="c1"># Makefileを修正</span>
-<span class="c1"># CIの設定ファイル（今回の場合は .travis.yml）を修正</span></code></pre></div>
+<span style="color:#60a0b0;font-style:italic"># Makefileを修正</span>
+<span style="color:#60a0b0;font-style:italic"># CIの設定ファイル（今回の場合は .travis.yml）を修正</span></code></pre></td></tr></table>
+</div>
+</div>
 <h1 id="依存パッケージをupgradeしてみる">依存パッケージをupgradeしてみる</h1>
 <p>自作ツールで使用しているaws-sdk-goがv1.12.39だったのですが、最新がv1.16.36と乖離が発生していたのでupgradeしてみました。手順としては下記で問題ありません。</p>
-<div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh"><span class="c1"># go.mod を修正してバージョンを変更</span>
-$ vi go.mod</code></pre></div>
-<div class="highlight"><pre class="chroma"><code class="language-txt" data-lang="txt">module github.com/goldeneggg/lsec2
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh"><span style="color:#60a0b0;font-style:italic"># go.mod を修正してバージョンを変更</span>
+$ vi go.mod</code></pre></td></tr></table>
+</div>
+</div>
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-txt" data-lang="txt">module github.com/goldeneggg/lsec2
 
 require (
-  github.com/aws/aws-sdk-go v1.16.36</code></pre></div>
-<div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh"><span class="c1"># バージョンを修正したら go mod tidy を実行して反映</span>
+  github.com/aws/aws-sdk-go v1.16.36</code></pre></td></tr></table>
+</div>
+</div>
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh"><span style="color:#60a0b0;font-style:italic"># バージョンを修正したら go mod tidy を実行して反映</span>
 $ go mod tidy
 
-<span class="c1"># tidy実行後は、go build, go test, go runあたりを実行して問題ないか動作確認</span></code></pre></div>
+<span style="color:#60a0b0;font-style:italic"># tidy実行後は、go build, go test, go runあたりを実行して問題ないか動作確認</span></code></pre></td></tr></table>
+</div>
+</div>
 <h1 id="ciの設定変更travis-ci">CIの設定変更（Travis CI）</h1>
 <h2 id="test-ci">test CI</h2>
 <p>Travis CIの場合は.travis.ymlを下記の通り修正すればOKです。</p>
@@ -119,11 +216,22 @@ $ go mod tidy
 <li>envセクションで <code>GO111MODULE=on</code> を追加</li>
 <li>before_install か install かいずれかのセクションで <code>go mod download</code> を行うようにする</li>
 </ul>
-<div class="highlight"><pre class="chroma"><code class="language-yaml" data-lang="yaml"><span class="k">env</span><span class="p">:</span><span class="w">
-</span><span class="w">  </span>- GO111MODULE=on<span class="w">
-</span><span class="w">
-</span><span class="w"></span><span class="k">install</span><span class="p">:</span><span class="w">
-</span><span class="w">  </span>- go<span class="w"> </span>mod<span class="w"> </span>download</code></pre></div>
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#007020;font-weight:bold">env</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">  </span>- GO111MODULE=on<span style="color:#bbb">
+</span><span style="color:#bbb">
+</span><span style="color:#bbb"></span><span style="color:#007020;font-weight:bold">install</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">  </span>- go<span style="color:#bbb"> </span>mod<span style="color:#bbb"> </span>download</code></pre></td></tr></table>
+</div>
+</div>
 <h1 id="goreleaserでgoアプリのdeploy-ciを行う際の注意点">GoReleaserでGoアプリのdeploy CIを行う際の注意点</h1>
 <p>冒頭にTravis CI + GoReleaserによる成果物自動公開を試みてハマったと書きましたが、調査した結果こういう結論でした。</p>
 <ul>
@@ -149,131 +257,171 @@ $ go mod tidy
 <p>のいずれかの対応が必要そうです（とはいえ本来取るべき対応策はNo.3ではないかと）。</p>
 <h2 id="go-modules対応版travis-ci--goreleaserの設定">go modules対応版、Travis CI &amp; GoReleaserの設定</h2>
 <p>go modulesを使用しているGoプロジェクトをgoreleaserでデプロイする場合、<a href="https://goreleaser.com/build/">公式サイトで紹介されている</a> ように .goreleaser.ymlのbefore hookの設定で <code>go mod download</code> を実行するようにyamlを修正します。</p>
-<div class="highlight"><pre class="chroma"><code class="language-yaml" data-lang="yaml"><span class="k">before</span><span class="p">:</span><span class="w">
-</span><span class="w">  </span><span class="k">hooks</span><span class="p">:</span><span class="w">
-</span><span class="w">    </span>- go<span class="w"> </span>mod<span class="w"> </span>download</code></pre></div>
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#007020;font-weight:bold">before</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">  </span><span style="color:#007020;font-weight:bold">hooks</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">    </span>- go<span style="color:#bbb"> </span>mod<span style="color:#bbb"> </span>download</code></pre></td></tr></table>
+</div>
+</div>
 <p>そして.travis.ymlにあるdeployフェーズの設定を（無ければ追加して）、これも<a href="https://goreleaser.com/ci/">公式サイトで紹介されている</a>通りGoReleaserを実行するように修正します。</p>
-<div class="highlight"><pre class="chroma"><code class="language-yaml" data-lang="yaml"><span class="k">deploy</span><span class="p">:</span><span class="w">
-</span><span class="w">  </span>- <span class="k">provider</span><span class="p">:</span><span class="w"> </span>script<span class="w">
-</span><span class="w">    </span><span class="k">skip_cleanup</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="w">
-</span><span class="hl"><span class="w">    </span><span class="k">script</span><span class="p">:</span><span class="w"> </span>curl<span class="w"> </span>-sL<span class="w"> </span>http<span class="p">:</span>//git.io/goreleaser<span class="w"> </span>|<span class="w"> </span>bash<span class="w">
-</span></span><span class="w">    </span><span class="k">on</span><span class="p">:</span><span class="w">
-</span><span class="w">      </span><span class="k">tags</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="w">
-</span><span class="w">      </span><span class="k">condition</span><span class="p">:</span><span class="w"> </span>$TRAVIS_OS_NAME<span class="w"> </span>=<span class="w"> </span>linux</code></pre></div>
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="display:block;width:100%;background-color:#d8d8d8"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span></span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#007020;font-weight:bold">deploy</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">  </span>- <span style="color:#007020;font-weight:bold">provider</span>:<span style="color:#bbb"> </span>script<span style="color:#bbb">
+</span><span style="color:#bbb">    </span><span style="color:#007020;font-weight:bold">skip_cleanup</span>:<span style="color:#bbb"> </span><span style="color:#007020;font-weight:bold">true</span><span style="color:#bbb">
+</span><span style="display:block;width:100%;background-color:#d8d8d8"><span style="color:#bbb">    </span><span style="color:#007020;font-weight:bold">script</span>:<span style="color:#bbb"> </span>curl<span style="color:#bbb"> </span>-sL<span style="color:#bbb"> </span>http://git.io/goreleaser<span style="color:#bbb"> </span>|<span style="color:#bbb"> </span>bash<span style="color:#bbb">
+</span></span><span style="color:#bbb">    </span><span style="color:#007020;font-weight:bold">on</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#007020;font-weight:bold">tags</span>:<span style="color:#bbb"> </span><span style="color:#007020;font-weight:bold">true</span><span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#007020;font-weight:bold">condition</span>:<span style="color:#bbb"> </span>$TRAVIS_OS_NAME<span style="color:#bbb"> </span>=<span style="color:#bbb"> </span>linux</code></pre></td></tr></table>
+</div>
+</div>
 <p>こう設定しておけば、該当プロジェクトをmasterにmerge =&gt; tagを打ったタイミングで、Travis CIの <code>deploy</code> フェーズで設定したGoReleaserによるデプロイも実行されるようになります。</p>
 <h1 id="補足-goreleaserymlの動作確認について">補足: .goreleaser.ymlの動作確認について</h1>
 <p><a href="https://goreleaser.com/quick-start/">GoReleaser公式のQuick Start</a> にも書いてるのですが、goreleaserコマンドには <code>--skip-publish</code> という公開（release）をskip出来るオプションと、<code>--snapshot</code> というバージョンタグのチェックを行わず現状のコードベースの成果物を出力するオプションがあり、これらを組み合わせて.goreleaser.ymlの妥当性検証を行うことが可能です。</p>
-<div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh">$ goreleaser release --snapshot --skip-publish --rm-dist
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">$ goreleaser release --snapshot --skip-publish --rm-dist
 
    • releasing using goreleaser 0.101.0...
-   • loading config file       <span class="nv">file</span><span class="o">=</span>.goreleaser.yml
+   • loading config file       <span style="color:#bb60d5">file</span><span style="color:#666">=</span>.goreleaser.yml
    • RUNNING BEFORE HOOKS
       • running go mod download
 
    :
 
-   • release succeeded after 7.35s</code></pre></div>
+   • release succeeded after 7.35s</code></pre></td></tr></table>
+</div>
+</div>
 <p>とはいえ実際にタグを打って成果物deploy用のCIを実行するとローカルで検証した際には見つからなかったエラーが発生する事もあり、そうなるとそのエラー解消の為にさらにreleaseを行って本チャンCIを走らせる、、、という「CIの為にrelease重ねる症候群」が起こりがちです（自分は今回ハマった件の調査の為に5つ6つはreleaseを重ねてrelease historyがだいぶ切ない事に orz&hellip;）。</p>
 <h2 id="公式提供のシェススクリプトをカスタマイズする">公式提供のシェススクリプトをカスタマイズする</h2>
 <p>GoReleaserの場合、成果物公開用のジョブでは <code>curl -sL http://git.io/goreleaser | bash</code> というスクリプトを実行するように設定しますが、<code>http://git.io/goreleaser</code> の実体はタダのシェルスクリプトなので、これを丸っとコピーしてチェック処理やログ出力を追加したオリジナルのスクリプトに置き換えれば、いくらかは調査コストを下げる事が出来そうです。</p>
-<div class="highlight"><pre class="chroma"><code class="language-yaml" data-lang="yaml"><span class="k">deploy</span><span class="p">:</span><span class="w">
-</span><span class="w">  </span>- <span class="k">provider</span><span class="p">:</span><span class="w"> </span>script<span class="w">
-</span><span class="w">    </span><span class="k">skip_cleanup</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="w">
-</span><span class="w">    </span><span class="k">script</span><span class="p">:</span><span class="w"> </span>my-goreleaser.sh<span class="w">  </span><span class="c"># オリジナルをコピーして処理を追加したスクリプトファイル</span><span class="w">
-</span><span class="w">    </span><span class="k">on</span><span class="p">:</span><span class="w">
-</span><span class="w">      </span><span class="k">tags</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="w">
-</span><span class="w">      </span><span class="k">condition</span><span class="p">:</span><span class="w"> </span>$TRAVIS_OS_NAME<span class="w"> </span>=<span class="w"> </span>linux</code></pre></div>
-<div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh"><span class="c1"># オリジナルのスクリプトではこういう実装になっているが、</span>
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#007020;font-weight:bold">deploy</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">  </span>- <span style="color:#007020;font-weight:bold">provider</span>:<span style="color:#bbb"> </span>script<span style="color:#bbb">
+</span><span style="color:#bbb">    </span><span style="color:#007020;font-weight:bold">skip_cleanup</span>:<span style="color:#bbb"> </span><span style="color:#007020;font-weight:bold">true</span><span style="color:#bbb">
+</span><span style="color:#bbb">    </span><span style="color:#007020;font-weight:bold">script</span>:<span style="color:#bbb"> </span>my-goreleaser.sh<span style="color:#bbb">  </span><span style="color:#60a0b0;font-style:italic"># オリジナルをコピーして処理を追加したスクリプトファイル</span><span style="color:#bbb">
+</span><span style="color:#bbb">    </span><span style="color:#007020;font-weight:bold">on</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#007020;font-weight:bold">tags</span>:<span style="color:#bbb"> </span><span style="color:#007020;font-weight:bold">true</span><span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#007020;font-weight:bold">condition</span>:<span style="color:#bbb"> </span>$TRAVIS_OS_NAME<span style="color:#bbb"> </span>=<span style="color:#bbb"> </span>linux</code></pre></td></tr></table>
+</div>
+</div>
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="display:block;width:100%;background-color:#d8d8d8"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span></span><span style="display:block;width:100%;background-color:#d8d8d8"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span></span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh"><span style="color:#60a0b0;font-style:italic"># オリジナルのスクリプトではこういう実装になっているが、</span>
 download
-tar -xf <span class="s2">&#34;</span><span class="nv">$TAR_FILE</span><span class="s2">&#34;</span> -C <span class="s2">&#34;</span><span class="nv">$TMPDIR</span><span class="s2">&#34;</span>
-<span class="s2">&#34;</span><span class="si">${</span><span class="nv">TMPDIR</span><span class="si">}</span><span class="s2">/goreleaser&#34;</span> <span class="s2">&#34;</span><span class="nv">$@</span><span class="s2">&#34;</span>
+tar -xf <span style="color:#4070a0">&#34;</span><span style="color:#bb60d5">$TAR_FILE</span><span style="color:#4070a0">&#34;</span> -C <span style="color:#4070a0">&#34;</span><span style="color:#bb60d5">$TMPDIR</span><span style="color:#4070a0">&#34;</span>
+<span style="color:#4070a0">&#34;</span><span style="color:#70a0d0;font-style:italic">${</span><span style="color:#bb60d5">TMPDIR</span><span style="color:#70a0d0;font-style:italic">}</span><span style="color:#4070a0">/goreleaser&#34;</span> <span style="color:#4070a0">&#34;</span><span style="color:#bb60d5">$@</span><span style="color:#4070a0">&#34;</span>
 
-<span class="c1"># goreleaser実行直前でgit diffが発生していないかチェックする処理を追加する（例）</span>
+<span style="color:#60a0b0;font-style:italic"># goreleaser実行直前でgit diffが発生していないかチェックする処理を追加する（例）</span>
 download
-tar -xf <span class="s2">&#34;</span><span class="nv">$TAR_FILE</span><span class="s2">&#34;</span> -C <span class="s2">&#34;</span><span class="nv">$TMPDIR</span><span class="s2">&#34;</span>
+tar -xf <span style="color:#4070a0">&#34;</span><span style="color:#bb60d5">$TAR_FILE</span><span style="color:#4070a0">&#34;</span> -C <span style="color:#4070a0">&#34;</span><span style="color:#bb60d5">$TMPDIR</span><span style="color:#4070a0">&#34;</span>
 
-<span class="hl">git diff &gt; /tmp/diff.log
-</span><span class="hl">cat /tmp/diff.log
+<span style="display:block;width:100%;background-color:#d8d8d8">git diff &gt; /tmp/diff.log
+</span><span style="display:block;width:100%;background-color:#d8d8d8">cat /tmp/diff.log
 </span>
-<span class="s2">&#34;</span><span class="si">${</span><span class="nv">TMPDIR</span><span class="si">}</span><span class="s2">/goreleaser&#34;</span> <span class="s2">&#34;</span><span class="nv">$@</span><span class="s2">&#34;</span></code></pre></div>
+<span style="color:#4070a0">&#34;</span><span style="color:#70a0d0;font-style:italic">${</span><span style="color:#bb60d5">TMPDIR</span><span style="color:#70a0d0;font-style:italic">}</span><span style="color:#4070a0">/goreleaser&#34;</span> <span style="color:#4070a0">&#34;</span><span style="color:#bb60d5">$@</span><span style="color:#4070a0">&#34;</span></code></pre></td></tr></table>
+</div>
+</div>
 <h1 id="ブックマーク">ブックマーク</h1>
 <ul>
 <li><a href="https://www.wantedly.com/companies/wantedly/post_articles/132270">Go 1.11 の modules・vgo を試す - 実際に使っていく上で考えないといけないこと #golang | Wantedly Engineer Blog</a></li>
 <li><a href="https://itiskj.hatenablog.com/entry/2018/08/30/101017">Migrate from dep to Golang 1.11 Modules - kenju&rsquo;s blog</a></li>
 </ul>
 
-  </div>
-</section>
-<section id="tag-pane" class="row meta">
-  
-  <div class="col-md-12">
-    <h6 class="text-right meta">
-      
-    </h6>
-  </div>
-  
+  </article>
 </section>
 
 
+      </div>
 
-
-
-
-
-
-<section id="menu-pane" class="row menu text-center">
-  
-  
-  <span><a class="menu-item" href="https://horizoon.jp/post/2019/02/07/lambda_layer_nodejs8/">&lt; prev | </a></span>
-  
-  
-  <span><a class="menu-item" href="/post">post</a></span>
-  
-  
-  <span><a class="menu-item" href="https://horizoon.jp/post/2019/02/26/git_conflict_vim/"> | next &gt;</a></span>
-  
-  
-  <h4 class="text-center"><a class="menu-item" href="https://horizoon.jp">home</a></h4>
-</section>
-
-
-
-<footer class="row text-center footer">
-  <hr />
-  
-  <h6 class="text-center copyright">© 2019. horizoon. <a href="http://creativecommons.org/licenses/by/3.0/">Some Rights Reserved</a>.</h6>
-  
-  <h6 class="text-center powered">Powered by <a href="https://gohugo.io/">Hugo  v0.67.1</a> &amp; <a href="https://github.com/shenoybr/hugo-goa">Goa</a>.</h6>
-  
-      
-      <h6><a href="" aria-label="RSS Feed"><i class="fas fa-rss" aria-hidden="true"></i></a></h6>
+      <footer class="footer">
+  <section class="container">
     
-  
+    
+      
+        © 2017 - 2020
+      
+       Fuminori Sakamoto 
+    
+    
+       · 
+      Powered by <a href="https://gohugo.io/">Hugo</a> & <a href="https://github.com/luizdepra/hugo-coder/">Coder</a>.
+    
+    
+  </section>
 </footer>
 
-</div>
+    </main>
 
-
-
-
-
-
+    
 <script type="application/javascript">
 var doNotTrack = false;
 if (!doNotTrack) {
-	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
 	ga('create', 'UA-129776715-1', 'auto');
 	
 	ga('send', 'pageview');
 }
 </script>
-<script async src='https://www.google-analytics.com/analytics.js'></script>
 
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
-<script src="js/main.js"></script>
-<script src="js/custom.js"></script>
-</body>
+
+    
+
+  </body>
+
 </html>
-
-

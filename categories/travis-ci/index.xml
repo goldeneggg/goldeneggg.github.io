@@ -5,7 +5,7 @@
     <link>https://horizoon.jp/categories/travis-ci/</link>
     <description>Recent content in travis ci on horizoon</description>
     <generator>Hugo -- gohugo.io</generator>
-    <copyright>&amp;copy; horizoon 2019</copyright>
+    <language>en</language>
     <lastBuildDate>Tue, 11 Jun 2019 17:16:54 +0900</lastBuildDate>
     
 	<atom:link href="https://horizoon.jp/categories/travis-ci/index.xml" rel="self" type="application/rss+xml" />
@@ -17,8 +17,8 @@
       <pubDate>Tue, 11 Jun 2019 17:16:54 +0900</pubDate>
       
       <guid>https://horizoon.jp/post/2019/06/11/sam_cicd/</guid>
-      <description>Summary  AWS SAMで管理しているLambda Functionのデプロイ自動化を、AWS CodePipelineやAWS CodeBuildを使うことなく Travis CIを活用して行う  今回利用したLambda FunctionはGo製 Pull Requestのmasterブランチへのmerge時に、samコマンドで自動デプロイ    前提条件  Lambdaのリポジトリはgithub 各種バージョン情報は下記の通り  $ python --version Python 2.7.12 $ pip --version pip 19.0.3 from /usr/local/lib/python2.7/dist-packages/pip (python 2.7) $ aws --version aws-cli/1.16.175 Python/2.7.12 Linux/4.15.0-1028-gcp botocore/1.12.165 $ sam --version SAM CLI, version 0.17.0 SAMで管理しているLambdaのデプロイをTravis CIで自動化したい SAMで管理しているLambdaのデプロイ自動化をTravis CIで行います。SAMで管理しているからにはSAMのテンプレートとaws-sam-cliを使ってデプロイを行いたいです。なのでTravis公式のLambdaデプロイサポートは使用しません。
- branch != master の場合のCI  Lambdaコードのテスト Lambdaコードのlint（golintやgo vetなど） sam validate   branch == master の場合のCI, デプロイ  CI時に実施した事全て sam package sam deploy    これらを.</description>
+      <description>Summary  AWS SAMで管理しているLambda Functionのデプロイ自動化を、AWS CodePipelineやAWS CodeBuildを使うことなく Travis CIを活用して行う  今回利用したLambda FunctionはGo製 Pull Requestのmasterブランチへのmerge時に、samコマンドで自動デプロイ    前提条件  Lambdaのリポジトリはgithub 各種バージョン情報は下記の通り  1 2 3 4 5 6 7 8 9 10 11  $ python --version Python 2.7.12 $ pip --version pip 19.0.3 from /usr/local/lib/python2.7/dist-packages/pip (python 2.7) $ aws --version aws-cli/1.16.175 Python/2.7.12 Linux/4.15.0-1028-gcp botocore/1.12.165 $ sam --version SAM CLI, version 0.17.0   SAMで管理しているLambdaのデプロイをTravis CIで自動化したい SAMで管理しているLambdaのデプロイ自動化をTravis CIで行います。SAMで管理しているからにはSAMのテンプレートとaws-sam-cliを使ってデプロイを行いたいです。なのでTravis公式のLambdaデプロイサポートは使用しません。
+ branch !</description>
     </item>
     
     <item>
@@ -27,8 +27,8 @@
       <pubDate>Mon, 25 Feb 2019 08:17:54 +0900</pubDate>
       
       <guid>https://horizoon.jp/post/2019/02/25/dep_to_go_mod/</guid>
-      <description>Summary  depで管理していた既存のGo製ツールをdepからgo moduleに移行してみたが、移行自体は特にハマりどころも無くスンナリいった go moduleへの移行後に依存パッケージのupgradeを実施、これもスンナリいった Travis CI + GoReleaser で、ビルド成果物をGithub Releasesに登録する作業 ＆ GoアプリのHomeBrewパッケージ作成・公開作業 を自動化しようと試みたが、そのCIが git is currently in a dirty state というコケ方をしてちょっとハマった GoReleaserは本当に便利  前提条件 # goのバージョン $ go version go version go1.11.5 darwin/amd64 切り替え手順 depを使っていたので、go mod init して go build の成功を確認できたらdep関連のファイルを削除する、という手順で完了します（対応例）
-# go mod利用時に必要な環境変数、direnvでプロジェクトディレクトリ下のみ適用されるようにしても良さそう $ export GO111MODULE=on # go modulesの初期設定 $ go mod init # go runしてスタンドアロンで実行すれば、そのタイミングでgo.sumファイルが作成される $ go run *.go --help # dep関連ファイルを削除する $ rm Gopkg.toml Gopkg.lock $ rm -fr vendor/ # Makefileを修正 # CIの設定ファイル（今回の場合は .</description>
+      <description>Summary  depで管理していた既存のGo製ツールをdepからgo moduleに移行してみたが、移行自体は特にハマりどころも無くスンナリいった go moduleへの移行後に依存パッケージのupgradeを実施、これもスンナリいった Travis CI + GoReleaser で、ビルド成果物をGithub Releasesに登録する作業 ＆ GoアプリのHomeBrewパッケージ作成・公開作業 を自動化しようと試みたが、そのCIが git is currently in a dirty state というコケ方をしてちょっとハマった GoReleaserは本当に便利  前提条件 1 2 3  # goのバージョン $ go version go version go1.11.5 darwin/amd64   切り替え手順 depを使っていたので、go mod init して go build の成功を確認できたらdep関連のファイルを削除する、という手順で完了します（対応例）
+1 2 3 4 5 6 7 8 9 10 11 12 13 14 15  # go mod利用時に必要な環境変数、direnvでプロジェクトディレクトリ下のみ適用されるようにしても良さそう $ export GO111MODULE=on # go modulesの初期設定 $ go mod init # go runしてスタンドアロンで実行すれば、そのタイミングでgo.</description>
     </item>
     
   </channel>

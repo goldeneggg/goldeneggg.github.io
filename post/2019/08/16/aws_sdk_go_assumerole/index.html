@@ -1,77 +1,120 @@
 <!DOCTYPE html>
-<html lang="">
-<head>
+<html lang="en">
 
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta http-equiv="content-type" content="text/html; charset=utf-8">
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<meta name="description" content="This is my portfolio. I&#39;m Web Developer, Software Engineer, Engineering Manager and Backpacker. Ruby/Rails/Go/PHP/Java/Linux/MySQL/Docker/AWS/Fintech/Payment">
-<meta name="keywords" content="developer,software engineer,technology,web,blog,freelance,hugo">
+    <meta name="author" content="Fuminori Sakamoto">
+    <meta name="description" content="horizoon&#39;s website">
+    <meta name="keywords" content="blog,developer,backpacker,personal">
 
-<base href="https://horizoon.jp">
+    <meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="aws-sdk-go, aws-sdk-go-v2 でMFAトークンによるAssumeRoleに対応する"/>
+<meta name="twitter:description" content="Summary  aws-sdk-goで、標準入力からのMFAトークン入力によるAssumeRoleを実装する aws-sdk-go-v2で、標準入力からのMFAトークン入力によるAssumeRoleを実装する  前提条件  aws-sdk-go - v1.21.x aws-sdk-go-v2 - v0.10.0  aws-sdk-goで、標準入力からのMFAトークン入力によるAssumeRoleを実装する AssumeRole便利ですよね。AssumeRole自体の詳細な説明は公式のチュートリアル 等の記事に任せるとして、aws-sdk-goもMFAによるAssumeRoleに対応しています。拙作のEC2インスタンス一覧取得ツール で これを実装する機会があったので、実装方法の備忘メモを残しておきます。
+今回の要件は下記を想定しました。
+ 一時的セキュリティ認証情報(STS)を利用した実装 にはしない 代わりに 切替用のIAMロールを設定ファイル経由で使用できるようにする 実装にする  ~/.aws/credentials と ~/.aws/config に、IAMユーザのprofileと切替先ロールのprofileを定義し、これを使用する この実装にすることで、コマンドやライブラリを使う側が指定しなければならない情報（例えばRoleARNやSessionTokenなど）を削減できる   実際に利用する際はMFAトークンの入力を（標準入力から）促し、普段使っている2段階認証アプリ等で表示されたトークンを入力することで、切替先ロールの各種リソースにアクセスできるようにする  ~/.aws/credentials と ~/.aws/config の設定内容 公式の例 を参考に下記のような内容で作成しておきます。リンク先でも触れられていますが、aws-sdk-goだけに限らず、他言語のSDKやawscliでもこの設定は使い回す事が出来ます。
+1 2 3 4 5 6  # ~/.aws/credentials # IAMユーザーのアクセスキー情報が hoge という名前のprofileで定義されている [hoge] aws_access_key_id=ACCESS_KEY_ID aws_secret_access_key=SECRET_ACCESS_KEY   1 2 3 4 5 6 7 8 9 10 11 12 13  # ~/."/>
 
-<title>
-  horizoon - aws-sdk-go, aws-sdk-go-v2 でMFAトークンによるAssumeRoleに対応する 
+    <meta property="og:title" content="aws-sdk-go, aws-sdk-go-v2 でMFAトークンによるAssumeRoleに対応する" />
+<meta property="og:description" content="Summary  aws-sdk-goで、標準入力からのMFAトークン入力によるAssumeRoleを実装する aws-sdk-go-v2で、標準入力からのMFAトークン入力によるAssumeRoleを実装する  前提条件  aws-sdk-go - v1.21.x aws-sdk-go-v2 - v0.10.0  aws-sdk-goで、標準入力からのMFAトークン入力によるAssumeRoleを実装する AssumeRole便利ですよね。AssumeRole自体の詳細な説明は公式のチュートリアル 等の記事に任せるとして、aws-sdk-goもMFAによるAssumeRoleに対応しています。拙作のEC2インスタンス一覧取得ツール で これを実装する機会があったので、実装方法の備忘メモを残しておきます。
+今回の要件は下記を想定しました。
+ 一時的セキュリティ認証情報(STS)を利用した実装 にはしない 代わりに 切替用のIAMロールを設定ファイル経由で使用できるようにする 実装にする  ~/.aws/credentials と ~/.aws/config に、IAMユーザのprofileと切替先ロールのprofileを定義し、これを使用する この実装にすることで、コマンドやライブラリを使う側が指定しなければならない情報（例えばRoleARNやSessionTokenなど）を削減できる   実際に利用する際はMFAトークンの入力を（標準入力から）促し、普段使っている2段階認証アプリ等で表示されたトークンを入力することで、切替先ロールの各種リソースにアクセスできるようにする  ~/.aws/credentials と ~/.aws/config の設定内容 公式の例 を参考に下記のような内容で作成しておきます。リンク先でも触れられていますが、aws-sdk-goだけに限らず、他言語のSDKやawscliでもこの設定は使い回す事が出来ます。
+1 2 3 4 5 6  # ~/.aws/credentials # IAMユーザーのアクセスキー情報が hoge という名前のprofileで定義されている [hoge] aws_access_key_id=ACCESS_KEY_ID aws_secret_access_key=SECRET_ACCESS_KEY   1 2 3 4 5 6 7 8 9 10 11 12 13  # ~/." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://horizoon.jp/post/2019/08/16/aws_sdk_go_assumerole/" />
+<meta property="article:published_time" content="2019-08-16T17:10:35+09:00" />
+<meta property="article:modified_time" content="2019-08-16T17:10:35+09:00" />
+
+
+    
+      <base href="https://horizoon.jp/post/2019/08/16/aws_sdk_go_assumerole/">
+    
+    <title>
+  aws-sdk-go, aws-sdk-go-v2 でMFAトークンによるAssumeRoleに対応する · horizoon
 </title>
 
-<meta name="generator" content="Hugo 0.67.1" />
-
-
-
-<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:300,400|Roboto+Slab:400,700|Roboto:300,300i,400,400i,500,500i,700,700i">
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css" integrity="sha384-oS3vJWv+0UjzBfQzYUhtDYW+Pj2yciDJxpsK1OYPAYjqT085Qq/1cq5FLXAZQ7Ay" crossorigin="anonymous">
-<link rel="stylesheet" href="https://horizoon.jp/css/main.css">
-<link rel="stylesheet" href="https://horizoon.jp/css/custom.css">
-
-
-
-
-<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-<link rel="icon" type="image/png" href="/favicon-32x32.png" sizes="32x32">
-<link rel="icon" type="image/png" href="/favicon-16x16.png" sizes="16x16">
-<link rel="manifest" href="/manifest.json">
-<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
-<meta name="theme-color" content="#ffffff">
-
-</head>
-<body lang="">
-<div class="container">
-
-
-<header class="row text-left title">
-  <h1 class="title">aws-sdk-go, aws-sdk-go-v2 でMFAトークンによるAssumeRoleに対応する</h1>
-</header>
-<section id="category-pane" class="row meta">
-  
-  <div class="col-md-12">
-    <h6 class="text-left meta">
-        PUBLISHED ON 2019-08-16 
-      
-      
-      
-      —
-      
-      
-      <a class="meta" href="/categories/aws">AWS</a>, 
-      
-      <a class="meta" href="/categories/aws-sdk-go">AWS-SDK-GO</a>, 
-      
-      <a class="meta" href="/categories/go">GO</a>, 
-      
-      <a class="meta" href="/categories/golang">GOLANG</a>
-      
-      
-      
-    </h6>
-  </div>
-  
-</section>
-<section id="content-pane" class="row">
-  <div class="col-md-12 text-justify content">
     
+      <link rel="canonical" href="https://horizoon.jp/post/2019/08/16/aws_sdk_go_assumerole/">
+    
+
+    <link href="https://fonts.googleapis.com/css?family=Lato:400,700%7CMerriweather:300,700%7CSource+Code+Pro:400,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.11.2/css/all.css" integrity="sha384-KA6wR/X5RY4zFAHpv/CnoG2UW1uogYfdnP67Uv7eULvTveboZJg0qUpmJZb5VqzN" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css" integrity="sha256-l85OmPOjvil/SOvVt3HnSSjzF1TUMyT9eV0c2BzEGzU=" crossorigin="anonymous" />
+
+    
+      
+      
+      <link rel="stylesheet" href="https://horizoon.jp/css/coder.min.a4f332213a21ce8eb521670c614470c58923aaaf385e2a73982c31dd7642decb.css" integrity="sha256-pPMyITohzo61IWcMYURwxYkjqq84XipzmCwx3XZC3ss=" crossorigin="anonymous" media="screen" />
+    
+
+    
+
+    
+      
+        
+        
+        <link rel="stylesheet" href="https://horizoon.jp/css/coder-dark.min.83a2010dac9f59f943b3004cd6c4f230507ad036da635d3621401d42ec4e2835.css" integrity="sha256-g6IBDayfWflDswBM1sTyMFB60DbaY102IUAdQuxOKDU=" crossorigin="anonymous" media="screen" />
+      
+    
+
+    
+
+    
+
+    
+
+    <link rel="icon" type="image/png" href="https://horizoon.jp/favicon-32x32.png" sizes="32x32">
+    <link rel="icon" type="image/png" href="https://horizoon.jp/favicon-16x16.png" sizes="16x16">
+
+    <meta name="generator" content="Hugo 0.67.1" />
+  </head>
+
+  
+  
+    
+  
+  <body class="colorscheme-auto">
+    <main class="wrapper">
+      <nav class="navigation">
+  <section class="container">
+    <a class="navigation-title" href="https://horizoon.jp/">
+      horizoon
+    </a>
+    
+    <input type="checkbox" id="menu-toggle" />
+    <label class="menu-button float-right" for="menu-toggle"><i class="fas fa-bars"></i></label>
+    <ul class="navigation-list">
+      
+        
+          <li class="navigation-item">
+            <a class="navigation-link" href="https://horizoon.jp/post/">Blog</a>
+          </li>
+        
+          <li class="navigation-item">
+            <a class="navigation-link" href="https://horizoon.jp/projects/">Projects</a>
+          </li>
+        
+          <li class="navigation-item">
+            <a class="navigation-link" href="https://horizoon.jp/about/">About</a>
+          </li>
+        
+      
+      
+    </ul>
+    
+  </section>
+</nav>
+
+
+      <div class="content">
+        
+  <section class="container page">
+  <article>
+    <header>
+      <h1>aws-sdk-go, aws-sdk-go-v2 でMFAトークンによるAssumeRoleに対応する</h1>
+    </header>
+
     <h1 id="summary">Summary</h1>
 <ul>
 <li>aws-sdk-goで、標準入力からのMFAトークン入力によるAssumeRoleを実装する</li>
@@ -97,176 +140,268 @@
 </ul>
 <h2 id="awscredentials-と-awsconfig-の設定内容"><code>~/.aws/credentials</code> と <code>~/.aws/config</code> の設定内容</h2>
 <p><a href="https://docs.aws.amazon.com/ja_jp/cli/latest/userguide/cli-configure-role.html?shortFooter=true#cli-configure-role-mfa">公式の例</a> を参考に下記のような内容で作成しておきます。リンク先でも触れられていますが、aws-sdk-goだけに限らず、他言語のSDKやawscliでもこの設定は使い回す事が出来ます。</p>
-<div class="highlight"><pre class="chroma"><code class="language-ini" data-lang="ini"><span class="c1"># ~/.aws/credentials</span>
-<span class="c1"># IAMユーザーのアクセスキー情報が hoge という名前のprofileで定義されている</span>
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-ini" data-lang="ini"><span style="color:#60a0b0;font-style:italic"># ~/.aws/credentials</span>
+<span style="color:#60a0b0;font-style:italic"># IAMユーザーのアクセスキー情報が hoge という名前のprofileで定義されている</span>
 
-<span class="k">[hoge]</span>
-<span class="na">aws_access_key_id</span><span class="o">=</span><span class="s">ACCESS_KEY_ID</span>
-<span class="na">aws_secret_access_key</span><span class="o">=</span><span class="s">SECRET_ACCESS_KEY</span>
-</code></pre></div><div class="highlight"><pre class="chroma"><code class="language-ini" data-lang="ini"><span class="c1"># ~/.aws/config</span>
-<span class="c1"># hoge profileのconfig（例ではregionのみ）と、</span>
-<span class="c1"># hogeをsource_profileとするロール切替先のprofile=dev-hoge-role、</span>
-<span class="c1"># の2つが定義されている</span>
+<span style="color:#007020;font-weight:bold">[hoge]</span>
+<span style="color:#4070a0">aws_access_key_id</span><span style="color:#666">=</span><span style="color:#4070a0">ACCESS_KEY_ID</span>
+<span style="color:#4070a0">aws_secret_access_key</span><span style="color:#666">=</span><span style="color:#4070a0">SECRET_ACCESS_KEY</span>
+</code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-ini" data-lang="ini"><span style="color:#60a0b0;font-style:italic"># ~/.aws/config</span>
+<span style="color:#60a0b0;font-style:italic"># hoge profileのconfig（例ではregionのみ）と、</span>
+<span style="color:#60a0b0;font-style:italic"># hogeをsource_profileとするロール切替先のprofile=dev-hoge-role、</span>
+<span style="color:#60a0b0;font-style:italic"># の2つが定義されている</span>
 
-<span class="k">[profile hoge]</span>
-<span class="na">region</span><span class="o">=</span><span class="s">ap-northeast-1</span>
+<span style="color:#007020;font-weight:bold">[profile hoge]</span>
+<span style="color:#4070a0">region</span><span style="color:#666">=</span><span style="color:#4070a0">ap-northeast-1</span>
 
-<span class="k">[profile dev-hoge-role]</span>
-<span class="na">region</span><span class="o">=</span><span class="s">ap-northeast-1</span>
-<span class="na">source_profile</span><span class="o">=</span><span class="s">hoge</span>
-<span class="na">role_arn</span><span class="o">=</span><span class="s">arn:aws:iam::123456789012:role/DevHogeRole</span>
-<span class="na">mfa_serial</span><span class="o">=</span><span class="s">arn:aws:iam::987654321098:mfa/hoge.hugao</span>
-</code></pre></div><h3 id="awssessionパッケージを活用したprofile読み込み処理の実装">aws.sessionパッケージを活用したprofile読み込み処理の実装</h3>
+<span style="color:#007020;font-weight:bold">[profile dev-hoge-role]</span>
+<span style="color:#4070a0">region</span><span style="color:#666">=</span><span style="color:#4070a0">ap-northeast-1</span>
+<span style="color:#4070a0">source_profile</span><span style="color:#666">=</span><span style="color:#4070a0">hoge</span>
+<span style="color:#4070a0">role_arn</span><span style="color:#666">=</span><span style="color:#4070a0">arn:aws:iam::123456789012:role/DevHogeRole</span>
+<span style="color:#4070a0">mfa_serial</span><span style="color:#666">=</span><span style="color:#4070a0">arn:aws:iam::987654321098:mfa/hoge.hugao</span>
+</code></pre></td></tr></table>
+</div>
+</div><h3 id="awssessionパッケージを活用したprofile読み込み処理の実装">aws.sessionパッケージを活用したprofile読み込み処理の実装</h3>
 <p>今回の要件をaws-sdk-goで実装する方法は実は複数パターン提供されているのですが、 <strong>利用側が指定しなければならない情報を減らしたい（プロファイルさえ設定されていれば、その情報を使うようにしたい）</strong> という要件を達成する為に、<a href="https://godoc.org/github.com/aws/aws-sdk-go/aws/session">aws/session パッケージ</a> を活用した実装にします。下記に解説コメント付きでコード例を載せておきます。</p>
-<div class="highlight"><pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// configを新規生成
-</span><span class="c1"></span><span class="nx">config</span> <span class="o">:=</span> <span class="nx">aws</span><span class="p">.</span><span class="nf">NewConfig</span><span class="p">()</span>
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#60a0b0;font-style:italic">// configを新規生成
+</span><span style="color:#60a0b0;font-style:italic"></span>config <span style="color:#666">:=</span> aws.<span style="color:#06287e">NewConfig</span>()
 
-<span class="c1">// session.Options を使ってMFAによるAssumeRole設定を行う
-</span><span class="c1"></span><span class="nx">sessOpts</span> <span class="o">:=</span> <span class="nx">session</span><span class="p">.</span><span class="nx">Options</span><span class="p">{</span>
-  <span class="c1">// 先程生成したconfigをセット
-</span><span class="c1"></span>  <span class="nx">Config</span><span class="p">:</span>                  <span class="o">*</span><span class="nx">config</span><span class="p">,</span>
+<span style="color:#60a0b0;font-style:italic">// session.Options を使ってMFAによるAssumeRole設定を行う
+</span><span style="color:#60a0b0;font-style:italic"></span>sessOpts <span style="color:#666">:=</span> session.Options{
+  <span style="color:#60a0b0;font-style:italic">// 先程生成したconfigをセット
+</span><span style="color:#60a0b0;font-style:italic"></span>  Config:                  <span style="color:#666">*</span>config,
 
-  <span class="c1">// *切替先ロールの* profileをセット（source IAMユーザーのprofileではないので注意）
-</span><span class="c1"></span>  <span class="nx">Profile</span><span class="p">:</span>                 <span class="nx">profile</span><span class="p">,</span>  <span class="c1">// = dev-hoge-role
-</span><span class="c1"></span>
-  <span class="c1">// AssumeRole時のMFAトークン取得経路をセット。今回は標準入力を使う実装にしている
-</span><span class="c1"></span>  <span class="c1">// See: https://godoc.org/github.com/aws/aws-sdk-go/aws/session#hdr-Assume_Role_configuration
-</span><span class="c1"></span>  <span class="nx">AssumeRoleTokenProvider</span><span class="p">:</span> <span class="nx">stscreds</span><span class="p">.</span><span class="nx">StdinTokenProvider</span><span class="p">,</span>
+  <span style="color:#60a0b0;font-style:italic">// *切替先ロールの* profileをセット（source IAMユーザーのprofileではないので注意）
+</span><span style="color:#60a0b0;font-style:italic"></span>  Profile:                 profile,  <span style="color:#60a0b0;font-style:italic">// = dev-hoge-role
+</span><span style="color:#60a0b0;font-style:italic"></span>
+  <span style="color:#60a0b0;font-style:italic">// AssumeRole時のMFAトークン取得経路をセット。今回は標準入力を使う実装にしている
+</span><span style="color:#60a0b0;font-style:italic"></span>  <span style="color:#60a0b0;font-style:italic">// See: https://godoc.org/github.com/aws/aws-sdk-go/aws/session#hdr-Assume_Role_configuration
+</span><span style="color:#60a0b0;font-style:italic"></span>  AssumeRoleTokenProvider: stscreds.StdinTokenProvider,
 
-  <span class="c1">// MFA &amp; AssumeRoleという文脈とは無関係だが、
-</span><span class="c1"></span>  <span class="c1">// 実行環境で AWS_SDK_LOAD_CONFIG 環境変数がセットされていなくても ~/.aws/config ファイルを自動で読み込んでくれるようにする為に、
-</span><span class="c1"></span>  <span class="c1">// このオプションを設定しておくと便利
-</span><span class="c1"></span>  <span class="c1">// See: https://godoc.org/github.com/aws/aws-sdk-go/aws/session#hdr-Shared_Config_Fields
-</span><span class="c1"></span>  <span class="nx">SharedConfigState</span><span class="p">:</span> <span class="nx">session</span><span class="p">.</span><span class="nx">SharedConfigEnable</span><span class="p">,</span>
-<span class="p">}</span>
+  <span style="color:#60a0b0;font-style:italic">// MFA &amp; AssumeRoleという文脈とは無関係だが、
+</span><span style="color:#60a0b0;font-style:italic"></span>  <span style="color:#60a0b0;font-style:italic">// 実行環境で AWS_SDK_LOAD_CONFIG 環境変数がセットされていなくても ~/.aws/config ファイルを自動で読み込んでくれるようにする為に、
+</span><span style="color:#60a0b0;font-style:italic"></span>  <span style="color:#60a0b0;font-style:italic">// このオプションを設定しておくと便利
+</span><span style="color:#60a0b0;font-style:italic"></span>  <span style="color:#60a0b0;font-style:italic">// See: https://godoc.org/github.com/aws/aws-sdk-go/aws/session#hdr-Shared_Config_Fields
+</span><span style="color:#60a0b0;font-style:italic"></span>  SharedConfigState: session.SharedConfigEnable,
+}
 
-<span class="c1">// AssumeRole設定済のsession.Optionsを使ってsessionオブジェクトを生成
-</span><span class="c1"></span><span class="nx">sess</span> <span class="o">:=</span> <span class="nx">session</span><span class="p">.</span><span class="nf">Must</span><span class="p">(</span><span class="nx">session</span><span class="p">.</span><span class="nf">NewSessionWithOptions</span><span class="p">(</span><span class="nx">sessOpts</span><span class="p">))</span>
+<span style="color:#60a0b0;font-style:italic">// AssumeRole設定済のsession.Optionsを使ってsessionオブジェクトを生成
+</span><span style="color:#60a0b0;font-style:italic"></span>sess <span style="color:#666">:=</span> session.<span style="color:#06287e">Must</span>(session.<span style="color:#06287e">NewSessionWithOptions</span>(sessOpts))
 
-<span class="c1">// sessionオブジェクトを使用する例： EC2クライアントの場合
-</span><span class="c1"></span><span class="nx">ec2Client</span> <span class="o">:=</span> <span class="nx">ec2</span><span class="p">.</span><span class="nf">New</span><span class="p">(</span><span class="nx">sess</span><span class="p">)</span>
-</code></pre></div><p><a href="https://github.com/goldeneggg/lsec2">先述の拙作ツール</a> はEC2インスタンス一覧を取得するCLIなのですが、この実装でMFA &amp; AssumeRoleに対応した結果、実行時に下記のようなMFAトークンの入力が促されるようになりました。</p>
-<div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh">$ lsec2 --profile hoge
-Assume Role MFA token code: <span class="o">[</span>2段階認証アプリ等から取得したトークンを入力する<span class="o">]</span>
-</code></pre></div><h2 id="この実装でassumerole不要の別profileも利用できるの">この実装でAssumeRole不要の別profileも利用できるの？</h2>
+<span style="color:#60a0b0;font-style:italic">// sessionオブジェクトを使用する例： EC2クライアントの場合
+</span><span style="color:#60a0b0;font-style:italic"></span>ec2Client <span style="color:#666">:=</span> ec2.<span style="color:#06287e">New</span>(sess)
+</code></pre></td></tr></table>
+</div>
+</div><p><a href="https://github.com/goldeneggg/lsec2">先述の拙作ツール</a> はEC2インスタンス一覧を取得するCLIなのですが、この実装でMFA &amp; AssumeRoleに対応した結果、実行時に下記のようなMFAトークンの入力が促されるようになりました。</p>
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">$ lsec2 --profile hoge
+Assume Role MFA token code: <span style="color:#666">[</span>2段階認証アプリ等から取得したトークンを入力する<span style="color:#666">]</span>
+</code></pre></td></tr></table>
+</div>
+</div><h2 id="この実装でassumerole不要の別profileも利用できるの">この実装でAssumeRole不要の別profileも利用できるの？</h2>
 <p>できます。例えば下記例のように <code>default</code> というprofileが定義されている場合、先述のコードでprofileを指定している箇所に &ldquo;default&rdquo; を指定すればOKです。AssumeRoleとは無関係のprofileなので、当然MFAトークンの入力を求められる事もありません。</p>
-<div class="highlight"><pre class="chroma"><code class="language-ini" data-lang="ini"><span class="c1"># ~/.aws/credentials</span>
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">9
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-ini" data-lang="ini"><span style="color:#60a0b0;font-style:italic"># ~/.aws/credentials</span>
 
-<span class="k">[default]</span>
-<span class="na">aws_access_key_id</span><span class="o">=</span><span class="s">ACCESS_KEY_ID</span>
-<span class="na">aws_secret_access_key</span><span class="o">=</span><span class="s">SECRET_ACCESS_KEY</span>
+<span style="color:#007020;font-weight:bold">[default]</span>
+<span style="color:#4070a0">aws_access_key_id</span><span style="color:#666">=</span><span style="color:#4070a0">ACCESS_KEY_ID</span>
+<span style="color:#4070a0">aws_secret_access_key</span><span style="color:#666">=</span><span style="color:#4070a0">SECRET_ACCESS_KEY</span>
 
-<span class="k">[hoge]</span>
-<span class="na">:</span>
-<span class="na">:</span>
-</code></pre></div><div class="highlight"><pre class="chroma"><code class="language-ini" data-lang="ini"><span class="c1"># ~/.aws/config</span>
+<span style="color:#007020;font-weight:bold">[hoge]</span>
+<span style="color:#4070a0">:</span>
+<span style="color:#4070a0">:</span>
+</code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-ini" data-lang="ini"><span style="color:#60a0b0;font-style:italic"># ~/.aws/config</span>
 
-<span class="k">[default]</span>
-<span class="na">region</span><span class="o">=</span><span class="s">ap-northeast-1</span>
+<span style="color:#007020;font-weight:bold">[default]</span>
+<span style="color:#4070a0">region</span><span style="color:#666">=</span><span style="color:#4070a0">ap-northeast-1</span>
 
-<span class="k">[profile hoge]</span>
-<span class="na">:</span>
+<span style="color:#007020;font-weight:bold">[profile hoge]</span>
+<span style="color:#4070a0">:</span>
 
-<span class="k">[profile dev-hoge-role]</span>
-<span class="na">:</span>
-</code></pre></div><h1 id="aws-sdk-go-v2の場合">aws-sdk-go-v2の場合</h1>
+<span style="color:#007020;font-weight:bold">[profile dev-hoge-role]</span>
+<span style="color:#4070a0">:</span>
+</code></pre></td></tr></table>
+</div>
+</div><h1 id="aws-sdk-go-v2の場合">aws-sdk-go-v2の場合</h1>
 <p>v2では<a href="https://github.com/aws/aws-sdk-go-v2/issues/83">aws/session パッケージが削除されてしまった為(泣)</a> 別の実装を行う必要があるのですが、結論を書くと <a href="https://godoc.org/github.com/aws/aws-sdk-go-v2/aws/external#WithMFATokenFunc">aws/external パッケージの WithMFATokenFunc</a> の利用例をほぼそのまま使って実装できます。</p>
 <p>なお、configとcredentialsの両設定ファイルは、v1の実装例で紹介した設定内容をそのまま流用できます。</p>
-<div class="highlight"><pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// external.LoadDefaultAWSConfig を2つのオプション付きで呼び出す
-</span><span class="c1"></span><span class="nx">cfg</span><span class="p">,</span> <span class="nx">err</span> <span class="p">=</span> <span class="nx">external</span><span class="p">.</span><span class="nf">LoadDefaultAWSConfig</span><span class="p">(</span>
-  <span class="c1">// external.WithMFATokenFunc でMFAトークンの入力方法を設定する
-</span><span class="c1"></span>  <span class="c1">// stscreds.StdinTokenProvider は標準入力を使用するProvider
-</span><span class="c1"></span>  <span class="nx">external</span><span class="p">.</span><span class="nf">WithMFATokenFunc</span><span class="p">(</span><span class="nx">stscreds</span><span class="p">.</span><span class="nx">StdinTokenProvider</span><span class="p">),</span>
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#60a0b0;font-style:italic">// external.LoadDefaultAWSConfig を2つのオプション付きで呼び出す
+</span><span style="color:#60a0b0;font-style:italic"></span>cfg, err = external.<span style="color:#06287e">LoadDefaultAWSConfig</span>(
+  <span style="color:#60a0b0;font-style:italic">// external.WithMFATokenFunc でMFAトークンの入力方法を設定する
+</span><span style="color:#60a0b0;font-style:italic"></span>  <span style="color:#60a0b0;font-style:italic">// stscreds.StdinTokenProvider は標準入力を使用するProvider
+</span><span style="color:#60a0b0;font-style:italic"></span>  external.<span style="color:#06287e">WithMFATokenFunc</span>(stscreds.StdinTokenProvider),
 
-  <span class="c1">// external.WithSharedConfigProfile でprofile名を設定する
-</span><span class="c1"></span>  <span class="nx">external</span><span class="p">.</span><span class="nf">WithSharedConfigProfile</span><span class="p">(</span><span class="nx">profile</span><span class="p">),</span>
-<span class="p">)</span>
+  <span style="color:#60a0b0;font-style:italic">// external.WithSharedConfigProfile でprofile名を設定する
+</span><span style="color:#60a0b0;font-style:italic"></span>  external.<span style="color:#06287e">WithSharedConfigProfile</span>(profile),
+)
 
-<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
-  <span class="c1">// エラー処理
-</span><span class="c1"></span><span class="p">}</span>
+<span style="color:#007020;font-weight:bold">if</span> err <span style="color:#666">!=</span> <span style="color:#007020;font-weight:bold">nil</span> {
+  <span style="color:#60a0b0;font-style:italic">// エラー処理
+</span><span style="color:#60a0b0;font-style:italic"></span>}
 
-<span class="c1">// configオブジェクトを使用する例： EC2クライアントの場合
-</span><span class="c1"></span><span class="nx">ec2Client</span> <span class="o">:=</span> <span class="nx">ec2</span><span class="p">.</span><span class="nf">New</span><span class="p">(</span><span class="nx">cfg</span><span class="p">)</span>
-</code></pre></div><p>この件に限らずv2はconfigの取り扱い方が大幅に変更されているのですが、便利な変更の一例として ~/.aws/config ファイルを読み込む為に <code>AWS_SDK_LOAD_CONFIG</code> 環境変数の設定が不要になっています。（v1の実装時は <code>session.SharedConfigEnable</code> を設定することで <code>AWS_SDK_LOAD_CONFIG</code> 環境変数の設定漏れをカバーしていたのですが、この考慮も不要になりました）</p>
+<span style="color:#60a0b0;font-style:italic">// configオブジェクトを使用する例： EC2クライアントの場合
+</span><span style="color:#60a0b0;font-style:italic"></span>ec2Client <span style="color:#666">:=</span> ec2.<span style="color:#06287e">New</span>(cfg)
+</code></pre></td></tr></table>
+</div>
+</div><p>この件に限らずv2はconfigの取り扱い方が大幅に変更されているのですが、便利な変更の一例として ~/.aws/config ファイルを読み込む為に <code>AWS_SDK_LOAD_CONFIG</code> 環境変数の設定が不要になっています。（v1の実装時は <code>session.SharedConfigEnable</code> を設定することで <code>AWS_SDK_LOAD_CONFIG</code> 環境変数の設定漏れをカバーしていたのですが、この考慮も不要になりました）</p>
 <h2 id="v2はまだカジュアルに仕様変更が行われているフェーズなので利用時はご注意を">v2はまだカジュアルに仕様変更が行われているフェーズなので、利用時はご注意を</h2>
 <p>v2はまだまだ活発に開発されている途上のフェーズで、docやexampleがv1の内容のまま残っていたりして、今回紹介する例と異なる実装例が公式のドキュメントで大量にHITします（そしてこれをそのまま流用しても動きません）。今回の例は本体のコード＆テストを読んで実装を行い、一応の動作確認までは済ませてある例になります。が、将来的にこの実装では動かなくなる可能性は無くは無さそうという点だけご留意ください。</p>
 
-  </div>
-</section>
-<section id="tag-pane" class="row meta">
-  
-  <div class="col-md-12">
-    <h6 class="text-right meta">
-      
-      
-      
-      
-    </h6>
-  </div>
-  
+  </article>
 </section>
 
 
+      </div>
 
-
-
-
-
-
-<section id="menu-pane" class="row menu text-center">
-  
-  
-  <span><a class="menu-item" href="https://horizoon.jp/post/2019/06/11/sam_cicd/">&lt; prev | </a></span>
-  
-  
-  <span><a class="menu-item" href="/post">post</a></span>
-  
-  
-  <span><a class="menu-item" href="https://horizoon.jp/post/2020/03/25/goreleaser_github_actions/"> | next &gt;</a></span>
-  
-  
-  <h4 class="text-center"><a class="menu-item" href="https://horizoon.jp">home</a></h4>
-</section>
-
-
-
-<footer class="row text-center footer">
-  <hr />
-  
-  <h6 class="text-center copyright">© 2019. horizoon. <a href="http://creativecommons.org/licenses/by/3.0/">Some Rights Reserved</a>.</h6>
-  
-  <h6 class="text-center powered">Powered by <a href="https://gohugo.io/">Hugo  v0.67.1</a> &amp; <a href="https://github.com/shenoybr/hugo-goa">Goa</a>.</h6>
-  
-      
-      <h6><a href="" aria-label="RSS Feed"><i class="fas fa-rss" aria-hidden="true"></i></a></h6>
+      <footer class="footer">
+  <section class="container">
     
-  
+    
+      
+        © 2017 - 2020
+      
+       Fuminori Sakamoto 
+    
+    
+       · 
+      Powered by <a href="https://gohugo.io/">Hugo</a> & <a href="https://github.com/luizdepra/hugo-coder/">Coder</a>.
+    
+    
+  </section>
 </footer>
 
-</div>
+    </main>
 
-
-
-
-
-
+    
 <script type="application/javascript">
 var doNotTrack = false;
 if (!doNotTrack) {
-	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
 	ga('create', 'UA-129776715-1', 'auto');
 	
 	ga('send', 'pageview');
 }
 </script>
-<script async src='https://www.google-analytics.com/analytics.js'></script>
 
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
-<script src="js/main.js"></script>
-<script src="js/custom.js"></script>
-</body>
+
+    
+
+  </body>
+
 </html>
-
-

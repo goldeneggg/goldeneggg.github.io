@@ -1,77 +1,124 @@
 <!DOCTYPE html>
-<html lang="">
-<head>
+<html lang="en">
 
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta http-equiv="content-type" content="text/html; charset=utf-8">
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<meta name="description" content="This is my portfolio. I&#39;m Web Developer, Software Engineer, Engineering Manager and Backpacker. Ruby/Rails/Go/PHP/Java/Linux/MySQL/Docker/AWS/Fintech/Payment">
-<meta name="keywords" content="developer,software engineer,technology,web,blog,freelance,hugo">
+    <meta name="author" content="Fuminori Sakamoto">
+    <meta name="description" content="horizoon&#39;s website">
+    <meta name="keywords" content="blog,developer,backpacker,personal">
 
-<base href="https://horizoon.jp">
+    <meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Go: module modeでのgo.mod, go.sumファイルを用いた依存ライブラリ管理、及びcontributionの方法＆手順"/>
+<meta name="twitter:description" content="Summary Go1.13がリリースされてGo Modulesのmodule modeがデフォルトになってからの、go modコマンドを駆使した依存ライブラリ管理、及び第三者のOSSプロジェクトへのcontributionの方法＆手順について
+ Module-awareモードに最適化した手順を把握・実践する  ライブラリの追加手順 ライブラリのバージョン更新手順（個別 or 全ライブラリ一括） ライブラリの削除手順   Happy Contributing!! 参考リンク（参考というか、答えは下記リンク先に全て書いてあります）  公式ブログ（和訳） 公式Wiki    前提条件 1 2 3 4 5  $ go version go version go1.12.4 darwin/amd64 # GO111MODULE=on して、常にModule-awareモードとなる状態で検証 $ export GO111MODULE=on   はじめに Githubの&quot;contributing ドキュメントについて githubにプロジェクトを公開する際に、
+ ルート docs .github  の3つの内いずれかのディレクトリに contributing* というパターン名（大文字でも可）が付いたファイルを置いておくと、pull-request作成時に「ここにガイドラインがあるよ」と通知してくれるようになります。慣例としてこのファイルは CONTRIBUTING.md という名前で用意されている事が多いです。
+このファイルには主に環境構築・テストの実行方法・pull-requestの送り方 などを記載しますが、Goプロジェクトでは「最初に $GOPATH 下にソースを持ってくる」事が前提になっている手順をよく見かけます（自作プロジェクトでもそうしていました）。
+GoプロジェクトにおけるCONTRIBUTING.mdはどうあるべきか？ Go ModulesのModule-awareモードがデフォルト挙動になるGo1.13以降では、ソースをcloneしてくるディレクトリは何処でも良い＝必ずしも$GOPATH下にソースを持ってくる必要は無くなりますし、依存ライブラリの追加・削除・バージョン変更を行いたい時の流れも変わります。なので、 CONTRIBUTING.mdに書く内容もそれに合わせておくとcontributorに親切なガイドラインを提示できそうです。
+引き続き$GOPATHベースでの開発を推奨するプロジェクトもあるかも知れませんし、内容や粒度はプロジェクトの運営方針や想定読者レベルによっても変わるとは思いますが、この記事ではModule-awareモードのレールに乗る前提で、CONTRIBUTING.mdに書くべき内容と、合わせてmodule modeでのGoプロジェクトにおけるライブラリ管理プラクティスを整理してみます。"/>
 
-<title>
-  horizoon - Go: module modeでのgo.mod, go.sumファイルを用いた依存ライブラリ管理、及びcontributionの方法＆手順 
+    <meta property="og:title" content="Go: module modeでのgo.mod, go.sumファイルを用いた依存ライブラリ管理、及びcontributionの方法＆手順" />
+<meta property="og:description" content="Summary Go1.13がリリースされてGo Modulesのmodule modeがデフォルトになってからの、go modコマンドを駆使した依存ライブラリ管理、及び第三者のOSSプロジェクトへのcontributionの方法＆手順について
+ Module-awareモードに最適化した手順を把握・実践する  ライブラリの追加手順 ライブラリのバージョン更新手順（個別 or 全ライブラリ一括） ライブラリの削除手順   Happy Contributing!! 参考リンク（参考というか、答えは下記リンク先に全て書いてあります）  公式ブログ（和訳） 公式Wiki    前提条件 1 2 3 4 5  $ go version go version go1.12.4 darwin/amd64 # GO111MODULE=on して、常にModule-awareモードとなる状態で検証 $ export GO111MODULE=on   はじめに Githubの&quot;contributing ドキュメントについて githubにプロジェクトを公開する際に、
+ ルート docs .github  の3つの内いずれかのディレクトリに contributing* というパターン名（大文字でも可）が付いたファイルを置いておくと、pull-request作成時に「ここにガイドラインがあるよ」と通知してくれるようになります。慣例としてこのファイルは CONTRIBUTING.md という名前で用意されている事が多いです。
+このファイルには主に環境構築・テストの実行方法・pull-requestの送り方 などを記載しますが、Goプロジェクトでは「最初に $GOPATH 下にソースを持ってくる」事が前提になっている手順をよく見かけます（自作プロジェクトでもそうしていました）。
+GoプロジェクトにおけるCONTRIBUTING.mdはどうあるべきか？ Go ModulesのModule-awareモードがデフォルト挙動になるGo1.13以降では、ソースをcloneしてくるディレクトリは何処でも良い＝必ずしも$GOPATH下にソースを持ってくる必要は無くなりますし、依存ライブラリの追加・削除・バージョン変更を行いたい時の流れも変わります。なので、 CONTRIBUTING.mdに書く内容もそれに合わせておくとcontributorに親切なガイドラインを提示できそうです。
+引き続き$GOPATHベースでの開発を推奨するプロジェクトもあるかも知れませんし、内容や粒度はプロジェクトの運営方針や想定読者レベルによっても変わるとは思いますが、この記事ではModule-awareモードのレールに乗る前提で、CONTRIBUTING.mdに書くべき内容と、合わせてmodule modeでのGoプロジェクトにおけるライブラリ管理プラクティスを整理してみます。" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://horizoon.jp/post/2019/04/18/contributing_with_gomodules/" />
+<meta property="article:published_time" content="2019-04-18T09:43:00+09:00" />
+<meta property="article:modified_time" content="2019-04-18T09:43:00+09:00" />
+
+
+    
+      <base href="https://horizoon.jp/post/2019/04/18/contributing_with_gomodules/">
+    
+    <title>
+  Go: module modeでのgo.mod, go.sumファイルを用いた依存ライブラリ管理、及びcontributionの方法＆手順 · horizoon
 </title>
 
-<meta name="generator" content="Hugo 0.67.1" />
-
-
-
-<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:300,400|Roboto+Slab:400,700|Roboto:300,300i,400,400i,500,500i,700,700i">
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css" integrity="sha384-oS3vJWv+0UjzBfQzYUhtDYW+Pj2yciDJxpsK1OYPAYjqT085Qq/1cq5FLXAZQ7Ay" crossorigin="anonymous">
-<link rel="stylesheet" href="https://horizoon.jp/css/main.css">
-<link rel="stylesheet" href="https://horizoon.jp/css/custom.css">
-
-
-
-
-<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-<link rel="icon" type="image/png" href="/favicon-32x32.png" sizes="32x32">
-<link rel="icon" type="image/png" href="/favicon-16x16.png" sizes="16x16">
-<link rel="manifest" href="/manifest.json">
-<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
-<meta name="theme-color" content="#ffffff">
-
-</head>
-<body lang="">
-<div class="container">
-
-
-<header class="row text-left title">
-  <h1 class="title">Go: module modeでのgo.mod, go.sumファイルを用いた依存ライブラリ管理、及びcontributionの方法＆手順</h1>
-</header>
-<section id="category-pane" class="row meta">
-  
-  <div class="col-md-12">
-    <h6 class="text-left meta">
-        PUBLISHED ON 2019-04-18 
-      
-      
-      
-      —
-      
-      
-      <a class="meta" href="/categories/github">GITHUB</a>, 
-      
-      <a class="meta" href="/categories/go">GO</a>, 
-      
-      <a class="meta" href="/categories/go-modules">GO MODULES</a>, 
-      
-      <a class="meta" href="/categories/golang">GOLANG</a>
-      
-      
-      
-    </h6>
-  </div>
-  
-</section>
-<section id="content-pane" class="row">
-  <div class="col-md-12 text-justify content">
     
+      <link rel="canonical" href="https://horizoon.jp/post/2019/04/18/contributing_with_gomodules/">
+    
+
+    <link href="https://fonts.googleapis.com/css?family=Lato:400,700%7CMerriweather:300,700%7CSource+Code+Pro:400,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.11.2/css/all.css" integrity="sha384-KA6wR/X5RY4zFAHpv/CnoG2UW1uogYfdnP67Uv7eULvTveboZJg0qUpmJZb5VqzN" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css" integrity="sha256-l85OmPOjvil/SOvVt3HnSSjzF1TUMyT9eV0c2BzEGzU=" crossorigin="anonymous" />
+
+    
+      
+      
+      <link rel="stylesheet" href="https://horizoon.jp/css/coder.min.a4f332213a21ce8eb521670c614470c58923aaaf385e2a73982c31dd7642decb.css" integrity="sha256-pPMyITohzo61IWcMYURwxYkjqq84XipzmCwx3XZC3ss=" crossorigin="anonymous" media="screen" />
+    
+
+    
+
+    
+      
+        
+        
+        <link rel="stylesheet" href="https://horizoon.jp/css/coder-dark.min.83a2010dac9f59f943b3004cd6c4f230507ad036da635d3621401d42ec4e2835.css" integrity="sha256-g6IBDayfWflDswBM1sTyMFB60DbaY102IUAdQuxOKDU=" crossorigin="anonymous" media="screen" />
+      
+    
+
+    
+
+    
+
+    
+
+    <link rel="icon" type="image/png" href="https://horizoon.jp/favicon-32x32.png" sizes="32x32">
+    <link rel="icon" type="image/png" href="https://horizoon.jp/favicon-16x16.png" sizes="16x16">
+
+    <meta name="generator" content="Hugo 0.67.1" />
+  </head>
+
+  
+  
+    
+  
+  <body class="colorscheme-auto">
+    <main class="wrapper">
+      <nav class="navigation">
+  <section class="container">
+    <a class="navigation-title" href="https://horizoon.jp/">
+      horizoon
+    </a>
+    
+    <input type="checkbox" id="menu-toggle" />
+    <label class="menu-button float-right" for="menu-toggle"><i class="fas fa-bars"></i></label>
+    <ul class="navigation-list">
+      
+        
+          <li class="navigation-item">
+            <a class="navigation-link" href="https://horizoon.jp/post/">Blog</a>
+          </li>
+        
+          <li class="navigation-item">
+            <a class="navigation-link" href="https://horizoon.jp/projects/">Projects</a>
+          </li>
+        
+          <li class="navigation-item">
+            <a class="navigation-link" href="https://horizoon.jp/about/">About</a>
+          </li>
+        
+      
+      
+    </ul>
+    
+  </section>
+</nav>
+
+
+      <div class="content">
+        
+  <section class="container page">
+  <article>
+    <header>
+      <h1>Go: module modeでのgo.mod, go.sumファイルを用いた依存ライブラリ管理、及びcontributionの方法＆手順</h1>
+    </header>
+
     <h1 id="summary">Summary</h1>
 <p>Go1.13がリリースされてGo Modulesの<a href="https://github.com/golang/go/wiki/Modules#when-do-i-get-old-behavior-vs-new-module-based-behavior">module mode</a>がデフォルトになってからの、<code>go mod</code>コマンドを駆使した依存ライブラリ管理、及び第三者のOSSプロジェクトへのcontributionの方法＆手順について</p>
 <ul>
@@ -91,12 +138,23 @@
 </li>
 </ul>
 <h1 id="前提条件">前提条件</h1>
-<div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh">$ go version
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">$ go version
 go version go1.12.4 darwin/amd64
 
-<span class="c1"># GO111MODULE=on して、常にModule-awareモードとなる状態で検証</span>
-$ <span class="nb">export</span> <span class="nv">GO111MODULE</span><span class="o">=</span>on
-</code></pre></div><h1 id="はじめに">はじめに</h1>
+<span style="color:#60a0b0;font-style:italic"># GO111MODULE=on して、常にModule-awareモードとなる状態で検証</span>
+$ <span style="color:#007020">export</span> <span style="color:#bb60d5">GO111MODULE</span><span style="color:#666">=</span>on
+</code></pre></td></tr></table>
+</div>
+</div><h1 id="はじめに">はじめに</h1>
 <h2 id="githubのcontributing-ドキュメントについて">Githubの&quot;contributing ドキュメントについて</h2>
 <p>githubにプロジェクトを公開する際に、</p>
 <ol>
@@ -119,11 +177,28 @@ $ <span class="nb">export</span> <span class="nv">GO111MODULE</span><span class=
 </ol>
 <p>CONTRIBUTING.mdの冒頭は「自分のorganizationにforkしてgit clone」と書かれている事が多いですが、clone先のディレクトリは<code>$GOPATH</code>に拘らず何処でも良くなりましたよという事が伝われば、それこそ <code>git clone 任意のディレクトリ</code> と明記しておくだけでも良いと思います。</p>
 <p>git clone後に<code>make</code>（或いは <code>make setup</code> のような名前のターゲット）を叩けば依存ライブラリを取り込んでくれるようなmakeターゲットを用意しておくと初期の敷居を下げられそうです。</p>
-<div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh">$ git clone foo
-$ <span class="nb">cd</span> foo
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">$ git clone foo
+$ <span style="color:#007020">cd</span> foo
 
-<span class="c1"># makeを叩く =&gt; go.sum の内容に則った依存ライブラリ取得実行</span>
-$ make  <span class="c1"># 例えば go build</span>
+<span style="color:#60a0b0;font-style:italic"># makeを叩く =&gt; go.sum の内容に則った依存ライブラリ取得実行</span>
+$ make  <span style="color:#60a0b0;font-style:italic"># 例えば go build</span>
 go: finding github.com/urfave/cli v1.20.0
 go: finding github.com/aws/aws-sdk-go v1.17.14
 :
@@ -132,7 +207,9 @@ go: downloading github.com/aws/aws-sdk-go v1.17.14
 :
 go: extracting github.com/urfave/cli v1.20.0
 go: extracting github.com/aws/aws-sdk-go v1.17.14
-</code></pre></div><p>例えば  <a href="https://github.com/golang/go/wiki/Modules#daily-workflow"><code>go build</code> でもgo.modファイルの内容を元にした依存ライブラリの取り込みが動いてくれる</a>ので、<code>go build</code> をmakeのデフォルトターゲットとして用意しておくのも良さそうです。</p>
+</code></pre></td></tr></table>
+</div>
+</div><p>例えば  <a href="https://github.com/golang/go/wiki/Modules#daily-workflow"><code>go build</code> でもgo.modファイルの内容を元にした依存ライブラリの取り込みが動いてくれる</a>ので、<code>go build</code> をmakeのデフォルトターゲットとして用意しておくのも良さそうです。</p>
 <h1 id="2-module-modeで依存ライブラリを追加したい時の手順">2. module modeで依存ライブラリを追加したい時の手順</h1>
 <p>想定手順</p>
 <ol>
@@ -140,24 +217,59 @@ go: extracting github.com/aws/aws-sdk-go v1.17.14
 <li><code>go build</code> or <code>go run</code> or <code>go test</code> を実行する（これでgo.mod, go.sumも最新化される）</li>
 </ol>
 <p>Go Modulesでは、import文を追加・保存して<a href="https://github.com/golang/go/wiki/Modules#daily-workflow"><code>go build</code>すればそのタイミングで必要なライブラリ取得＆go.modの更新が実行されます</a>。「コードを書いてbuildを動かすという流れの中で（lazyに）依存ライブラリ取得が走ってくれる」というGo Modulesの配慮が伺える設計になっています。</p>
-<div class="highlight"><pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// importを追加
-</span><span class="c1"></span><span class="kn">import</span> <span class="s">&#34;github.com/k0kubun/pp&#34;</span>
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#60a0b0;font-style:italic">// importを追加
+</span><span style="color:#60a0b0;font-style:italic"></span><span style="color:#007020;font-weight:bold">import</span> <span style="color:#4070a0">&#34;github.com/k0kubun/pp&#34;</span>
 
-  <span class="c1">// 使用コードを追加
-</span><span class="c1"></span>  <span class="nx">pp</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="nx">c</span><span class="p">)</span>
-</code></pre></div><div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh"><span class="c1"># go.mod, go.sum もこのタイミングで更新される</span>
+  <span style="color:#60a0b0;font-style:italic">// 使用コードを追加
+</span><span style="color:#60a0b0;font-style:italic"></span>  pp.<span style="color:#06287e">Println</span>(c)
+</code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh"><span style="color:#60a0b0;font-style:italic"># go.mod, go.sum もこのタイミングで更新される</span>
 $ go build
 
-<span class="c1"># moduleの更新内容を確認</span>
+<span style="color:#60a0b0;font-style:italic"># moduleの更新内容を確認</span>
 $ vim go.mod
-</code></pre></div><pre><code>module foo
+</code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">module foo
 
 require (
   :
   github.com/k0kubun/pp v3.0.1+incompatible
   :
 )
-</code></pre><h2 id="incompatible-と出力されるのはどういう時か"><code>+incompatible</code> と出力されるのはどういう時か？</h2>
+</code></pre></td></tr></table>
+</div>
+</div><h2 id="incompatible-と出力されるのはどういう時か"><code>+incompatible</code> と出力されるのはどういう時か？</h2>
 <p>たまたま今回使わせてもらったppで <code>+incompatible</code> というsuffixがgo.modに出力されましたが、これは <a href="https://github.com/golang/go/wiki/Modules#semantic-import-versioning">「ライブラリがGo Modulesに未対応で、且つMAJORバージョンが2以上」の場合に発生</a>します（が、開発への悪影響がある訳ではありません）</p>
 <h1 id="3-module-modeでライブラリのminorバージョン又はpatchバージョン或いはその両方を更新する手順">3. module modeでライブラリのMINORバージョン又はPATCHバージョン（或いはその両方）を更新する手順</h1>
 <p>想定手順</p>
@@ -180,22 +292,43 @@ require (
 </ol>
 <p><code>go get</code>に代わるもう1つの手段として「go.mod のバージョン指定を直接編集する」事も可能なのですが、go.modに記述できるバージョン形式は<a href="https://tip.golang.org/cmd/go/#hdr-Pseudo_versions">Pseudo-versions</a>形式であり、<code>go get foo@'&lt;v1.6.2'</code> のような<a href="https://golang.org/cmd/go/#hdr-Module_queries">モジュールクエリ</a>の形式で書く事は出来ません。</p>
 <p>モジュールクエリ形式でバージョンを指定して<code>go get</code>を実行すると、条件にマッチして選択されたバージョンそのものがgo.modに反映されます。</p>
-<div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh"><span class="c1">## 実施例</span>
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh"><span style="color:#60a0b0;font-style:italic">## 実施例</span>
 
-<span class="c1"># v1.19.12 という最新バージョンが存在している事が分かる</span>
+<span style="color:#60a0b0;font-style:italic"># v1.19.12 という最新バージョンが存在している事が分かる</span>
 $ go list -u -m github.com/aws/aws-sdk-go
-github.com/aws/aws-sdk-go v1.17.14 <span class="o">[</span>v1.19.12<span class="o">]</span>
+github.com/aws/aws-sdk-go v1.17.14 <span style="color:#666">[</span>v1.19.12<span style="color:#666">]</span>
 
-<span class="c1"># v1.18.x にマッチする最新バージョン、に更新してみる</span>
-$ go get github.com/aws/aws-sdk-go@<span class="s1">&#39;&lt;v1.19&#39;</span>
+<span style="color:#60a0b0;font-style:italic"># v1.18.x にマッチする最新バージョン、に更新してみる</span>
+$ go get github.com/aws/aws-sdk-go@<span style="color:#4070a0">&#39;&lt;v1.19&#39;</span>
 go: finding github.com/aws/aws-sdk-go v1.18.6
 go: downloading github.com/aws/aws-sdk-go v1.18.6
 go: extracting github.com/aws/aws-sdk-go v1.18.6
 
-<span class="c1"># go.modの更新内容を確認</span>
-$ cat go.mod <span class="p">|</span> grep aws-sdk-go
+<span style="color:#60a0b0;font-style:italic"># go.modの更新内容を確認</span>
+$ cat go.mod | grep aws-sdk-go
         github.com/aws/aws-sdk-go v1.18.6
-</code></pre></div><h1 id="4-全てのライブラリを最新versionに更新する手順">4. 全てのライブラリを最新versionに更新する手順</h1>
+</code></pre></td></tr></table>
+</div>
+</div><h1 id="4-全てのライブラリを最新versionに更新する手順">4. 全てのライブラリを最新versionに更新する手順</h1>
 <p>想定手順</p>
 <ol>
 <li><code>go list -u -m all</code> - 全依存ライブラリに更新可能バージョン（があればそれ）を付けて一覧表示・確認</li>
@@ -203,24 +336,47 @@ $ cat go.mod <span class="p">|</span> grep aws-sdk-go
 <li><code>go build</code> or <code>go run</code> or <code>go test</code> を実行する（これでgo.mod, go.sumも最新化される）</li>
 </ol>
 <p>contributorがこれを行うケースはあまり無さそうではありますが、<a href="https://github.com/golang/go/wiki/Modules#daily-workflow">公式Wikiの Daily Workflow</a> にも書かれている通りパッケージ指定なしで<code>go get -u</code>を実行すると全依存ライブラリの最新のminor versionが、<code>go get -u=patch</code>を実行すると全依存ライブラリの最新のpatch versionが取得されます。</p>
-<div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh">$ go get -u
-<span class="c1"># 既に最新状態のライブラリは latest と表示される</span>
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">$ go get -u
+<span style="color:#60a0b0;font-style:italic"># 既に最新状態のライブラリは latest と表示される</span>
 go: finding golang.org/x/sys latest
-<span class="c1"># 最新バージョンが別途存在したら、そのバージョンが表示される</span>
+<span style="color:#60a0b0;font-style:italic"># 最新バージョンが別途存在したら、そのバージョンが表示される</span>
 go: finding github.com/aws/aws-sdk-go v1.19.11
 :
 :
 
-<span class="c1"># go get -u が完了すると、go.mod, go.sum がそれぞれ更新される（が、ライブラリの取得はまだ未実施状態）</span>
-<span class="c1"># 取得はその後の go build や go test の際に行われる</span>
+<span style="color:#60a0b0;font-style:italic"># go get -u が完了すると、go.mod, go.sum がそれぞれ更新される（が、ライブラリの取得はまだ未実施状態）</span>
+<span style="color:#60a0b0;font-style:italic"># 取得はその後の go build や go test の際に行われる</span>
 $ go build
 
-<span class="c1"># 最新バージョンが別途存在したライブラリの取得処理が走る</span>
+<span style="color:#60a0b0;font-style:italic"># 最新バージョンが別途存在したライブラリの取得処理が走る</span>
 go: downloading github.com/aws/aws-sdk-go v1.19.11
 go: extracting github.com/aws/aws-sdk-go v1.19.11
 :
 :
-</code></pre></div><h1 id="5-使わなくなったライブラリを削除する手順を書く">5. 使わなくなったライブラリを削除する手順を書く</h1>
+</code></pre></td></tr></table>
+</div>
+</div><h1 id="5-使わなくなったライブラリを削除する手順を書く">5. 使わなくなったライブラリを削除する手順を書く</h1>
 <p>想定手順</p>
 <ol>
 <li>コードを編集・import文を削除</li>
@@ -239,78 +395,48 @@ go: extracting github.com/aws/aws-sdk-go v1.19.11
 <li><a href="https://qiita.com/nyamogera/items/3fe6985b45fbd5377184">GitHubのIssue・Pull Requestのテンプレート機能を使おう - Qiita</a></li>
 </ul>
 
-  </div>
-</section>
-<section id="tag-pane" class="row meta">
-  
-  <div class="col-md-12">
-    <h6 class="text-right meta">
-      
-    </h6>
-  </div>
-  
+  </article>
 </section>
 
 
+      </div>
 
-
-
-
-
-
-<section id="menu-pane" class="row menu text-center">
-  
-  
-  <span><a class="menu-item" href="https://horizoon.jp/post/2019/03/16/go_embedded_interface/">&lt; prev | </a></span>
-  
-  
-  <span><a class="menu-item" href="/post">post</a></span>
-  
-  
-  <span><a class="menu-item" href="https://horizoon.jp/post/2019/06/11/sam_cicd/"> | next &gt;</a></span>
-  
-  
-  <h4 class="text-center"><a class="menu-item" href="https://horizoon.jp">home</a></h4>
-</section>
-
-
-
-<footer class="row text-center footer">
-  <hr />
-  
-  <h6 class="text-center copyright">© 2019. horizoon. <a href="http://creativecommons.org/licenses/by/3.0/">Some Rights Reserved</a>.</h6>
-  
-  <h6 class="text-center powered">Powered by <a href="https://gohugo.io/">Hugo  v0.67.1</a> &amp; <a href="https://github.com/shenoybr/hugo-goa">Goa</a>.</h6>
-  
-      
-      <h6><a href="" aria-label="RSS Feed"><i class="fas fa-rss" aria-hidden="true"></i></a></h6>
+      <footer class="footer">
+  <section class="container">
     
-  
+    
+      
+        © 2017 - 2020
+      
+       Fuminori Sakamoto 
+    
+    
+       · 
+      Powered by <a href="https://gohugo.io/">Hugo</a> & <a href="https://github.com/luizdepra/hugo-coder/">Coder</a>.
+    
+    
+  </section>
 </footer>
 
-</div>
+    </main>
 
-
-
-
-
-
+    
 <script type="application/javascript">
 var doNotTrack = false;
 if (!doNotTrack) {
-	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
 	ga('create', 'UA-129776715-1', 'auto');
 	
 	ga('send', 'pageview');
 }
 </script>
-<script async src='https://www.google-analytics.com/analytics.js'></script>
 
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
-<script src="js/main.js"></script>
-<script src="js/custom.js"></script>
-</body>
+
+    
+
+  </body>
+
 </html>
-
-

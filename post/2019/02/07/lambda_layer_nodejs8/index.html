@@ -1,83 +1,116 @@
 <!DOCTYPE html>
-<html lang="">
-<head>
+<html lang="en">
 
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta http-equiv="content-type" content="text/html; charset=utf-8">
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<meta name="description" content="This is my portfolio. I&#39;m Web Developer, Software Engineer, Engineering Manager and Backpacker. Ruby/Rails/Go/PHP/Java/Linux/MySQL/Docker/AWS/Fintech/Payment">
-<meta name="keywords" content="developer,software engineer,technology,web,blog,freelance,hugo">
+    <meta name="author" content="Fuminori Sakamoto">
+    <meta name="description" content="horizoon&#39;s website">
+    <meta name="keywords" content="blog,developer,backpacker,personal">
 
-<base href="https://horizoon.jp">
+    <meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="既存のLambda FunctionにLambda Layersを導入し、AWS SAMで管理する（Node.js）"/>
+<meta name="twitter:description" content="Summary  axiosなどのモジュールに依存した既存のNode.js Lambda Functionがある このfunctionで使用しているモジュールをAWS Lambda Layersに移行し、aws-sam-cliでデプロイする 既存functionで個別にnpm installしていたモジュールを削除し、デプロイしたLayerを使用するように変更する Layer移行後も既存functionが sam local invoke コマンドでローカルで実行できる事を確認する Layerを使うように変更した既存functionをデプロイする 移行した結果  既存functionのサイズを半分以下に削減できた 既存functionの実行時間を半分以下に削減できた   AWS SAM 便利  Lambda Layerも便利、だけど、チーム開発でCIの仕組み構築まで考え始めると一工夫必要かも？    前提条件 1 2 3 4 5 6 7  # aws-cliのバージョン $ aws --version aws-cli/1.16.80 Python/3.7.1 Darwin/18.2.0 botocore/1.12.70 # aws-sam-cliのバージョン $ sam --version SAM CLI, version 0.10.0   既存Functionで使用中のモジュールをLayersに移行する Layer用のプロジェクトディレクトリを作成し、Layer化したいnpmモジュールをインストールします。 ディレクトリの構成は公式ドキュメントの記載 の通り nodejs/node_modules という構成になるようにします。
+1 2 3 4 5 6  $ cd &lt;PROJECT_ROOT&gt; $ mkdir nodejs $ cd nodejs $ npm init -y $ npm install [必要なモジュール群]   ここまで完了すると、PROJECT_ROOTの下には下記のディレクトリとファイルが作成された状態になります"/>
 
-<title>
-  horizoon - 既存のLambda FunctionにLambda Layersを導入し、AWS SAMで管理する（Node.js） 
+    <meta property="og:title" content="既存のLambda FunctionにLambda Layersを導入し、AWS SAMで管理する（Node.js）" />
+<meta property="og:description" content="Summary  axiosなどのモジュールに依存した既存のNode.js Lambda Functionがある このfunctionで使用しているモジュールをAWS Lambda Layersに移行し、aws-sam-cliでデプロイする 既存functionで個別にnpm installしていたモジュールを削除し、デプロイしたLayerを使用するように変更する Layer移行後も既存functionが sam local invoke コマンドでローカルで実行できる事を確認する Layerを使うように変更した既存functionをデプロイする 移行した結果  既存functionのサイズを半分以下に削減できた 既存functionの実行時間を半分以下に削減できた   AWS SAM 便利  Lambda Layerも便利、だけど、チーム開発でCIの仕組み構築まで考え始めると一工夫必要かも？    前提条件 1 2 3 4 5 6 7  # aws-cliのバージョン $ aws --version aws-cli/1.16.80 Python/3.7.1 Darwin/18.2.0 botocore/1.12.70 # aws-sam-cliのバージョン $ sam --version SAM CLI, version 0.10.0   既存Functionで使用中のモジュールをLayersに移行する Layer用のプロジェクトディレクトリを作成し、Layer化したいnpmモジュールをインストールします。 ディレクトリの構成は公式ドキュメントの記載 の通り nodejs/node_modules という構成になるようにします。
+1 2 3 4 5 6  $ cd &lt;PROJECT_ROOT&gt; $ mkdir nodejs $ cd nodejs $ npm init -y $ npm install [必要なモジュール群]   ここまで完了すると、PROJECT_ROOTの下には下記のディレクトリとファイルが作成された状態になります" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://horizoon.jp/post/2019/02/07/lambda_layer_nodejs8/" />
+<meta property="article:published_time" content="2019-02-07T14:42:54+09:00" />
+<meta property="article:modified_time" content="2019-02-07T14:42:54+09:00" />
+
+
+    
+      <base href="https://horizoon.jp/post/2019/02/07/lambda_layer_nodejs8/">
+    
+    <title>
+  既存のLambda FunctionにLambda Layersを導入し、AWS SAMで管理する（Node.js） · horizoon
 </title>
 
-<meta name="generator" content="Hugo 0.67.1" />
-
-
-
-<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:300,400|Roboto+Slab:400,700|Roboto:300,300i,400,400i,500,500i,700,700i">
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css" integrity="sha384-oS3vJWv+0UjzBfQzYUhtDYW+Pj2yciDJxpsK1OYPAYjqT085Qq/1cq5FLXAZQ7Ay" crossorigin="anonymous">
-<link rel="stylesheet" href="https://horizoon.jp/css/main.css">
-<link rel="stylesheet" href="https://horizoon.jp/css/custom.css">
-
-
-
-
-<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-<link rel="icon" type="image/png" href="/favicon-32x32.png" sizes="32x32">
-<link rel="icon" type="image/png" href="/favicon-16x16.png" sizes="16x16">
-<link rel="manifest" href="/manifest.json">
-<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
-<meta name="theme-color" content="#ffffff">
-
-</head>
-<body lang="">
-<div class="container">
-
-
-<header class="row text-left title">
-  <h1 class="title">既存のLambda FunctionにLambda Layersを導入し、AWS SAMで管理する（Node.js）</h1>
-</header>
-<section id="category-pane" class="row meta">
-  
-  <div class="col-md-12">
-    <h6 class="text-left meta">
-        PUBLISHED ON 2019-02-07 
-      
-      
-      
-      —
-      
-      
-      <a class="meta" href="/categories/aws">AWS</a>, 
-      
-      <a class="meta" href="/categories/aws-lambda">AWS LAMBDA</a>, 
-      
-      <a class="meta" href="/categories/aws-sam">AWS SAM</a>, 
-      
-      <a class="meta" href="/categories/javascript">JAVASCRIPT</a>, 
-      
-      <a class="meta" href="/categories/node.js">NODE.JS</a>, 
-      
-      <a class="meta" href="/categories/serverless">SERVERLESS</a>, 
-      
-      <a class="meta" href="/categories/slack">SLACK</a>
-      
-      
-      
-    </h6>
-  </div>
-  
-</section>
-<section id="content-pane" class="row">
-  <div class="col-md-12 text-justify content">
     
+      <link rel="canonical" href="https://horizoon.jp/post/2019/02/07/lambda_layer_nodejs8/">
+    
+
+    <link href="https://fonts.googleapis.com/css?family=Lato:400,700%7CMerriweather:300,700%7CSource+Code+Pro:400,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.11.2/css/all.css" integrity="sha384-KA6wR/X5RY4zFAHpv/CnoG2UW1uogYfdnP67Uv7eULvTveboZJg0qUpmJZb5VqzN" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css" integrity="sha256-l85OmPOjvil/SOvVt3HnSSjzF1TUMyT9eV0c2BzEGzU=" crossorigin="anonymous" />
+
+    
+      
+      
+      <link rel="stylesheet" href="https://horizoon.jp/css/coder.min.a4f332213a21ce8eb521670c614470c58923aaaf385e2a73982c31dd7642decb.css" integrity="sha256-pPMyITohzo61IWcMYURwxYkjqq84XipzmCwx3XZC3ss=" crossorigin="anonymous" media="screen" />
+    
+
+    
+
+    
+      
+        
+        
+        <link rel="stylesheet" href="https://horizoon.jp/css/coder-dark.min.83a2010dac9f59f943b3004cd6c4f230507ad036da635d3621401d42ec4e2835.css" integrity="sha256-g6IBDayfWflDswBM1sTyMFB60DbaY102IUAdQuxOKDU=" crossorigin="anonymous" media="screen" />
+      
+    
+
+    
+
+    
+
+    
+
+    <link rel="icon" type="image/png" href="https://horizoon.jp/favicon-32x32.png" sizes="32x32">
+    <link rel="icon" type="image/png" href="https://horizoon.jp/favicon-16x16.png" sizes="16x16">
+
+    <meta name="generator" content="Hugo 0.67.1" />
+  </head>
+
+  
+  
+    
+  
+  <body class="colorscheme-auto">
+    <main class="wrapper">
+      <nav class="navigation">
+  <section class="container">
+    <a class="navigation-title" href="https://horizoon.jp/">
+      horizoon
+    </a>
+    
+    <input type="checkbox" id="menu-toggle" />
+    <label class="menu-button float-right" for="menu-toggle"><i class="fas fa-bars"></i></label>
+    <ul class="navigation-list">
+      
+        
+          <li class="navigation-item">
+            <a class="navigation-link" href="https://horizoon.jp/post/">Blog</a>
+          </li>
+        
+          <li class="navigation-item">
+            <a class="navigation-link" href="https://horizoon.jp/projects/">Projects</a>
+          </li>
+        
+          <li class="navigation-item">
+            <a class="navigation-link" href="https://horizoon.jp/about/">About</a>
+          </li>
+        
+      
+      
+    </ul>
+    
+  </section>
+</nav>
+
+
+      <div class="content">
+        
+  <section class="container page">
+  <article>
+    <header>
+      <h1>既存のLambda FunctionにLambda Layersを導入し、AWS SAMで管理する（Node.js）</h1>
+    </header>
+
     <h1 id="summary">Summary</h1>
 <ul>
 <li>axiosなどのモジュールに依存した既存のNode.js Lambda Functionがある</li>
@@ -98,73 +131,196 @@
 </li>
 </ul>
 <h1 id="前提条件">前提条件</h1>
-<div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh"><span class="c1"># aws-cliのバージョン</span>
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh"><span style="color:#60a0b0;font-style:italic"># aws-cliのバージョン</span>
 $ aws --version
 aws-cli/1.16.80 Python/3.7.1 Darwin/18.2.0 botocore/1.12.70
 
-<span class="c1"># aws-sam-cliのバージョン</span>
+<span style="color:#60a0b0;font-style:italic"># aws-sam-cliのバージョン</span>
 $ sam --version
 SAM CLI, version 0.10.0
-</code></pre></div><h1 id="既存functionで使用中のモジュールをlayersに移行する">既存Functionで使用中のモジュールをLayersに移行する</h1>
+</code></pre></td></tr></table>
+</div>
+</div><h1 id="既存functionで使用中のモジュールをlayersに移行する">既存Functionで使用中のモジュールをLayersに移行する</h1>
 <p>Layer用のプロジェクトディレクトリを作成し、Layer化したいnpmモジュールをインストールします。
 ディレクトリの構成は<a href="https://docs.aws.amazon.com/ja_jp/lambda/latest/dg/configuration-layers.html#configuration-layers-path">公式ドキュメントの記載</a> の通り <code>nodejs/node_modules</code> という構成になるようにします。</p>
-<div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh">$ <span class="nb">cd</span> &lt;PROJECT_ROOT&gt;
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">$ <span style="color:#007020">cd</span> &lt;PROJECT_ROOT&gt;
 $ mkdir nodejs
 
-$ <span class="nb">cd</span> nodejs
+$ <span style="color:#007020">cd</span> nodejs
 $ npm init -y
-$ npm install <span class="o">[</span>必要なモジュール群<span class="o">]</span>
-</code></pre></div><p>ここまで完了すると、PROJECT_ROOTの下には下記のディレクトリとファイルが作成された状態になります</p>
-<pre><code>.
+$ npm install <span style="color:#666">[</span>必要なモジュール群<span style="color:#666">]</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>ここまで完了すると、PROJECT_ROOTの下には下記のディレクトリとファイルが作成された状態になります</p>
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">.
 └── nodejs
     ├── node_modules
     ├── package-lock.json
     └── package.json
-</code></pre><h2 id="zipでアーカイブ">zipでアーカイブ</h2>
+</code></pre></td></tr></table>
+</div>
+</div><h2 id="zipでアーカイブ">zipでアーカイブ</h2>
 <p>成果物を<code>nodejs</code> ディレクトリがトップディレクトリとなるようにアーカイブします。</p>
-<div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh">$ <span class="nb">cd</span> &lt;PROJECT_ROOT&gt;
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">$ <span style="color:#007020">cd</span> &lt;PROJECT_ROOT&gt;
 $ zip -r layer.zip ./
-</code></pre></div><h2 id="zipをs3にアップロード">zipをS3にアップロード</h2>
+</code></pre></td></tr></table>
+</div>
+</div><h2 id="zipをs3にアップロード">zipをS3にアップロード</h2>
 <p>作成したzipをS3にアップロードします。バケットが別途必要であれば事前に作成しておきます。</p>
-<div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh"><span class="c1"># BUCKET, REGION, FOLDERは適宜各自の環境の内容に置き換え</span>
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh"><span style="color:#60a0b0;font-style:italic"># BUCKET, REGION, FOLDERは適宜各自の環境の内容に置き換え</span>
 
-<span class="c1"># バケットを作成（必要であれば）</span>
-$ aws s3 mb s3://<span class="si">${</span><span class="nv">S3_BUCKET</span><span class="si">}</span> --region <span class="si">${</span><span class="nv">S3_REGION</span><span class="si">}</span>
+<span style="color:#60a0b0;font-style:italic"># バケットを作成（必要であれば）</span>
+$ aws s3 mb s3://<span style="color:#70a0d0;font-style:italic">${</span><span style="color:#bb60d5">S3_BUCKET</span><span style="color:#70a0d0;font-style:italic">}</span> --region <span style="color:#70a0d0;font-style:italic">${</span><span style="color:#bb60d5">S3_REGION</span><span style="color:#70a0d0;font-style:italic">}</span>
 
-<span class="c1"># この例では、zipを指定バケット・指定フォルダの下にアップロード</span>
-$ aws s3 cp layer.zip s3://<span class="si">${</span><span class="nv">S3_BUCKET</span><span class="si">}</span>/<span class="si">${</span><span class="nv">S3_FOLDER</span><span class="si">}</span>/
-</code></pre></div><h2 id="aws-samのテンプレートを作成">AWS SAMのテンプレートを作成</h2>
+<span style="color:#60a0b0;font-style:italic"># この例では、zipを指定バケット・指定フォルダの下にアップロード</span>
+$ aws s3 cp layer.zip s3://<span style="color:#70a0d0;font-style:italic">${</span><span style="color:#bb60d5">S3_BUCKET</span><span style="color:#70a0d0;font-style:italic">}</span>/<span style="color:#70a0d0;font-style:italic">${</span><span style="color:#bb60d5">S3_FOLDER</span><span style="color:#70a0d0;font-style:italic">}</span>/
+</code></pre></td></tr></table>
+</div>
+</div><h2 id="aws-samのテンプレートを作成">AWS SAMのテンプレートを作成</h2>
 <p>デプロイテンプレートを作成します。テンプレートの形式は<a href="https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlesslayerversion">SAMの公式ドキュメント</a> を参考にします。<code>ContentUri</code> がS3にアップロードしたzipのURLになっている事がポイントです。</p>
-<div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh">$ vi template.yaml
-</code></pre></div><div class="highlight"><pre class="chroma"><code class="language-yaml" data-lang="yaml"><span class="k">AWSTemplateFormatVersion</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;2010-09-09&#39;</span><span class="w">
-</span><span class="w"></span><span class="k">Transform</span><span class="p">:</span><span class="w"> </span>AWS<span class="p">::</span>Serverless<span class="m">-2016-10-31</span><span class="w">
-</span><span class="w"></span><span class="k">Description</span><span class="p">:</span><span class="w"> </span><span class="sd">&gt;
-</span><span class="sd">  My Node.js modules Layer</span><span class="w">
-</span><span class="w">
-</span><span class="w"></span><span class="k">Resources</span><span class="p">:</span><span class="w">
-</span><span class="w">  </span><span class="k">MyLayer</span><span class="p">:</span><span class="w">
-</span><span class="w">    </span><span class="k">Type</span><span class="p">:</span><span class="w"> </span>AWS<span class="p">::</span>Serverless<span class="p">::</span>LayerVersion<span class="w">
-</span><span class="w">    </span><span class="k">Properties</span><span class="p">:</span><span class="w">
-</span><span class="w">      </span><span class="k">LayerName</span><span class="p">:</span><span class="w"> </span>my-layer<span class="w">
-</span><span class="w">      </span><span class="k">Description</span><span class="p">:</span><span class="w"> </span>My<span class="w"> </span>Node.js<span class="w"> </span>modules<span class="w"> </span>layer<span class="w">
-</span><span class="w">      </span><span class="k">ContentUri</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;s3://S3_BUCKET/S3_FOLDER/layer.zip&#39;</span><span class="w">
-</span><span class="w">      </span><span class="k">CompatibleRuntimes</span><span class="p">:</span><span class="w">
-</span><span class="w">        </span>- nodejs8<span class="m">.10</span><span class="w">
-</span><span class="w">      </span><span class="k">LicenseInfo</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;Available under the MIT-0 license.&#39;</span><span class="w">
-</span><span class="w">      </span><span class="k">RetentionPolicy</span><span class="p">:</span><span class="w"> </span>Retain<span class="w">
-</span></code></pre></div><p>作成したらaws-sam-cliでyamlのvalidationをしておくと良いです。</p>
-<div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh">$ sam validate
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">$ vi template.yaml
+</code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#007020;font-weight:bold">AWSTemplateFormatVersion</span>:<span style="color:#bbb"> </span><span style="color:#4070a0">&#39;2010-09-09&#39;</span><span style="color:#bbb">
+</span><span style="color:#bbb"></span><span style="color:#007020;font-weight:bold">Transform</span>:<span style="color:#bbb"> </span>AWS::Serverless<span style="color:#40a070">-2016-10-31</span><span style="color:#bbb">
+</span><span style="color:#bbb"></span><span style="color:#007020;font-weight:bold">Description</span>:<span style="color:#bbb"> </span><span style="color:#4070a0;font-style:italic">&gt;
+</span><span style="color:#4070a0;font-style:italic">  My Node.js modules Layer</span><span style="color:#bbb">
+</span><span style="color:#bbb">
+</span><span style="color:#bbb"></span><span style="color:#007020;font-weight:bold">Resources</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">  </span><span style="color:#007020;font-weight:bold">MyLayer</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">    </span><span style="color:#007020;font-weight:bold">Type</span>:<span style="color:#bbb"> </span>AWS::Serverless::LayerVersion<span style="color:#bbb">
+</span><span style="color:#bbb">    </span><span style="color:#007020;font-weight:bold">Properties</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#007020;font-weight:bold">LayerName</span>:<span style="color:#bbb"> </span>my-layer<span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#007020;font-weight:bold">Description</span>:<span style="color:#bbb"> </span>My<span style="color:#bbb"> </span>Node.js<span style="color:#bbb"> </span>modules<span style="color:#bbb"> </span>layer<span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#007020;font-weight:bold">ContentUri</span>:<span style="color:#bbb"> </span><span style="color:#4070a0">&#39;s3://S3_BUCKET/S3_FOLDER/layer.zip&#39;</span><span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#007020;font-weight:bold">CompatibleRuntimes</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">        </span>- nodejs8<span style="color:#40a070">.10</span><span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#007020;font-weight:bold">LicenseInfo</span>:<span style="color:#bbb"> </span><span style="color:#4070a0">&#39;Available under the MIT-0 license.&#39;</span><span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#007020;font-weight:bold">RetentionPolicy</span>:<span style="color:#bbb"> </span>Retain<span style="color:#bbb">
+</span></code></pre></td></tr></table>
+</div>
+</div><p>作成したらaws-sam-cliでyamlのvalidationをしておくと良いです。</p>
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">$ sam validate
 
-</code></pre></div><h2 id="デプロイ公開">デプロイ/公開</h2>
+</code></pre></td></tr></table>
+</div>
+</div><h2 id="デプロイ公開">デプロイ/公開</h2>
 <p>aws-sam-cliでデプロイします。</p>
-<div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh">$ sam deploy --template-file ./template.yaml --stack-name layer-stack --capabilities CAPABILITY_IAM
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">$ sam deploy --template-file ./template.yaml --stack-name layer-stack --capabilities CAPABILITY_IAM
 
-Waiting <span class="k">for</span> changeset to be created..
-Waiting <span class="k">for</span> stack create/update to <span class="nb">complete</span>
+Waiting <span style="color:#007020;font-weight:bold">for</span> changeset to be created..
+Waiting <span style="color:#007020;font-weight:bold">for</span> stack create/update to <span style="color:#007020">complete</span>
 Successfully created/updated stack - layer-stack
-</code></pre></div><h1 id="既存functionをlayerを使用する形式に変更する">既存functionをLayerを使用する形式に変更する</h1>
+</code></pre></td></tr></table>
+</div>
+</div><h1 id="既存functionをlayerを使用する形式に変更する">既存functionをLayerを使用する形式に変更する</h1>
 <p>今回筆者が対象にしたfunctionは下記のようなディレクトリ構成で、API Gatewayをeventトリガーとして処理を行うfunctionです。</p>
-<pre><code>.
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">.
 ├── Makefile
 ├── README.md
 ├── hello_world
@@ -178,7 +334,9 @@ Successfully created/updated stack - layer-stack
 │           └── test_handler.js
 ├── serverless-output.yaml
 └── template.yaml
-</code></pre><p>Layer移行により <code>node_modules</code> に含まれている大部分のmoduleがこのfunctionでは不要になる想定です。これを念頭に、</p>
+</code></pre></td></tr></table>
+</div>
+</div><p>Layer移行により <code>node_modules</code> に含まれている大部分のmoduleがこのfunctionでは不要になる想定です。これを念頭に、</p>
 <ul>
 <li>Layer移行済モジュールを削除</li>
 <li>samテンプレートを修正</li>
@@ -189,91 +347,232 @@ Successfully created/updated stack - layer-stack
 <h2 id="layer移行済のモジュールを削除">Layer移行済のモジュールを削除</h2>
 <p>まずLayerに移行したモジュールを対象のfunctionから削除します。package.jsonのdependenciesから不要モジュールの記述を削除し、<code>npm install</code> を再実行します。</p>
 <p>例えば私のfunctionを例にすると、aws-sdk, axios, cheerioの3モジュールを全てLayerに移行したので、下記のdependenciesは全て不要になるので削除しました。</p>
-<div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh"><span class="c1"># CODE_URIは適宜各自の環境の内容に置き換え</span>
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh"><span style="color:#60a0b0;font-style:italic"># CODE_URIは適宜各自の環境の内容に置き換え</span>
 
-$ <span class="nb">cd</span> &lt;FUNCTION_ROOT&gt;
-$ vi <span class="si">${</span><span class="nv">CODE_URI</span><span class="si">}</span>/package.json
-</code></pre></div><div class="highlight"><pre class="chroma"><code class="language-json" data-lang="json">  <span class="s2">&#34;dependencies&#34;</span><span class="err">:</span> <span class="p">{</span>
-    <span class="nt">&#34;aws-sdk&#34;</span><span class="p">:</span> <span class="s2">&#34;^2.387.0&#34;</span><span class="p">,</span>
-    <span class="nt">&#34;axios&#34;</span><span class="p">:</span> <span class="s2">&#34;^0.18.0&#34;</span><span class="p">,</span>
-    <span class="nt">&#34;cheerio&#34;</span><span class="p">:</span> <span class="s2">&#34;^1.0.0-rc.2&#34;</span>
-  <span class="p">}</span><span class="err">,</span>
-  <span class="err">:</span>
-</code></pre></div><div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh">$ <span class="nb">cd</span> hello_world
+$ <span style="color:#007020">cd</span> &lt;FUNCTION_ROOT&gt;
+$ vi <span style="color:#70a0d0;font-style:italic">${</span><span style="color:#bb60d5">CODE_URI</span><span style="color:#70a0d0;font-style:italic">}</span>/package.json
+</code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">  <span style="color:#4070a0">&#34;dependencies&#34;</span><span style="">:</span> {
+    <span style="color:#062873;font-weight:bold">&#34;aws-sdk&#34;</span>: <span style="color:#4070a0">&#34;^2.387.0&#34;</span>,
+    <span style="color:#062873;font-weight:bold">&#34;axios&#34;</span>: <span style="color:#4070a0">&#34;^0.18.0&#34;</span>,
+    <span style="color:#062873;font-weight:bold">&#34;cheerio&#34;</span>: <span style="color:#4070a0">&#34;^1.0.0-rc.2&#34;</span>
+  }<span style="">,</span>
+  <span style="">:</span>
+</code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">$ <span style="color:#007020">cd</span> hello_world
 $ npm install
-</code></pre></div><h2 id="templateyamlの修正">template.yamlの修正</h2>
+</code></pre></td></tr></table>
+</div>
+</div><h2 id="templateyamlの修正">template.yamlの修正</h2>
 <p>デプロイしたLayerのARNを下記コマンドで確認します。 <code>--layer-name</code> にはLayerのtemplate.yamlで設定した <code>LayerName</code> を指定します。正常終了すると下記形式の結果が返ってきます。（REGION と ACCOUNT_ID は適宜ご自身の環境に読み替えてください）</p>
-<div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh">$ aws lambda list-layer-versions --layer-name my-layer <span class="p">|</span> grep LayerVersionArn
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">$ aws lambda list-layer-versions --layer-name my-layer | grep LayerVersionArn
 
-            <span class="s2">&#34;LayerVersionArn&#34;</span>: <span class="s2">&#34;arn:aws:lambda:REGION:ACCOUNT_ID:layer:my-layer:1&#34;</span>,
-</code></pre></div><p>確認したARNを使用して、functionのテンプレートファイルをLayerを使用する形式に修正します。<a href="https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction">こちらのドキュメント</a> に記載の通り、functionのリソース定義のProperties指定に <code>Layers</code> というセクションを追加し、そこにLayerのARNを設定します。</p>
-<div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh">$ <span class="nb">cd</span> &lt;FUNCTION_ROOT&gt;
+            <span style="color:#4070a0">&#34;LayerVersionArn&#34;</span>: <span style="color:#4070a0">&#34;arn:aws:lambda:REGION:ACCOUNT_ID:layer:my-layer:1&#34;</span>,
+</code></pre></td></tr></table>
+</div>
+</div><p>確認したARNを使用して、functionのテンプレートファイルをLayerを使用する形式に修正します。<a href="https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction">こちらのドキュメント</a> に記載の通り、functionのリソース定義のProperties指定に <code>Layers</code> というセクションを追加し、そこにLayerのARNを設定します。</p>
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">$ <span style="color:#007020">cd</span> &lt;FUNCTION_ROOT&gt;
 $ vi template.yaml
-</code></pre></div><div class="highlight"><pre class="chroma"><code class="language-yaml" data-lang="yaml"><span class="k">Resources</span><span class="p">:</span><span class="w">
-</span><span class="w">  </span><span class="k">HelloWorldFunction</span><span class="p">:</span><span class="w">
-</span><span class="w">    </span><span class="k">Type: AWS::Serverless::Function # More info about Function Resource</span><span class="p">:</span><span class="w"> </span>https<span class="p">:</span>//github.com/awslabs/serverless-application-model/blob/master/versions/<span class="ld">2016-10-31</span>.md<span class="c">#awsserverlessfunction</span><span class="w">
-</span><span class="w">    </span><span class="k">Properties</span><span class="p">:</span><span class="w">
-</span><span class="w">      </span><span class="k">CodeUri</span><span class="p">:</span><span class="w"> </span>hello_world/<span class="w">
-</span><span class="w">      </span><span class="k">Handler</span><span class="p">:</span><span class="w"> </span>app.lambdaHandler<span class="w">
-</span><span class="w">      </span><span class="k">Runtime</span><span class="p">:</span><span class="w"> </span>nodejs8<span class="m">.10</span><span class="w">
-</span><span class="w">
-</span><span class="w">      </span>(中略)<span class="w">
-</span><span class="w">
-</span><span class="w">      </span><span class="k">Layers</span><span class="p">:</span><span class="w">
-</span><span class="w">        </span>- arn<span class="p">:</span>aws<span class="p">:</span>lambda<span class="p">:</span>ap-northeast<span class="m">-1</span><span class="p">:</span><span class="m">123456789012</span><span class="p">:</span>layer<span class="p">:</span>my-layer<span class="p">:</span><span class="m">1</span><span class="w">
-</span></code></pre></div><h2 id="ローカルでfunctionの動作確認">ローカルでfunctionの動作確認</h2>
+</code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#007020;font-weight:bold">Resources</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">  </span><span style="color:#007020;font-weight:bold">HelloWorldFunction</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">    </span><span style="color:#007020;font-weight:bold">Type: AWS::Serverless::Function # More info about Function Resource</span>:<span style="color:#bbb"> </span>https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md<span style="color:#60a0b0;font-style:italic">#awsserverlessfunction</span><span style="color:#bbb">
+</span><span style="color:#bbb">    </span><span style="color:#007020;font-weight:bold">Properties</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#007020;font-weight:bold">CodeUri</span>:<span style="color:#bbb"> </span>hello_world/<span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#007020;font-weight:bold">Handler</span>:<span style="color:#bbb"> </span>app.lambdaHandler<span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#007020;font-weight:bold">Runtime</span>:<span style="color:#bbb"> </span>nodejs8<span style="color:#40a070">.10</span><span style="color:#bbb">
+</span><span style="color:#bbb">
+</span><span style="color:#bbb">      </span>(中略)<span style="color:#bbb">
+</span><span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#007020;font-weight:bold">Layers</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">        </span>- arn:aws:lambda:ap-northeast<span style="color:#40a070">-1</span>:<span style="color:#40a070">123456789012</span>:layer:my-layer:<span style="color:#40a070">1</span><span style="color:#bbb">
+</span></code></pre></td></tr></table>
+</div>
+</div><h2 id="ローカルでfunctionの動作確認">ローカルでfunctionの動作確認</h2>
 <p>Layerに移行した＆移行済モジュールを削除したので、ローカルでの実行がこれまで通り行えるかを確認しておきます。ローカルでの実行コマンドはLayer移行前から変える必要は無く、これまで通り <code>sal local invoke</code> コマンドを使用します。</p>
 <p>1点挙動が異なるのは、Layer移行後初回の実行時にデプロイ済のLayer Functionのダウンロードが実行される事です。デフォルトではダウンロード結果は <code>${HOME}/.aws-sam/layers-pkg/</code> 下に保存（キャッシュ）され、Layerのバージョンアップを行わない限りは2回目以降の実行時はキャッシュが利用されます。</p>
-<div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh">$ sam <span class="nb">local</span> invoke -e event.json HelloWorldFunction
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">$ sam <span style="color:#007020">local</span> invoke -e event.json HelloWorldFunction
 
-Downloading arn:aws:lambda:ap-northeast-1:123456789012:layer:my-layer:1  <span class="o">[</span><span class="c1">####################################]  7298732/7298732</span>
+Downloading arn:aws:lambda:ap-northeast-1:123456789012:layer:my-layer:1  <span style="color:#666">[</span><span style="color:#60a0b0;font-style:italic">####################################]  7298732/7298732</span>
 :
 
-</code></pre></div><h2 id="注意点-layers設定時のハマりどころ">注意点: Layers設定時のハマりどころ</h2>
+</code></pre></td></tr></table>
+</div>
+</div><h2 id="注意点-layers設定時のハマりどころ">注意点: Layers設定時のハマりどころ</h2>
 <p><a href="https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction">こちらのドキュメント</a>の例では、template.yamlの <code>Layers</code> セクションで組み込み関数 <code>Fn::Sub</code> の短縮形 <code>!Sub</code> が使われているのですが、これはlocalでの実行時は機能しません。この内容で <code>sam local invoke</code> を行うと、<code>Fn::Sub</code> 関数で期待している変数置換が実行されずLayerのARNが正しい内容で処理されない為、Layer Functionのダウンロードが実行されません。その結果「layerに含まれているモジュールが見つからない」という旨のエラーになってしまいます。localでの実行も考慮するなら、LayersのARNは文字列のみで記載するか、あるいは <code>Ref</code> 関数で「文字列のみで記載された別リソースを参照する」という手段で記述します。</p>
 <h2 id="デプロイ公開-1">デプロイ/公開</h2>
 <p>aws-sam-cliでデプロイします。</p>
-<div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh"><span class="c1"># BUCKET, FOLDER, STACKは適宜各自の環境の内容に置き換え</span>
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh"><span style="color:#60a0b0;font-style:italic"># BUCKET, FOLDER, STACKは適宜各自の環境の内容に置き換え</span>
 
-$ sam package --template-file ./template.yaml --output-template-file ./serverless-output.yaml --s3-bucket <span class="si">${</span><span class="nv">S3_BUCKET</span><span class="si">}</span> --s3-prefix <span class="si">${</span><span class="nv">S3_FOLDER</span><span class="si">}</span>
+$ sam package --template-file ./template.yaml --output-template-file ./serverless-output.yaml --s3-bucket <span style="color:#70a0d0;font-style:italic">${</span><span style="color:#bb60d5">S3_BUCKET</span><span style="color:#70a0d0;font-style:italic">}</span> --s3-prefix <span style="color:#70a0d0;font-style:italic">${</span><span style="color:#bb60d5">S3_FOLDER</span><span style="color:#70a0d0;font-style:italic">}</span>
 Successfully packaged artifacts and wrote output template to file ./serverless-output.yaml.
 
-$ sam deploy --template-file ./serverless-output.yaml --stack-name <span class="si">${</span><span class="nv">STACK</span><span class="si">}</span> --capabilities CAPABILITY_IAM
+$ sam deploy --template-file ./serverless-output.yaml --stack-name <span style="color:#70a0d0;font-style:italic">${</span><span style="color:#bb60d5">STACK</span><span style="color:#70a0d0;font-style:italic">}</span> --capabilities CAPABILITY_IAM
 
-Waiting <span class="k">for</span> changeset to be created..
-Waiting <span class="k">for</span> stack create/update to <span class="nb">complete</span>
+Waiting <span style="color:#007020;font-weight:bold">for</span> changeset to be created..
+Waiting <span style="color:#007020;font-weight:bold">for</span> stack create/update to <span style="color:#007020">complete</span>
 Successfully created/updated stack - layer-stack
-</code></pre></div><h1 id="layerの更新">Layerの更新</h1>
+</code></pre></td></tr></table>
+</div>
+</div><h1 id="layerの更新">Layerの更新</h1>
 <p>node moduleの追加/削除などでLayerの更新が必要になった場合も作業の流れはほとんど変わりません。</p>
 <p>まずzipアーカイブとS3へのアップロードを再度実行します。</p>
-<div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh">$ <span class="nb">cd</span> &lt;PROJECT_ROOT&gt;
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">$ <span style="color:#007020">cd</span> &lt;PROJECT_ROOT&gt;
 $ zip -r layer.zip ./
 
-$ aws s3 cp layer.zip s3://<span class="si">${</span><span class="nv">S3_BUCKET</span><span class="si">}</span>/<span class="si">${</span><span class="nv">S3_FOLDER</span><span class="si">}</span>/
-</code></pre></div><p>更新デプロイは <code>sam deploy</code> ではなく <code>aws lambda publish-layer-version</code> コマンドで行います。</p>
-<div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh">$ aws lambda publish-layer-version <span class="se">\
-</span><span class="se"></span>  layer-name my-layer <span class="se">\
-</span><span class="se"></span>  description <span class="s2">&#34;My Node.js modules Layer&#34;</span> <span class="se">\
-</span><span class="se"></span>  license-info <span class="s2">&#34;Available under the MIT-0 license.&#34;</span> <span class="se">\
-</span><span class="se"></span>  content <span class="nv">S3Bucket</span><span class="o">=</span><span class="si">${</span><span class="nv">S3_BUCKET</span><span class="si">}</span>,S3Key<span class="o">=</span><span class="si">${</span><span class="nv">S3_FOLDER</span><span class="si">}</span>/layer.zip <span class="se">\
-</span><span class="se"></span>  compatible-runtimes nodejs8.10
-</code></pre></div><p>上記コマンドでLayerの更新が完了したら、Layerのバージョンが更新された旨が処理結果として返ってきます。利用側functionのtemplate.yamlのLayersバージョンも合わせて更新し、functionの再デプロイが必要になります。</p>
-<div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh">$ <span class="nb">cd</span> &lt;FUNCTION_ROOT&gt;
+$ aws s3 cp layer.zip s3://<span style="color:#70a0d0;font-style:italic">${</span><span style="color:#bb60d5">S3_BUCKET</span><span style="color:#70a0d0;font-style:italic">}</span>/<span style="color:#70a0d0;font-style:italic">${</span><span style="color:#bb60d5">S3_FOLDER</span><span style="color:#70a0d0;font-style:italic">}</span>/
+</code></pre></td></tr></table>
+</div>
+</div><p>更新デプロイは <code>sam deploy</code> ではなく <code>aws lambda publish-layer-version</code> コマンドで行います。</p>
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">$ aws lambda publish-layer-version <span style="color:#4070a0;font-weight:bold">\
+</span><span style="color:#4070a0;font-weight:bold"></span>  layer-name my-layer <span style="color:#4070a0;font-weight:bold">\
+</span><span style="color:#4070a0;font-weight:bold"></span>  description <span style="color:#4070a0">&#34;My Node.js modules Layer&#34;</span> <span style="color:#4070a0;font-weight:bold">\
+</span><span style="color:#4070a0;font-weight:bold"></span>  license-info <span style="color:#4070a0">&#34;Available under the MIT-0 license.&#34;</span> <span style="color:#4070a0;font-weight:bold">\
+</span><span style="color:#4070a0;font-weight:bold"></span>  content <span style="color:#bb60d5">S3Bucket</span><span style="color:#666">=</span><span style="color:#70a0d0;font-style:italic">${</span><span style="color:#bb60d5">S3_BUCKET</span><span style="color:#70a0d0;font-style:italic">}</span>,S3Key<span style="color:#666">=</span><span style="color:#70a0d0;font-style:italic">${</span><span style="color:#bb60d5">S3_FOLDER</span><span style="color:#70a0d0;font-style:italic">}</span>/layer.zip <span style="color:#4070a0;font-weight:bold">\
+</span><span style="color:#4070a0;font-weight:bold"></span>  compatible-runtimes nodejs8.10
+</code></pre></td></tr></table>
+</div>
+</div><p>上記コマンドでLayerの更新が完了したら、Layerのバージョンが更新された旨が処理結果として返ってきます。利用側functionのtemplate.yamlのLayersバージョンも合わせて更新し、functionの再デプロイが必要になります。</p>
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">$ <span style="color:#007020">cd</span> &lt;FUNCTION_ROOT&gt;
 $ vi template.yaml
-</code></pre></div><div class="highlight"><pre class="chroma"><code class="language-yaml" data-lang="yaml"><span class="k">Resources</span><span class="p">:</span><span class="w">
-</span><span class="w">  </span><span class="k">HelloWorldFunction</span><span class="p">:</span><span class="w">
-</span><span class="w">    </span><span class="k">Type: AWS::Serverless::Function # More info about Function Resource</span><span class="p">:</span><span class="w"> </span>https<span class="p">:</span>//github.com/awslabs/serverless-application-model/blob/master/versions/<span class="ld">2016-10-31</span>.md<span class="c">#awsserverlessfunction</span><span class="w">
-</span><span class="w">    </span><span class="k">Properties</span><span class="p">:</span><span class="w">
-</span><span class="w">      </span><span class="k">CodeUri</span><span class="p">:</span><span class="w"> </span>hello_world/<span class="w">
-</span><span class="w">      </span><span class="k">Handler</span><span class="p">:</span><span class="w"> </span>app.lambdaHandler<span class="w">
-</span><span class="w">      </span><span class="k">Runtime</span><span class="p">:</span><span class="w"> </span>nodejs8<span class="m">.10</span><span class="w">
-</span><span class="w">
-</span><span class="w">      </span>(中略)<span class="w">
-</span><span class="w">
-</span><span class="w">      </span><span class="c"># my-layer:2 にバージョンアップ</span><span class="w">
-</span><span class="w">      </span><span class="k">Layers</span><span class="p">:</span><span class="w">
-</span><span class="w">        </span>- arn<span class="p">:</span>aws<span class="p">:</span>lambda<span class="p">:</span>ap-northeast<span class="m">-1</span><span class="p">:</span><span class="m">123456789012</span><span class="p">:</span>layer<span class="p">:</span>my-layer<span class="p">:</span><span class="m">2</span><span class="w">
-</span></code></pre></div><h1 id="ブックマーク">ブックマーク</h1>
+</code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#007020;font-weight:bold">Resources</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">  </span><span style="color:#007020;font-weight:bold">HelloWorldFunction</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">    </span><span style="color:#007020;font-weight:bold">Type: AWS::Serverless::Function # More info about Function Resource</span>:<span style="color:#bbb"> </span>https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md<span style="color:#60a0b0;font-style:italic">#awsserverlessfunction</span><span style="color:#bbb">
+</span><span style="color:#bbb">    </span><span style="color:#007020;font-weight:bold">Properties</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#007020;font-weight:bold">CodeUri</span>:<span style="color:#bbb"> </span>hello_world/<span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#007020;font-weight:bold">Handler</span>:<span style="color:#bbb"> </span>app.lambdaHandler<span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#007020;font-weight:bold">Runtime</span>:<span style="color:#bbb"> </span>nodejs8<span style="color:#40a070">.10</span><span style="color:#bbb">
+</span><span style="color:#bbb">
+</span><span style="color:#bbb">      </span>(中略)<span style="color:#bbb">
+</span><span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#60a0b0;font-style:italic"># my-layer:2 にバージョンアップ</span><span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#007020;font-weight:bold">Layers</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">        </span>- arn:aws:lambda:ap-northeast<span style="color:#40a070">-1</span>:<span style="color:#40a070">123456789012</span>:layer:my-layer:<span style="color:#40a070">2</span><span style="color:#bbb">
+</span></code></pre></td></tr></table>
+</div>
+</div><h1 id="ブックマーク">ブックマーク</h1>
 <ul>
 <li><a href="https://docs.aws.amazon.com/ja_jp/lambda/latest/dg/configuration-layers.html">AWS Lambda レイヤー - AWS Lambda</a></li>
 <li><a href="https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md">serverless-application-model/2016-10-31.md</a></li>
@@ -281,78 +580,48 @@ $ vi template.yaml
 <li><a href="https://dev.classmethod.jp/server-side/serverless/aws-lambda-typescript-lambda-layers-deploy/">AWS Lambda ( Typescript ) の Lambda Layers 活用、開発、デプロイ考察 ｜ DevelopersIO</a></li>
 </ul>
 
-  </div>
-</section>
-<section id="tag-pane" class="row meta">
-  
-  <div class="col-md-12">
-    <h6 class="text-right meta">
-      
-    </h6>
-  </div>
-  
+  </article>
 </section>
 
 
+      </div>
 
-
-
-
-
-
-<section id="menu-pane" class="row menu text-center">
-  
-  
-  <span><a class="menu-item" href="https://horizoon.jp/post/2018/11/19/mysql_innodb_fts/">&lt; prev | </a></span>
-  
-  
-  <span><a class="menu-item" href="/post">post</a></span>
-  
-  
-  <span><a class="menu-item" href="https://horizoon.jp/post/2019/02/25/dep_to_go_mod/"> | next &gt;</a></span>
-  
-  
-  <h4 class="text-center"><a class="menu-item" href="https://horizoon.jp">home</a></h4>
-</section>
-
-
-
-<footer class="row text-center footer">
-  <hr />
-  
-  <h6 class="text-center copyright">© 2019. horizoon. <a href="http://creativecommons.org/licenses/by/3.0/">Some Rights Reserved</a>.</h6>
-  
-  <h6 class="text-center powered">Powered by <a href="https://gohugo.io/">Hugo  v0.67.1</a> &amp; <a href="https://github.com/shenoybr/hugo-goa">Goa</a>.</h6>
-  
-      
-      <h6><a href="" aria-label="RSS Feed"><i class="fas fa-rss" aria-hidden="true"></i></a></h6>
+      <footer class="footer">
+  <section class="container">
     
-  
+    
+      
+        © 2017 - 2020
+      
+       Fuminori Sakamoto 
+    
+    
+       · 
+      Powered by <a href="https://gohugo.io/">Hugo</a> & <a href="https://github.com/luizdepra/hugo-coder/">Coder</a>.
+    
+    
+  </section>
 </footer>
 
-</div>
+    </main>
 
-
-
-
-
-
+    
 <script type="application/javascript">
 var doNotTrack = false;
 if (!doNotTrack) {
-	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
 	ga('create', 'UA-129776715-1', 'auto');
 	
 	ga('send', 'pageview');
 }
 </script>
-<script async src='https://www.google-analytics.com/analytics.js'></script>
 
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
-<script src="js/main.js"></script>
-<script src="js/custom.js"></script>
-</body>
+
+    
+
+  </body>
+
 </html>
-
-

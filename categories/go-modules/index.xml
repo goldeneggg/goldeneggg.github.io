@@ -5,7 +5,7 @@
     <link>https://horizoon.jp/categories/go-modules/</link>
     <description>Recent content in go modules on horizoon</description>
     <generator>Hugo -- gohugo.io</generator>
-    <copyright>&amp;copy; horizoon 2019</copyright>
+    <language>en</language>
     <lastBuildDate>Wed, 25 Mar 2020 19:15:00 +0900</lastBuildDate>
     
 	<atom:link href="https://horizoon.jp/categories/go-modules/index.xml" rel="self" type="application/rss+xml" />
@@ -17,12 +17,11 @@
       <pubDate>Wed, 25 Mar 2020 19:15:00 +0900</pubDate>
       
       <guid>https://horizoon.jp/post/2020/03/25/goreleaser_github_actions/</guid>
-      <description>Summary  GoReleaserの設定ファイル = .goreleaser.yml のテスト/検証もGithub ActionsのPull Request時CIで実行したい GitHub Action for GoReleaser を活用して実現する  前提条件 $ go version go version go1.13.9 darwin/amd64 CIで.goreleaser.ymlをテストしたい（with Github Actions） Go製ツールのReleaseでGoReleaserを使っている場合、いざReleaseを実施してみたら.goreleaser.ymlに不備があってコケてしまった → ymlを修正してやむを得ずバージョンもupした、、、という切ないケースに遭遇してしまう事がありますよね（自分は以前度々ありました&amp;hellip;）。
+      <description>Summary  GoReleaserの設定ファイル = .goreleaser.yml のテスト/検証もGithub ActionsのPull Request時CIで実行したい GitHub Action for GoReleaser を活用して実現する  前提条件 1 2  $ go version go version go1.13.9 darwin/amd64   CIで.goreleaser.ymlをテストしたい（with Github Actions） Go製ツールのReleaseでGoReleaserを使っている場合、いざReleaseを実施してみたら.goreleaser.ymlに不備があってコケてしまった → ymlを修正してやむを得ずバージョンもupした、、、という切ないケースに遭遇してしまう事がありますよね（自分は以前度々ありました&amp;hellip;）。
 もしCIで.goreleaser.ymlのテスト/検証が出来れば、Release前にymlの不備を検知する事が出来ます。以前書いたdepからgo modulesへの移行に関する記事にも載せた のですが、GoReleaserにはdry-runの機能があります。具体的にはgoreleaserコマンドに --skip-publish という公開（release）をskip出来るオプションと、 --snapshot というバージョンタグのチェックを行わず現状のコードベースの成果物を出力するオプションがあり、GoReleaserのgithub actions でもこれらのオプションはそのまま利用可能です。
 yamlの例 yaml内に (番号) 形式でコメントしている箇所については後述します。
 .github/workflows/ci.yml ※ 拙作ツールのファイル全体像は こちら
-name:CIon:# (1)push:branches:- masterpull_request:jobs:validate-goreleaser:name:Validate.goreleaser.ymlruns-on:${{matrix.os}}strategy:matrix:os:[&amp;#39;ubuntu-latest&amp;#39;]go:[&amp;#39;1.13&amp;#39;]steps:- name:SetupGo${{matrix.go}}id:setup-gouses:actions/setup-go@v2-betawith:go-version:${{matrix.go}}- name:Checkoutrepositoriesid:checkoutuses:actions/checkout@v2- name:SetGOVERSIONenvid:set-goversion-env# (2)run:echo&amp;#34;::set-env name=GOVERSION::$(go version)&amp;#34;- name:Validate.goreleaser.ymlwithgoreleaser-actionuses:goreleaser/goreleaser-action@v1with:version:latest# (3)args:release--snapshot--skip-publish--rm-dist--debug.goreleaser.yml ※ 拙作ツールのファイル全体像は こちら
-# This is an example goreleaser.yaml file with some sane defaults.# Make sure to check the documentation at http://goreleaser.</description>
+1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39  name:CIon:# (1)push:branches:- masterpull_request:jobs:validate-goreleaser:name:Validate.</description>
     </item>
     
     <item>
@@ -32,13 +31,11 @@ name:CIon:# (1)push:branches:- masterpull_request:jobs:validate-goreleaser:name:
       
       <guid>https://horizoon.jp/post/2019/04/18/contributing_with_gomodules/</guid>
       <description>Summary Go1.13がリリースされてGo Modulesのmodule modeがデフォルトになってからの、go modコマンドを駆使した依存ライブラリ管理、及び第三者のOSSプロジェクトへのcontributionの方法＆手順について
- Module-awareモードに最適化した手順を把握・実践する  ライブラリの追加手順 ライブラリのバージョン更新手順（個別 or 全ライブラリ一括） ライブラリの削除手順   Happy Contributing!! 参考リンク（参考というか、答えは下記リンク先に全て書いてあります）  公式ブログ（和訳） 公式Wiki    前提条件 $ go version go version go1.12.4 darwin/amd64 # GO111MODULE=on して、常にModule-awareモードとなる状態で検証 $ export GO111MODULE=on はじめに Githubの&amp;quot;contributing ドキュメントについて githubにプロジェクトを公開する際に、
+ Module-awareモードに最適化した手順を把握・実践する  ライブラリの追加手順 ライブラリのバージョン更新手順（個別 or 全ライブラリ一括） ライブラリの削除手順   Happy Contributing!! 参考リンク（参考というか、答えは下記リンク先に全て書いてあります）  公式ブログ（和訳） 公式Wiki    前提条件 1 2 3 4 5  $ go version go version go1.12.4 darwin/amd64 # GO111MODULE=on して、常にModule-awareモードとなる状態で検証 $ export GO111MODULE=on   はじめに Githubの&amp;quot;contributing ドキュメントについて githubにプロジェクトを公開する際に、
  ルート docs .github  の3つの内いずれかのディレクトリに contributing* というパターン名（大文字でも可）が付いたファイルを置いておくと、pull-request作成時に「ここにガイドラインがあるよ」と通知してくれるようになります。慣例としてこのファイルは CONTRIBUTING.md という名前で用意されている事が多いです。
 このファイルには主に環境構築・テストの実行方法・pull-requestの送り方 などを記載しますが、Goプロジェクトでは「最初に $GOPATH 下にソースを持ってくる」事が前提になっている手順をよく見かけます（自作プロジェクトでもそうしていました）。
 GoプロジェクトにおけるCONTRIBUTING.mdはどうあるべきか？ Go ModulesのModule-awareモードがデフォルト挙動になるGo1.13以降では、ソースをcloneしてくるディレクトリは何処でも良い＝必ずしも$GOPATH下にソースを持ってくる必要は無くなりますし、依存ライブラリの追加・削除・バージョン変更を行いたい時の流れも変わります。なので、 CONTRIBUTING.mdに書く内容もそれに合わせておくとcontributorに親切なガイドラインを提示できそうです。
-引き続き$GOPATHベースでの開発を推奨するプロジェクトもあるかも知れませんし、内容や粒度はプロジェクトの運営方針や想定読者レベルによっても変わるとは思いますが、この記事ではModule-awareモードのレールに乗る前提で、CONTRIBUTING.mdに書くべき内容と、合わせてmodule modeでのGoプロジェクトにおけるライブラリ管理プラクティスを整理してみます。
-1. module modeでのGo製プロジェクトの初期環境構築 想定手順
- cd 任意のディレクトリ git clone foo cd foo make  CONTRIBUTING.</description>
+引き続き$GOPATHベースでの開発を推奨するプロジェクトもあるかも知れませんし、内容や粒度はプロジェクトの運営方針や想定読者レベルによっても変わるとは思いますが、この記事ではModule-awareモードのレールに乗る前提で、CONTRIBUTING.mdに書くべき内容と、合わせてmodule modeでのGoプロジェクトにおけるライブラリ管理プラクティスを整理してみます。</description>
     </item>
     
   </channel>

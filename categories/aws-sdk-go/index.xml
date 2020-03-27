@@ -5,7 +5,7 @@
     <link>https://horizoon.jp/categories/aws-sdk-go/</link>
     <description>Recent content in aws-sdk-go on horizoon</description>
     <generator>Hugo -- gohugo.io</generator>
-    <copyright>&amp;copy; horizoon 2019</copyright>
+    <language>en</language>
     <lastBuildDate>Fri, 16 Aug 2019 17:10:35 +0900</lastBuildDate>
     
 	<atom:link href="https://horizoon.jp/categories/aws-sdk-go/index.xml" rel="self" type="application/rss+xml" />
@@ -20,7 +20,7 @@
       <description>Summary  aws-sdk-goで、標準入力からのMFAトークン入力によるAssumeRoleを実装する aws-sdk-go-v2で、標準入力からのMFAトークン入力によるAssumeRoleを実装する  前提条件  aws-sdk-go - v1.21.x aws-sdk-go-v2 - v0.10.0  aws-sdk-goで、標準入力からのMFAトークン入力によるAssumeRoleを実装する AssumeRole便利ですよね。AssumeRole自体の詳細な説明は公式のチュートリアル 等の記事に任せるとして、aws-sdk-goもMFAによるAssumeRoleに対応しています。拙作のEC2インスタンス一覧取得ツール で これを実装する機会があったので、実装方法の備忘メモを残しておきます。
 今回の要件は下記を想定しました。
  一時的セキュリティ認証情報(STS)を利用した実装 にはしない 代わりに 切替用のIAMロールを設定ファイル経由で使用できるようにする 実装にする  ~/.aws/credentials と ~/.aws/config に、IAMユーザのprofileと切替先ロールのprofileを定義し、これを使用する この実装にすることで、コマンドやライブラリを使う側が指定しなければならない情報（例えばRoleARNやSessionTokenなど）を削減できる   実際に利用する際はMFAトークンの入力を（標準入力から）促し、普段使っている2段階認証アプリ等で表示されたトークンを入力することで、切替先ロールの各種リソースにアクセスできるようにする  ~/.aws/credentials と ~/.aws/config の設定内容 公式の例 を参考に下記のような内容で作成しておきます。リンク先でも触れられていますが、aws-sdk-goだけに限らず、他言語のSDKやawscliでもこの設定は使い回す事が出来ます。
-# ~/.aws/credentials # IAMユーザーのアクセスキー情報が hoge という名前のprofileで定義されている [hoge] aws_access_key_id=ACCESS_KEY_ID aws_secret_access_key=SECRET_ACCESS_KEY # ~/.aws/config # hoge profileのconfig（例ではregionのみ）と、 # hogeをsource_profileとするロール切替先のprofile=dev-hoge-role、 # の2つが定義されている [profile hoge] region=ap-northeast-1 [profile dev-hoge-role] region=ap-northeast-1 source_profile=hoge role_arn=arn:aws:iam::123456789012:role/DevHogeRole mfa_serial=arn:aws:iam::987654321098:mfa/hoge.hugao aws.sessionパッケージを活用したprofile読み込み処理の実装 今回の要件をaws-sdk-goで実装する方法は実は複数パターン提供されているのですが、 利用側が指定しなければならない情報を減らしたい（プロファイルさえ設定されていれば、その情報を使うようにしたい） という要件を達成する為に、aws/session パッケージ を活用した実装にします。下記に解説コメント付きでコード例を載せておきます。</description>
+1 2 3 4 5 6  # ~/.aws/credentials # IAMユーザーのアクセスキー情報が hoge という名前のprofileで定義されている [hoge] aws_access_key_id=ACCESS_KEY_ID aws_secret_access_key=SECRET_ACCESS_KEY   1 2 3 4 5 6 7 8 9 10 11 12 13  # ~/.</description>
     </item>
     
     <item>
@@ -30,10 +30,10 @@
       
       <guid>https://horizoon.jp/post/2019/03/16/go_embedded_interface/</guid>
       <description>Summary 構造体へのインタフェース埋め込み活用例 ×2
- 一部メソッドを別処理に差し替え 特定のメソッドだけを実装  外部APIアクセスなどを伴う機能のテストをmockで行いたい場合に、gomockのようなmock用ライブラリに依存せずにmock化を実現    type Intf interface { MethodY() MethodZ() } type B struct { Intf // こういう埋め込み } 例1：一部メソッドを別処理に差し替え 無名インタフェースの埋め込み例として本家コードで参考になるのがsort/sort.go のこの実装 です。reverse構造体のコメントにも書いてある通りこうした無名インタフェースを埋め込んだ構造体を利用する事で「一部のメソッドだけ別の実装に差し替える」という事を実現しています。
+ 一部メソッドを別処理に差し替え 特定のメソッドだけを実装  外部APIアクセスなどを伴う機能のテストをmockで行いたい場合に、gomockのようなmock用ライブラリに依存せずにmock化を実現    1 2 3 4 5 6 7 8  type Intf interface { MethodY() MethodZ() } type B struct { Intf // こういう埋め込み }   例1：一部メソッドを別処理に差し替え 無名インタフェースの埋め込み例として本家コードで参考になるのがsort/sort.go のこの実装 です。reverse構造体のコメントにも書いてある通りこうした無名インタフェースを埋め込んだ構造体を利用する事で「一部のメソッドだけ別の実装に差し替える」という事を実現しています。
 単純なサンプルコードはこんな感じで、Intfというinterfaceを実装済のAという構造体を ReplaceMethodZ に渡すと、MethodZの挙動だけが異なる別の構造体を取得するという挙動になります。
 （同じコードはこちら → https://play.golang.org/p/mh803JB5RSt ）
-package main import ( &amp;#34;fmt&amp;#34; ) type Intf interface { MethodY() MethodZ() } type A struct { Str string } func (a *A) MethodY() { fmt.Println(fmt.Sprintf(&amp;#34;%s: MethodY&amp;#34;, a.Str)) } func (a *A) MethodZ() { fmt.</description>
+1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44  package main import ( &amp;#34;fmt&amp;#34; ) type Intf interface { MethodY() MethodZ() } type A struct { Str string } func (a *A) MethodY() { fmt.</description>
     </item>
     
   </channel>

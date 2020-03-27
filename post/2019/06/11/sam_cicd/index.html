@@ -1,81 +1,116 @@
 <!DOCTYPE html>
-<html lang="">
-<head>
+<html lang="en">
 
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta http-equiv="content-type" content="text/html; charset=utf-8">
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<meta name="description" content="This is my portfolio. I&#39;m Web Developer, Software Engineer, Engineering Manager and Backpacker. Ruby/Rails/Go/PHP/Java/Linux/MySQL/Docker/AWS/Fintech/Payment">
-<meta name="keywords" content="developer,software engineer,technology,web,blog,freelance,hugo">
+    <meta name="author" content="Fuminori Sakamoto">
+    <meta name="description" content="horizoon&#39;s website">
+    <meta name="keywords" content="blog,developer,backpacker,personal">
 
-<base href="https://horizoon.jp">
+    <meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Travis CIによるLambdaの自動デプロイ with AWS SAM in Go"/>
+<meta name="twitter:description" content="Summary  AWS SAMで管理しているLambda Functionのデプロイ自動化を、AWS CodePipelineやAWS CodeBuildを使うことなく Travis CIを活用して行う  今回利用したLambda FunctionはGo製 Pull Requestのmasterブランチへのmerge時に、samコマンドで自動デプロイ    前提条件  Lambdaのリポジトリはgithub 各種バージョン情報は下記の通り  1 2 3 4 5 6 7 8 9 10 11  $ python --version Python 2.7.12 $ pip --version pip 19.0.3 from /usr/local/lib/python2.7/dist-packages/pip (python 2.7) $ aws --version aws-cli/1.16.175 Python/2.7.12 Linux/4.15.0-1028-gcp botocore/1.12.165 $ sam --version SAM CLI, version 0.17.0   SAMで管理しているLambdaのデプロイをTravis CIで自動化したい SAMで管理しているLambdaのデプロイ自動化をTravis CIで行います。SAMで管理しているからにはSAMのテンプレートとaws-sam-cliを使ってデプロイを行いたいです。なのでTravis公式のLambdaデプロイサポートは使用しません。
+ branch !"/>
 
-<title>
-  horizoon - Travis CIによるLambdaの自動デプロイ with AWS SAM in Go 
+    <meta property="og:title" content="Travis CIによるLambdaの自動デプロイ with AWS SAM in Go" />
+<meta property="og:description" content="Summary  AWS SAMで管理しているLambda Functionのデプロイ自動化を、AWS CodePipelineやAWS CodeBuildを使うことなく Travis CIを活用して行う  今回利用したLambda FunctionはGo製 Pull Requestのmasterブランチへのmerge時に、samコマンドで自動デプロイ    前提条件  Lambdaのリポジトリはgithub 各種バージョン情報は下記の通り  1 2 3 4 5 6 7 8 9 10 11  $ python --version Python 2.7.12 $ pip --version pip 19.0.3 from /usr/local/lib/python2.7/dist-packages/pip (python 2.7) $ aws --version aws-cli/1.16.175 Python/2.7.12 Linux/4.15.0-1028-gcp botocore/1.12.165 $ sam --version SAM CLI, version 0.17.0   SAMで管理しているLambdaのデプロイをTravis CIで自動化したい SAMで管理しているLambdaのデプロイ自動化をTravis CIで行います。SAMで管理しているからにはSAMのテンプレートとaws-sam-cliを使ってデプロイを行いたいです。なのでTravis公式のLambdaデプロイサポートは使用しません。
+ branch !" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://horizoon.jp/post/2019/06/11/sam_cicd/" />
+<meta property="article:published_time" content="2019-06-11T17:16:54+09:00" />
+<meta property="article:modified_time" content="2019-06-11T17:16:54+09:00" />
+
+
+    
+      <base href="https://horizoon.jp/post/2019/06/11/sam_cicd/">
+    
+    <title>
+  Travis CIによるLambdaの自動デプロイ with AWS SAM in Go · horizoon
 </title>
 
-<meta name="generator" content="Hugo 0.67.1" />
-
-
-
-<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:300,400|Roboto+Slab:400,700|Roboto:300,300i,400,400i,500,500i,700,700i">
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css" integrity="sha384-oS3vJWv+0UjzBfQzYUhtDYW+Pj2yciDJxpsK1OYPAYjqT085Qq/1cq5FLXAZQ7Ay" crossorigin="anonymous">
-<link rel="stylesheet" href="https://horizoon.jp/css/main.css">
-<link rel="stylesheet" href="https://horizoon.jp/css/custom.css">
-
-
-
-
-<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-<link rel="icon" type="image/png" href="/favicon-32x32.png" sizes="32x32">
-<link rel="icon" type="image/png" href="/favicon-16x16.png" sizes="16x16">
-<link rel="manifest" href="/manifest.json">
-<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
-<meta name="theme-color" content="#ffffff">
-
-</head>
-<body lang="">
-<div class="container">
-
-
-<header class="row text-left title">
-  <h1 class="title">Travis CIによるLambdaの自動デプロイ with AWS SAM in Go</h1>
-</header>
-<section id="category-pane" class="row meta">
-  
-  <div class="col-md-12">
-    <h6 class="text-left meta">
-        PUBLISHED ON 2019-06-11 
-      
-      
-      
-      —
-      
-      
-      <a class="meta" href="/categories/aws">AWS</a>, 
-      
-      <a class="meta" href="/categories/aws-sam">AWS SAM</a>, 
-      
-      <a class="meta" href="/categories/go">GO</a>, 
-      
-      <a class="meta" href="/categories/golang">GOLANG</a>, 
-      
-      <a class="meta" href="/categories/lambda">LAMBDA</a>, 
-      
-      <a class="meta" href="/categories/travis-ci">TRAVIS CI</a>
-      
-      
-      
-    </h6>
-  </div>
-  
-</section>
-<section id="content-pane" class="row">
-  <div class="col-md-12 text-justify content">
     
+      <link rel="canonical" href="https://horizoon.jp/post/2019/06/11/sam_cicd/">
+    
+
+    <link href="https://fonts.googleapis.com/css?family=Lato:400,700%7CMerriweather:300,700%7CSource+Code+Pro:400,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.11.2/css/all.css" integrity="sha384-KA6wR/X5RY4zFAHpv/CnoG2UW1uogYfdnP67Uv7eULvTveboZJg0qUpmJZb5VqzN" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css" integrity="sha256-l85OmPOjvil/SOvVt3HnSSjzF1TUMyT9eV0c2BzEGzU=" crossorigin="anonymous" />
+
+    
+      
+      
+      <link rel="stylesheet" href="https://horizoon.jp/css/coder.min.a4f332213a21ce8eb521670c614470c58923aaaf385e2a73982c31dd7642decb.css" integrity="sha256-pPMyITohzo61IWcMYURwxYkjqq84XipzmCwx3XZC3ss=" crossorigin="anonymous" media="screen" />
+    
+
+    
+
+    
+      
+        
+        
+        <link rel="stylesheet" href="https://horizoon.jp/css/coder-dark.min.83a2010dac9f59f943b3004cd6c4f230507ad036da635d3621401d42ec4e2835.css" integrity="sha256-g6IBDayfWflDswBM1sTyMFB60DbaY102IUAdQuxOKDU=" crossorigin="anonymous" media="screen" />
+      
+    
+
+    
+
+    
+
+    
+
+    <link rel="icon" type="image/png" href="https://horizoon.jp/favicon-32x32.png" sizes="32x32">
+    <link rel="icon" type="image/png" href="https://horizoon.jp/favicon-16x16.png" sizes="16x16">
+
+    <meta name="generator" content="Hugo 0.67.1" />
+  </head>
+
+  
+  
+    
+  
+  <body class="colorscheme-auto">
+    <main class="wrapper">
+      <nav class="navigation">
+  <section class="container">
+    <a class="navigation-title" href="https://horizoon.jp/">
+      horizoon
+    </a>
+    
+    <input type="checkbox" id="menu-toggle" />
+    <label class="menu-button float-right" for="menu-toggle"><i class="fas fa-bars"></i></label>
+    <ul class="navigation-list">
+      
+        
+          <li class="navigation-item">
+            <a class="navigation-link" href="https://horizoon.jp/post/">Blog</a>
+          </li>
+        
+          <li class="navigation-item">
+            <a class="navigation-link" href="https://horizoon.jp/projects/">Projects</a>
+          </li>
+        
+          <li class="navigation-item">
+            <a class="navigation-link" href="https://horizoon.jp/about/">About</a>
+          </li>
+        
+      
+      
+    </ul>
+    
+  </section>
+</nav>
+
+
+      <div class="content">
+        
+  <section class="container page">
+  <article>
+    <header>
+      <h1>Travis CIによるLambdaの自動デプロイ with AWS SAM in Go</h1>
+    </header>
+
     <h1 id="summary">Summary</h1>
 <ul>
 <li>AWS SAMで管理しているLambda Functionのデプロイ自動化を、<strong>AWS CodePipelineやAWS CodeBuildを使うことなく</strong> Travis CIを活用して行う
@@ -90,7 +125,22 @@
 <li>Lambdaのリポジトリはgithub</li>
 <li>各種バージョン情報は下記の通り</li>
 </ul>
-<pre><code>$ python --version
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">$ python --version
 Python 2.7.12
 
 $ pip --version
@@ -101,7 +151,9 @@ aws-cli/1.16.175 Python/2.7.12 Linux/4.15.0-1028-gcp botocore/1.12.165
 
 $ sam --version
 SAM CLI, version 0.17.0
-</code></pre><h1 id="samで管理しているlambdaのデプロイをtravis-ciで自動化したい">SAMで管理しているLambdaのデプロイをTravis CIで自動化したい</h1>
+</code></pre></td></tr></table>
+</div>
+</div><h1 id="samで管理しているlambdaのデプロイをtravis-ciで自動化したい">SAMで管理しているLambdaのデプロイをTravis CIで自動化したい</h1>
 <p>SAMで管理しているLambdaのデプロイ自動化をTravis CIで行います。SAMで管理しているからにはSAMのテンプレートとaws-sam-cliを使ってデプロイを行いたいです。なので<a href="https://docs.travis-ci.com/user/deployment/lambda/">Travis公式のLambdaデプロイサポート</a>は使用しません。</p>
 <ul>
 <li>branch != master の場合のCI
@@ -128,95 +180,203 @@ SAM CLI, version 0.17.0
 <li>AWS_DEFAULT_REGION</li>
 </ul>
 <p>セキュアな変数は <a href="https://docs.travis-ci.com/user/environment-variables/#defining-encrypted-variables-in-travisyml"><code>travis encrypt</code> コマンドで暗号化して.travis.yml に設定します</a>。</p>
-<div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh">$ travis encrypt <span class="nv">AWS_ACCESS_KEY_ID</span><span class="o">=</span>YOUR_KEY_ID
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">$ travis encrypt <span style="color:#bb60d5">AWS_ACCESS_KEY_ID</span><span style="color:#666">=</span>YOUR_KEY_ID
 
 Please add the following to your .travis.yml file:
 
-  secure: <span class="s2">&#34;XXX&#34;</span>  <span class="c1"># この内容を.travis.ymlに設定する</span>
+  secure: <span style="color:#4070a0">&#34;XXX&#34;</span>  <span style="color:#60a0b0;font-style:italic"># この内容を.travis.ymlに設定する</span>
 
-$ travis encrypt <span class="nv">AWS_SECRET_ACCESS_KEY</span><span class="o">=</span>YOUR_KEY
+$ travis encrypt <span style="color:#bb60d5">AWS_SECRET_ACCESS_KEY</span><span style="color:#666">=</span>YOUR_KEY
 
 Please add the following to your .travis.yml file:
 
-  secure: <span class="s2">&#34;XXX&#34;</span>  <span class="c1"># この内容を.travis.ymlに設定する</span>
-</code></pre></div><h2 id="travisyml">.travis.yml</h2>
-<div class="highlight"><pre class="chroma"><code class="language-yaml" data-lang="yaml"><span class="k">dist</span><span class="p">:</span><span class="w"> </span>xenial<span class="w">
-</span><span class="w">
-</span><span class="w"></span><span class="k">go</span><span class="p">:</span><span class="w">
-</span><span class="w">  </span>- <span class="m">1.12</span>.x<span class="w">
-</span><span class="w">
-</span><span class="w"></span><span class="k">sudo</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="w">
-</span><span class="w">
-</span><span class="w"></span><span class="k">env</span><span class="p">:</span><span class="w">
-</span><span class="w">  </span><span class="k">matrix</span><span class="p">:</span><span class="w">
-</span><span class="w">    </span>- GO111MODULE=on<span class="w">
-</span><span class="w">  </span><span class="k">global</span><span class="p">:</span><span class="w">
-</span><span class="w">    </span>- AWS_DEFAULT_REGION=ap-northeast<span class="m">-1</span><span class="w">
-</span><span class="w">    </span>- <span class="k">secure</span><span class="p">:</span><span class="w"> </span>ENCRYPTED_ACCESS_KEY_ID<span class="w">
-</span><span class="w">    </span>- <span class="k">secure</span><span class="p">:</span><span class="w"> </span>ENCRYPTED_SECRET_ACCESS_KEY<span class="w">
-</span><span class="w">
-</span><span class="w"></span><span class="k">install</span><span class="p">:</span><span class="w">
-</span><span class="w">  </span>- go<span class="w"> </span>mod<span class="w"> </span>download<span class="w">
-</span><span class="w">  </span>- python<span class="w"> </span>--version<span class="w">
-</span><span class="w">  </span>- pip<span class="w"> </span>--version<span class="w">
-</span><span class="w">  </span>- pip<span class="w"> </span>install<span class="w"> </span>--user<span class="w"> </span>awscli<span class="w">
-</span><span class="w">  </span>- pip<span class="w"> </span>install<span class="w"> </span>--user<span class="w"> </span>aws-sam-cli<span class="w">
-</span><span class="w">
-</span><span class="w"></span><span class="k">script</span><span class="p">:</span><span class="w">
-</span><span class="w">  </span>- go<span class="w"> </span>test<span class="w"> </span>./...<span class="w">
-</span><span class="w">  </span>- sam<span class="w"> </span>validate<span class="w">
-</span><span class="w">
-</span><span class="w"></span><span class="k">deploy</span><span class="p">:</span><span class="w">
-</span><span class="w">  </span><span class="k">provider</span><span class="p">:</span><span class="w"> </span>script<span class="w">
-</span><span class="w">  </span><span class="k">script</span><span class="p">:</span><span class="w"> </span><span class="s2">&#34;./deploy.sh&#34;</span><span class="w">
-</span><span class="w">  </span><span class="k">skip_cleanup</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="w">
-</span><span class="w">  </span><span class="k">on</span><span class="p">:</span><span class="w">
-</span><span class="w">    </span><span class="k">branch</span><span class="p">:</span><span class="w"> </span>master<span class="w">
-</span><span class="w">
-</span><span class="w"></span><span class="k">notifications</span><span class="p">:</span><span class="w">
-</span><span class="w">  </span><span class="k">email</span><span class="p">:</span><span class="w">
-</span><span class="w">    </span><span class="k">on_success</span><span class="p">:</span><span class="w"> </span>never<span class="w">
-</span></code></pre></div><p>pythonのバージョンが古いと<code>sam</code>コマンドがコケるので<a href="https://docs.travis-ci.com/user/reference/xenial/#python-support"><code>dist: xenial</code>でXenialベースのイメージを指定し、極力新しいバージョンのpythonを利用</a>できるようにします。</p>
+  secure: <span style="color:#4070a0">&#34;XXX&#34;</span>  <span style="color:#60a0b0;font-style:italic"># この内容を.travis.ymlに設定する</span>
+</code></pre></td></tr></table>
+</div>
+</div><h2 id="travisyml">.travis.yml</h2>
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">33
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">34
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">35
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">36
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#007020;font-weight:bold">dist</span>:<span style="color:#bbb"> </span>xenial<span style="color:#bbb">
+</span><span style="color:#bbb">
+</span><span style="color:#bbb"></span><span style="color:#007020;font-weight:bold">go</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">  </span>- <span style="color:#40a070">1.12</span>.x<span style="color:#bbb">
+</span><span style="color:#bbb">
+</span><span style="color:#bbb"></span><span style="color:#007020;font-weight:bold">sudo</span>:<span style="color:#bbb"> </span><span style="color:#007020;font-weight:bold">false</span><span style="color:#bbb">
+</span><span style="color:#bbb">
+</span><span style="color:#bbb"></span><span style="color:#007020;font-weight:bold">env</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">  </span><span style="color:#007020;font-weight:bold">matrix</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">    </span>- GO111MODULE=on<span style="color:#bbb">
+</span><span style="color:#bbb">  </span><span style="color:#007020;font-weight:bold">global</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">    </span>- AWS_DEFAULT_REGION=ap-northeast<span style="color:#40a070">-1</span><span style="color:#bbb">
+</span><span style="color:#bbb">    </span>- <span style="color:#007020;font-weight:bold">secure</span>:<span style="color:#bbb"> </span>ENCRYPTED_ACCESS_KEY_ID<span style="color:#bbb">
+</span><span style="color:#bbb">    </span>- <span style="color:#007020;font-weight:bold">secure</span>:<span style="color:#bbb"> </span>ENCRYPTED_SECRET_ACCESS_KEY<span style="color:#bbb">
+</span><span style="color:#bbb">
+</span><span style="color:#bbb"></span><span style="color:#007020;font-weight:bold">install</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">  </span>- go<span style="color:#bbb"> </span>mod<span style="color:#bbb"> </span>download<span style="color:#bbb">
+</span><span style="color:#bbb">  </span>- python<span style="color:#bbb"> </span>--version<span style="color:#bbb">
+</span><span style="color:#bbb">  </span>- pip<span style="color:#bbb"> </span>--version<span style="color:#bbb">
+</span><span style="color:#bbb">  </span>- pip<span style="color:#bbb"> </span>install<span style="color:#bbb"> </span>--user<span style="color:#bbb"> </span>awscli<span style="color:#bbb">
+</span><span style="color:#bbb">  </span>- pip<span style="color:#bbb"> </span>install<span style="color:#bbb"> </span>--user<span style="color:#bbb"> </span>aws-sam-cli<span style="color:#bbb">
+</span><span style="color:#bbb">
+</span><span style="color:#bbb"></span><span style="color:#007020;font-weight:bold">script</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">  </span>- go<span style="color:#bbb"> </span>test<span style="color:#bbb"> </span>./...<span style="color:#bbb">
+</span><span style="color:#bbb">  </span>- sam<span style="color:#bbb"> </span>validate<span style="color:#bbb">
+</span><span style="color:#bbb">
+</span><span style="color:#bbb"></span><span style="color:#007020;font-weight:bold">deploy</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">  </span><span style="color:#007020;font-weight:bold">provider</span>:<span style="color:#bbb"> </span>script<span style="color:#bbb">
+</span><span style="color:#bbb">  </span><span style="color:#007020;font-weight:bold">script</span>:<span style="color:#bbb"> </span><span style="color:#4070a0">&#34;./deploy.sh&#34;</span><span style="color:#bbb">
+</span><span style="color:#bbb">  </span><span style="color:#007020;font-weight:bold">skip_cleanup</span>:<span style="color:#bbb"> </span><span style="color:#007020;font-weight:bold">true</span><span style="color:#bbb">
+</span><span style="color:#bbb">  </span><span style="color:#007020;font-weight:bold">on</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">    </span><span style="color:#007020;font-weight:bold">branch</span>:<span style="color:#bbb"> </span>master<span style="color:#bbb">
+</span><span style="color:#bbb">
+</span><span style="color:#bbb"></span><span style="color:#007020;font-weight:bold">notifications</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">  </span><span style="color:#007020;font-weight:bold">email</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">    </span><span style="color:#007020;font-weight:bold">on_success</span>:<span style="color:#bbb"> </span>never<span style="color:#bbb">
+</span></code></pre></td></tr></table>
+</div>
+</div><p>pythonのバージョンが古いと<code>sam</code>コマンドがコケるので<a href="https://docs.travis-ci.com/user/reference/xenial/#python-support"><code>dist: xenial</code>でXenialベースのイメージを指定し、極力新しいバージョンのpythonを利用</a>できるようにします。</p>
 <p><code>language: go</code>なビルドイメージにインストールされているpythonのバージョンは、<code>dist: xenial</code>を指定しない＝<code>dist: trusty</code>が選択されれば（この記事の執筆時点では）2.7.6になります。例えば<code>sam validate</code>をver 2.7.6なpython環境で実行すると、SNIMissingWarningが発生してしまいます。</p>
-<pre><code>/home/travis/.local/lib/python2.7/site-packages/urllib3/util/ssl_.py:365: SNIMissingWarning: An HTTPS request has been made, but the SNI (Server Name Indication) extension to TLS is not available on this platform.
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">/home/travis/.local/lib/python2.7/site-packages/urllib3/util/ssl_.py:365: SNIMissingWarning: An HTTPS request has been made, but the SNI (Server Name Indication) extension to TLS is not available on this platform.
 This may cause the server to present an incorrect TLS certificate, which can cause validation failures.
 You can upgrade to a newer version of Python to solve this. For more information, see https://urllib3.readthedocs.io/en/latest/advanced-usage.html#ssl-warnings
   SNIMissingWarning
-</code></pre><p>deployセクションのscriptで<code>go build</code> =&gt; <code>sam package</code> =&gt; <code>sam deploy</code>を実行するスクリプトを用意・指定します。</p>
-<div class="highlight"><pre class="chroma"><code class="language-sh" data-lang="sh"><span class="cp">#!/bin/bash
-</span><span class="cp"></span>
-<span class="c1"># ./deploy.sh</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>deployセクションのscriptで<code>go build</code> =&gt; <code>sam package</code> =&gt; <code>sam deploy</code>を実行するスクリプトを用意・指定します。</p>
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">33
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh"><span style="color:#007020">#!/bin/bash
+</span><span style="color:#007020"></span>
+<span style="color:#60a0b0;font-style:italic"># ./deploy.sh</span>
 
-<span class="nb">set</span> -eu
+<span style="color:#007020">set</span> -eu
 
-<span class="c1"># template.yamlのResourcesの関数定義の内容と合わせる</span>
-<span class="c1"># 例えば</span>
-<span class="c1">#   CodeUri: hoge/</span>
-<span class="c1">#   Handler: huga</span>
-<span class="c1"># であれば、</span>
-<span class="c1">#   CODE_URI=hoge/</span>
-<span class="c1">#   HANDLER=huga</span>
-<span class="c1"># とする</span>
+<span style="color:#60a0b0;font-style:italic"># template.yamlのResourcesの関数定義の内容と合わせる</span>
+<span style="color:#60a0b0;font-style:italic"># 例えば</span>
+<span style="color:#60a0b0;font-style:italic">#   CodeUri: hoge/</span>
+<span style="color:#60a0b0;font-style:italic">#   Handler: huga</span>
+<span style="color:#60a0b0;font-style:italic"># であれば、</span>
+<span style="color:#60a0b0;font-style:italic">#   CODE_URI=hoge/</span>
+<span style="color:#60a0b0;font-style:italic">#   HANDLER=huga</span>
+<span style="color:#60a0b0;font-style:italic"># とする</span>
 
-<span class="nv">CODE_URI</span><span class="o">=</span>hoge/
-<span class="nv">HANDLER</span><span class="o">=</span>huga
-<span class="nv">GOOS</span><span class="o">=</span>linux <span class="nv">GOARCH</span><span class="o">=</span>amd64 go build -o <span class="si">${</span><span class="nv">CODE_URI</span><span class="si">}${</span><span class="nv">HANDLER</span><span class="si">}</span> <span class="si">${</span><span class="nv">CODE_URI</span><span class="si">}</span>main.go
+<span style="color:#bb60d5">CODE_URI</span><span style="color:#666">=</span>hoge/
+<span style="color:#bb60d5">HANDLER</span><span style="color:#666">=</span>huga
+<span style="color:#bb60d5">GOOS</span><span style="color:#666">=</span>linux <span style="color:#bb60d5">GOARCH</span><span style="color:#666">=</span>amd64 go build -o <span style="color:#70a0d0;font-style:italic">${</span><span style="color:#bb60d5">CODE_URI</span><span style="color:#70a0d0;font-style:italic">}${</span><span style="color:#bb60d5">HANDLER</span><span style="color:#70a0d0;font-style:italic">}</span> <span style="color:#70a0d0;font-style:italic">${</span><span style="color:#bb60d5">CODE_URI</span><span style="color:#70a0d0;font-style:italic">}</span>main.go
 
-<span class="nv">TEMPLATE</span><span class="o">=</span>./template.yaml
-<span class="nv">OUTPUT_TEMPLATE</span><span class="o">=</span>./serverless-output.yaml  <span class="c1"># デプロイ用の中間生成物なのでgitignoreしておくのが良いです</span>
-<span class="nv">S3_BUCKET</span><span class="o">=</span>YOUR_BUCKET
-<span class="nv">S3_PREFIX</span><span class="o">=</span>YOUR_PREFIX
-<span class="nv">STACK</span><span class="o">=</span>YOUR_STACK
+<span style="color:#bb60d5">TEMPLATE</span><span style="color:#666">=</span>./template.yaml
+<span style="color:#bb60d5">OUTPUT_TEMPLATE</span><span style="color:#666">=</span>./serverless-output.yaml  <span style="color:#60a0b0;font-style:italic"># デプロイ用の中間生成物なのでgitignoreしておくのが良いです</span>
+<span style="color:#bb60d5">S3_BUCKET</span><span style="color:#666">=</span>YOUR_BUCKET
+<span style="color:#bb60d5">S3_PREFIX</span><span style="color:#666">=</span>YOUR_PREFIX
+<span style="color:#bb60d5">STACK</span><span style="color:#666">=</span>YOUR_STACK
 
-sam package --template-file <span class="si">${</span><span class="nv">TEMPLATE</span><span class="si">}</span> <span class="se">\
-</span><span class="se"></span>  --output-template-file <span class="si">${</span><span class="nv">OUTPUT_TEMPLATE</span><span class="si">}</span> <span class="se">\
-</span><span class="se"></span>  --s3-bucket <span class="si">${</span><span class="nv">S3_BUCKET</span><span class="si">}</span> <span class="se">\
-</span><span class="se"></span>  --s3-prefix <span class="si">${</span><span class="nv">S3_PREFIX</span><span class="si">}</span>
+sam package --template-file <span style="color:#70a0d0;font-style:italic">${</span><span style="color:#bb60d5">TEMPLATE</span><span style="color:#70a0d0;font-style:italic">}</span> <span style="color:#4070a0;font-weight:bold">\
+</span><span style="color:#4070a0;font-weight:bold"></span>  --output-template-file <span style="color:#70a0d0;font-style:italic">${</span><span style="color:#bb60d5">OUTPUT_TEMPLATE</span><span style="color:#70a0d0;font-style:italic">}</span> <span style="color:#4070a0;font-weight:bold">\
+</span><span style="color:#4070a0;font-weight:bold"></span>  --s3-bucket <span style="color:#70a0d0;font-style:italic">${</span><span style="color:#bb60d5">S3_BUCKET</span><span style="color:#70a0d0;font-style:italic">}</span> <span style="color:#4070a0;font-weight:bold">\
+</span><span style="color:#4070a0;font-weight:bold"></span>  --s3-prefix <span style="color:#70a0d0;font-style:italic">${</span><span style="color:#bb60d5">S3_PREFIX</span><span style="color:#70a0d0;font-style:italic">}</span>
 
-sam deploy --template-file <span class="si">${</span><span class="nv">OUTPUT_TEMPLATE</span><span class="si">}</span> <span class="se">\
-</span><span class="se"></span>  --stack-name <span class="si">${</span><span class="nv">STACK</span><span class="si">}</span> <span class="se">\
-</span><span class="se"></span>  --capabilities CAPABILITY_IAM
-</code></pre></div><p>これで、今後masterブランチへのpushをトリガーに<code>go build</code> =&gt; <code>sam package</code> =&gt; <code>sam deploy</code> によるデプロイが自動で行われるようになります。</p>
+sam deploy --template-file <span style="color:#70a0d0;font-style:italic">${</span><span style="color:#bb60d5">OUTPUT_TEMPLATE</span><span style="color:#70a0d0;font-style:italic">}</span> <span style="color:#4070a0;font-weight:bold">\
+</span><span style="color:#4070a0;font-weight:bold"></span>  --stack-name <span style="color:#70a0d0;font-style:italic">${</span><span style="color:#bb60d5">STACK</span><span style="color:#70a0d0;font-style:italic">}</span> <span style="color:#4070a0;font-weight:bold">\
+</span><span style="color:#4070a0;font-weight:bold"></span>  --capabilities CAPABILITY_IAM
+</code></pre></td></tr></table>
+</div>
+</div><p>これで、今後masterブランチへのpushをトリガーに<code>go build</code> =&gt; <code>sam package</code> =&gt; <code>sam deploy</code> によるデプロイが自動で行われるようになります。</p>
 <p>今回の例のように<code>sam package</code> =&gt; <code>sam deploy</code> をシンプルに実行するだけのフローであれば（且つCodePipeline導入によるメリットを享受したい強い理由が無ければ）、Travis CIでも十分でした、という所感です。</p>
 <h1 id="ブックマーク">ブックマーク</h1>
 <ul>
@@ -231,81 +391,48 @@ sam deploy --template-file <span class="si">${</span><span class="nv">OUTPUT_TEM
 </li>
 </ul>
 
-  </div>
-</section>
-<section id="tag-pane" class="row meta">
-  
-  <div class="col-md-12">
-    <h6 class="text-right meta">
-      
-      
-      
-      
-    </h6>
-  </div>
-  
+  </article>
 </section>
 
 
+      </div>
 
-
-
-
-
-
-<section id="menu-pane" class="row menu text-center">
-  
-  
-  <span><a class="menu-item" href="https://horizoon.jp/post/2019/04/18/contributing_with_gomodules/">&lt; prev | </a></span>
-  
-  
-  <span><a class="menu-item" href="/post">post</a></span>
-  
-  
-  <span><a class="menu-item" href="https://horizoon.jp/post/2019/08/16/aws_sdk_go_assumerole/"> | next &gt;</a></span>
-  
-  
-  <h4 class="text-center"><a class="menu-item" href="https://horizoon.jp">home</a></h4>
-</section>
-
-
-
-<footer class="row text-center footer">
-  <hr />
-  
-  <h6 class="text-center copyright">© 2019. horizoon. <a href="http://creativecommons.org/licenses/by/3.0/">Some Rights Reserved</a>.</h6>
-  
-  <h6 class="text-center powered">Powered by <a href="https://gohugo.io/">Hugo  v0.67.1</a> &amp; <a href="https://github.com/shenoybr/hugo-goa">Goa</a>.</h6>
-  
-      
-      <h6><a href="" aria-label="RSS Feed"><i class="fas fa-rss" aria-hidden="true"></i></a></h6>
+      <footer class="footer">
+  <section class="container">
     
-  
+    
+      
+        © 2017 - 2020
+      
+       Fuminori Sakamoto 
+    
+    
+       · 
+      Powered by <a href="https://gohugo.io/">Hugo</a> & <a href="https://github.com/luizdepra/hugo-coder/">Coder</a>.
+    
+    
+  </section>
 </footer>
 
-</div>
+    </main>
 
-
-
-
-
-
+    
 <script type="application/javascript">
 var doNotTrack = false;
 if (!doNotTrack) {
-	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
 	ga('create', 'UA-129776715-1', 'auto');
 	
 	ga('send', 'pageview');
 }
 </script>
-<script async src='https://www.google-analytics.com/analytics.js'></script>
 
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
-<script src="js/main.js"></script>
-<script src="js/custom.js"></script>
-</body>
+
+    
+
+  </body>
+
 </html>
-
-
