@@ -128,7 +128,7 @@ FULLTEXT INDEXも他のINDEXと同様にデータ更新・削除の際にINDEX�
 <p>InnoDBの全文検索は5.7、特に<a href="https://dev.mysql.com/doc/refman/5.7/en/fulltext-search-ngram.html">5.7.6以降でいわゆるCJK（中国語・日本語・韓国語）がN-gramで標準サポート</a>され始め、 <a href="http://mysqlserverteam.com/innodb-%E5%85%A8%E6%96%87%E6%A4%9C%E7%B4%A2-n-gram-parser/">CREATE TABLE文で簡単にパーサーを指定できる構文のサポート</a>、 設定やクエリの組立で考えないといけない事が減った事で導入障壁がかなり下がっている。 ※4.1と5.0でサービス導入経験がある私の個人的な比較感想です。</p>
 <p>FULLTEXT INDEXも他のINDEXと同様にデータ更新・削除の際にINDEXのrebuildが走るので更新時の負荷には注意が必要で、FULLTEXT INDEXの場合は「rebuild負荷が列に含まれる単語数に比例する」「rebuildでの断片化が起こりやすい」という固有の注意点もあり、「件数が多い」「FULLTEXT INDEXを貼ったカラムの更新頻度が激しい」という条件が揃ったテーブルへの導入は十分な検証の上で実施した方が良さそう。</p>
 <p>下記に書いた検証を経て開発したサービスでも導入してみたが、結論だけ書くと「（当たり前だが）用法用量さえ守れば十分使える。バックエンドのDBがMySQLなら、リッチな全文検索機構を導入する前段階なんかは活用場面としてオススメできる」と感じた。</p>
-<h1 id="やること">やること</h1>
+<h2 id="やること">やること</h2>
 <p><a href="http://www.houjin-bangou.nta.go.jp/download/zenken/#csv-unicode">国税庁が公開している法人番号データ</a>を使って検証してみる。データ件数が100万件強程度になるように東京・大阪・海外 の3種類をマージしたデータを使った。用意したデータとテーブルについては<a href="https://github.com/practice-goldeneggg/mysql-innodb-fts">githubにupしている</a>。charsetをutf8mb4にしているのは、utf8だと登録時にエラーになる文字を含んだ法人が複数存在する為。collationはデフォルトであるuft8mb4_general_ciを使用する。</p>
 <div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
@@ -252,7 +252,7 @@ FULLTEXT INDEXも他のINDEXと同様にデータ更新・削除の際にINDEX�
 <span style="color:#666">+</span><span style="color:#60a0b0;font-style:italic">----------+
 </span></code></pre></td></tr></table>
 </div>
-</div><h1 id="検証環境">検証環境</h1>
+</div><h2 id="検証環境">検証環境</h2>
 <p>InnoDBのFULLTEXT INDEXに関連するパラメータは全てデフォルトのままで変更はしない。単語分割の単位は通常 <code>innodb_ft_min_token_size</code> と <code>innodb_ft_max_token_size</code> で設定するのだが、N-gramの場合は無視されて代わりに <code>ngram_token_size</code> というパラメータの内容が適用される。デフォルト値は2なので、今回の検証では 2-gram で分割されたwordで転置インデックスが登録される。例として「富士山」というデータの場合は「富士」「士山」の2通りのwordで登録される。</p>
 <div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
@@ -339,7 +339,7 @@ mysql<span style="color:#666">&gt;</span> <span style="color:#007020;font-weight
 <span style="color:#666">+</span><span style="color:#60a0b0;font-style:italic">------+-----------+---------+----------+
 </span></code></pre></td></tr></table>
 </div>
-</div><h1 id="結果と考察">結果と考察</h1>
+</div><h2 id="結果と考察">結果と考察</h2>
 <ul>
 <li>INDEXが効かない部分一致LIKE</li>
 <li>FULLTEXT INDEXを使っての部分一致</li>
@@ -431,7 +431,7 @@ mysql<span style="color:#666">&gt;</span> <span style="color:#007020;font-weight
 </code></pre></td></tr></table>
 </div>
 </div><p>文字数が同じでHIT件数も限りなく近い「コード」と「佐々木」が、応答速度では「佐々木」が速い（「コード」が遅い）という結果になった。「コード」に限らず、カタカナでの全文検索は速度が落ちるという結果になった ※これについてはもうちょっと深掘りして調べてみたい。</p>
-<h1 id="memo-全文検索結果のソートについて">MEMO: 全文検索結果のソートについて</h1>
+<h2 id="memo-全文検索結果のソートについて">MEMO: 全文検索結果のソートについて</h2>
 <ul>
 <li>例えばLIMITによるページングの為に結果をソートするようなケースで、適合性以外でORDER BYすると100% filesortが発生するので避ける。IDのような主キーでORDER BYしても同じ</li>
 <li>全文検索結果のソートは 適合性が高い順 がデフォルトの挙動で、<code>MATCH AGAINST</code> をSELECT対象にも含めると適合性が取得でき、この適合性でソートすると速い</li>
@@ -461,7 +461,7 @@ mysql<span style="color:#666">&gt;</span> <span style="color:#007020;font-weight
 </span><span style="color:#60a0b0;font-style:italic"></span><span style="color:#007020;font-weight:bold">LIMIT</span> <span style="color:#40a070">0</span>,<span style="color:#40a070">10</span>
 </code></pre></td></tr></table>
 </div>
-</div><h1 id="memo-fulltext-indexの挙動について">MEMO: FULLTEXT INDEXの挙動について</h1>
+</div><h2 id="memo-fulltext-indexの挙動について">MEMO: FULLTEXT INDEXの挙動について</h2>
 <ul>
 <li>FULLTEXT INDEXのみ付与されたカラムに、MATCH AGAINST文以外の条件指定をした場合、INDEXは効かない</li>
 <li>FULLTEXT INDEXのみ付与されたカラム + 他INDEXが付与されたカラム の複合条件を指定した場合、 「他INDEXが付与されたカラム」による絞込の方が効率的であってもそのINDEXは無視されて、FULLTEXT INDEXによる検索が実行される</li>

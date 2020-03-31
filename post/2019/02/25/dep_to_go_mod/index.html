@@ -111,14 +111,14 @@
       <h1>depからgo modulesへの移行と、移行時にTravis CI &amp; GoReleaserでハマる（かもしれない）ポイント</h1>
     </header>
 
-    <h1 id="summary">Summary</h1>
+    <h2 id="summary">Summary</h2>
 <ul>
 <li>depで管理していた既存のGo製ツールをdepからgo moduleに移行してみたが、移行自体は特にハマりどころも無くスンナリいった</li>
 <li>go moduleへの移行後に依存パッケージのupgradeを実施、これもスンナリいった</li>
 <li>Travis CI + <a href="https://goreleaser.com/">GoReleaser</a> で、ビルド成果物をGithub Releasesに登録する作業 ＆ GoアプリのHomeBrewパッケージ作成・公開作業 を自動化しようと試みたが、そのCIが <code>git is currently in a dirty state</code> というコケ方をしてちょっとハマった</li>
 <li><strong>GoReleaserは本当に便利</strong></li>
 </ul>
-<h1 id="前提条件">前提条件</h1>
+<h2 id="前提条件">前提条件</h2>
 <div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
 <pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
@@ -131,7 +131,7 @@ $ go version
 go version go1.11.5 darwin/amd64</code></pre></td></tr></table>
 </div>
 </div>
-<h1 id="切り替え手順">切り替え手順</h1>
+<h2 id="切り替え手順">切り替え手順</h2>
 <p>depを使っていたので、<code>go mod init</code> して <code>go build</code> の成功を確認できたらdep関連のファイルを削除する、という手順で完了します（<a href="https://github.com/goldeneggg/lsec2/pull/10">対応例</a>）</p>
 <div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
@@ -169,7 +169,7 @@ $ rm -fr vendor/
 <span style="color:#60a0b0;font-style:italic"># CIの設定ファイル（今回の場合は .travis.yml）を修正</span></code></pre></td></tr></table>
 </div>
 </div>
-<h1 id="依存パッケージをupgradeしてみる">依存パッケージをupgradeしてみる</h1>
+<h2 id="依存パッケージをupgradeしてみる">依存パッケージをupgradeしてみる</h2>
 <p>自作ツールで使用しているaws-sdk-goがv1.12.39だったのですが、最新がv1.16.36と乖離が発生していたのでupgradeしてみました。手順としては下記で問題ありません。</p>
 <div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
@@ -209,8 +209,8 @@ $ go mod tidy
 <span style="color:#60a0b0;font-style:italic"># tidy実行後は、go build, go test, go runあたりを実行して問題ないか動作確認</span></code></pre></td></tr></table>
 </div>
 </div>
-<h1 id="ciの設定変更travis-ci">CIの設定変更（Travis CI）</h1>
-<h2 id="test-ci">test CI</h2>
+<h2 id="ciの設定変更travis-ci">CIの設定変更（Travis CI）</h2>
+<h3 id="test-ci">test CI</h3>
 <p>Travis CIの場合は.travis.ymlを下記の通り修正すればOKです。</p>
 <ul>
 <li>envセクションで <code>GO111MODULE=on</code> を追加</li>
@@ -232,7 +232,7 @@ $ go mod tidy
 </span><span style="color:#bbb">  </span>- go<span style="color:#bbb"> </span>mod<span style="color:#bbb"> </span>download</code></pre></td></tr></table>
 </div>
 </div>
-<h1 id="goreleaserでgoアプリのdeploy-ciを行う際の注意点">GoReleaserでGoアプリのdeploy CIを行う際の注意点</h1>
+<h2 id="goreleaserでgoアプリのdeploy-ciを行う際の注意点">GoReleaserでGoアプリのdeploy CIを行う際の注意点</h2>
 <p>冒頭にTravis CI + GoReleaserによる成果物自動公開を試みてハマったと書きましたが、調査した結果こういう結論でした。</p>
 <ul>
 <li><code>go mod</code> 移行前に、「ライブラリ本体では使ってないがCIや開発補助目的でインストールしたパッケージ」が存在していた
@@ -255,7 +255,7 @@ $ go mod tidy
 <li>go.modに「CIや開発補助目的でインストールしたいパッケージ」も反映しておく</li>
 </ol>
 <p>のいずれかの対応が必要そうです（とはいえ本来取るべき対応策はNo.3ではないかと）。</p>
-<h2 id="go-modules対応版travis-ci--goreleaserの設定">go modules対応版、Travis CI &amp; GoReleaserの設定</h2>
+<h3 id="go-modules対応版travis-ci--goreleaserの設定">go modules対応版、Travis CI &amp; GoReleaserの設定</h3>
 <p>go modulesを使用しているGoプロジェクトをgoreleaserでデプロイする場合、<a href="https://goreleaser.com/build/">公式サイトで紹介されている</a> ように .goreleaser.ymlのbefore hookの設定で <code>go mod download</code> を実行するようにyamlを修正します。</p>
 <div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
@@ -291,7 +291,7 @@ $ go mod tidy
 </div>
 </div>
 <p>こう設定しておけば、該当プロジェクトをmasterにmerge =&gt; tagを打ったタイミングで、Travis CIの <code>deploy</code> フェーズで設定したGoReleaserによるデプロイも実行されるようになります。</p>
-<h1 id="補足-goreleaserymlの動作確認について">補足: .goreleaser.ymlの動作確認について</h1>
+<h2 id="補足-goreleaserymlの動作確認について">補足: .goreleaser.ymlの動作確認について</h2>
 <p><a href="https://goreleaser.com/quick-start/">GoReleaser公式のQuick Start</a> にも書いてるのですが、goreleaserコマンドには <code>--skip-publish</code> という公開（release）をskip出来るオプションと、<code>--snapshot</code> というバージョンタグのチェックを行わず現状のコードベースの成果物を出力するオプションがあり、これらを組み合わせて.goreleaser.ymlの妥当性検証を行うことが可能です。</p>
 <div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
@@ -320,7 +320,7 @@ $ go mod tidy
 </div>
 </div>
 <p>とはいえ実際にタグを打って成果物deploy用のCIを実行するとローカルで検証した際には見つからなかったエラーが発生する事もあり、そうなるとそのエラー解消の為にさらにreleaseを行って本チャンCIを走らせる、、、という「CIの為にrelease重ねる症候群」が起こりがちです（自分は今回ハマった件の調査の為に5つ6つはreleaseを重ねてrelease historyがだいぶ切ない事に orz&hellip;）。</p>
-<h2 id="公式提供のシェススクリプトをカスタマイズする">公式提供のシェススクリプトをカスタマイズする</h2>
+<h3 id="公式提供のシェススクリプトをカスタマイズする">公式提供のシェススクリプトをカスタマイズする</h3>
 <p>GoReleaserの場合、成果物公開用のジョブでは <code>curl -sL http://git.io/goreleaser | bash</code> というスクリプトを実行するように設定しますが、<code>http://git.io/goreleaser</code> の実体はタダのシェルスクリプトなので、これを丸っとコピーしてチェック処理やログ出力を追加したオリジナルのスクリプトに置き換えれば、いくらかは調査コストを下げる事が出来そうです。</p>
 <div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
@@ -374,7 +374,7 @@ tar -xf <span style="color:#4070a0">&#34;</span><span style="color:#bb60d5">$TAR
 <span style="color:#4070a0">&#34;</span><span style="color:#70a0d0;font-style:italic">${</span><span style="color:#bb60d5">TMPDIR</span><span style="color:#70a0d0;font-style:italic">}</span><span style="color:#4070a0">/goreleaser&#34;</span> <span style="color:#4070a0">&#34;</span><span style="color:#bb60d5">$@</span><span style="color:#4070a0">&#34;</span></code></pre></td></tr></table>
 </div>
 </div>
-<h1 id="ブックマーク">ブックマーク</h1>
+<h2 id="ブックマーク">ブックマーク</h2>
 <ul>
 <li><a href="https://www.wantedly.com/companies/wantedly/post_articles/132270">Go 1.11 の modules・vgo を試す - 実際に使っていく上で考えないといけないこと #golang | Wantedly Engineer Blog</a></li>
 <li><a href="https://itiskj.hatenablog.com/entry/2018/08/30/101017">Migrate from dep to Golang 1.11 Modules - kenju&rsquo;s blog</a></li>

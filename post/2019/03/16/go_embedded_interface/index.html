@@ -117,7 +117,7 @@
       <h1>Goで構造体へのインタフェース埋め込み活用例（aws-sdk-goの事例など）</h1>
     </header>
 
-    <h1 id="summary">Summary</h1>
+    <h2 id="summary">Summary</h2>
 <p>構造体へのインタフェース埋め込み活用例 ×2</p>
 <ol>
 <li>一部メソッドを別処理に差し替え</li>
@@ -149,7 +149,7 @@
 </span><span style="color:#60a0b0;font-style:italic"></span>}
 </code></pre></td></tr></table>
 </div>
-</div><h1 id="例1一部メソッドを別処理に差し替え">例1：一部メソッドを別処理に差し替え</h1>
+</div><h2 id="例1一部メソッドを別処理に差し替え">例1：一部メソッドを別処理に差し替え</h2>
 <p>無名インタフェースの埋め込み例として本家コードで参考になるのが<a href="https://github.com/golang/go/blob/master/src/sort/sort.go#L242">sort/sort.go のこの実装</a> です。<code>reverse</code>構造体のコメントにも書いてある通りこうした無名インタフェースを埋め込んだ構造体を利用する事で「一部のメソッドだけ別の実装に差し替える」という事を実現しています。</p>
 <p>単純なサンプルコードはこんな感じで、Intfというinterfaceを実装済のAという構造体を <code>ReplaceMethodZ</code> に渡すと、MethodZの挙動だけが異なる別の構造体を取得するという挙動になります。</p>
 <p>（同じコードはこちら → <a href="https://play.golang.org/p/mh803JB5RSt">https://play.golang.org/p/mh803JB5RSt</a> ）</p>
@@ -247,7 +247,7 @@
 </span><span style="color:#60a0b0;font-style:italic"></span>}
 </code></pre></td></tr></table>
 </div>
-</div><h1 id="例2特定のメソッドだけを実装">例2：特定のメソッドだけを実装</h1>
+</div><h2 id="例2特定のメソッドだけを実装">例2：特定のメソッドだけを実装</h2>
 <p>sort.goの例は「インタフェースの全メソッドを実装済である構造体をあるメソッドに渡し、渡されたメソッド内で一部メソッドの実装を差し替える（上書きする）」という例でしたが、 下記のような「そもそもインタフェースのメソッドが部分的にしか実装されていない」ようなコードも書くことが出来ます。</p>
 <p>（同じコードはこちら → <a href="https://play.golang.org/p/8YvXVtw91Mc">https://play.golang.org/p/8YvXVtw91Mc</a> ）</p>
 <div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
@@ -357,7 +357,7 @@
 </code></pre></td></tr></table>
 </div>
 </div><p>活用例として、「テストコードでテスト用の構造体を用意し、インタフェースのメソッド全部ではなくmockしたいメソッドだけを実装したい」というケースを、gomockのような外部ライブラリに頼る事なく実現出来ます。</p>
-<h2 id="aws-sdk-go-での例">aws-sdk-go での例</h2>
+<h3 id="aws-sdk-go-での例">aws-sdk-go での例</h3>
 <p>SQSへのアクセスが発生するアプリケーションのテストを、アクセス部分だけmockして書く例が<a href="https://aws.amazon.com/jp/blogs/developer/mocking-out-then-aws-sdk-for-go-for-unit-testing/">AWS Developer Blogで紹介されています</a>。詳細はリンク先を読んでいただくとして、リンク先のSQSでの例以外にも、例えばEC2でも<a href="https://docs.aws.amazon.com/sdk-for-go/api/service/ec2/ec2iface/">ec2iface というパッケージ</a>が用意されています。このパッケージの<code>EC2API</code>というインタフェースが公式の、</p>
 <blockquote>
 <p>Package ec2iface provides an interface to enable mocking the Amazon Elastic Compute Cloud service client for testing your code.</p>
@@ -520,7 +520,7 @@
 }
 </code></pre></td></tr></table>
 </div>
-</div><h1 id="ブックマーク">ブックマーク</h1>
+</div><h2 id="ブックマーク">ブックマーク</h2>
 <ul>
 <li><a href="https://stackoverflow.com/questions/24537443/meaning-of-a-struct-with-embedded-anonymous-interface">go - Meaning of a struct with embedded anonymous interface? - Stack Overflow</a></li>
 <li><a href="https://aws.amazon.com/jp/blogs/developer/mocking-out-then-aws-sdk-for-go-for-unit-testing/">Mocking Out the AWS SDK for Go for Unit Testing | AWS Developer Blog</a></li>

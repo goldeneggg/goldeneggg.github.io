@@ -117,7 +117,7 @@
       <h1>conflict-marker.vimを使ってgitのconflictをvimで高速に解消する</h1>
     </header>
 
-    <h1 id="summary">Summary</h1>
+    <h2 id="summary">Summary</h2>
 <p>下記手順だとボチボチ速い</p>
 <ol>
 <li><code>vim conflict対象ファイル</code></li>
@@ -133,12 +133,12 @@
 <li><code>q</code></li>
 <li><code>:%norm! @a</code></li>
 </ol>
-<h1 id="前提条件">前提条件</h1>
+<h2 id="前提条件">前提条件</h2>
 <ul>
 <li><a href="https://github.com/rhysd/conflict-marker.vim">rhysd/conflict-marker.vim プラグイン</a> をインストールしておく</li>
 <li>HEAD側を残すか/非・HEAD側を残すか？（あるいは両方消すか？）を個々に判断する必要がなく、ファイル全体で一律どちらを残すかが定まっている</li>
 </ul>
-<h1 id="vimで高速conflict解消">vimで高速conflict解消</h1>
+<h2 id="vimで高速conflict解消">vimで高速conflict解消</h2>
 <p>conflictなんか起こらない事が理想とはいえそれなりの規模の開発が並行で走っているとなかなかそうもいかず、起こる度に「conflict解消めんどいよね〜」という会話をしてたりします。最近もそういう会話からお互いのやり方を共有し合うという機会があったので、自分がVimで行っている方法を小ネタとして備忘。</p>
 <p>前提条件に書いた通り、conflict箇所のどちらを削除するか？がファイル全体で定まっていると判断できたら、</p>
 <ul>

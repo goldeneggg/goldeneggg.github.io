@@ -111,7 +111,7 @@
       <h1>Travis CIによるLambdaの自動デプロイ with AWS SAM in Go</h1>
     </header>
 
-    <h1 id="summary">Summary</h1>
+    <h2 id="summary">Summary</h2>
 <ul>
 <li>AWS SAMで管理しているLambda Functionのデプロイ自動化を、<strong>AWS CodePipelineやAWS CodeBuildを使うことなく</strong> Travis CIを活用して行う
 <ul>
@@ -120,7 +120,7 @@
 </ul>
 </li>
 </ul>
-<h1 id="前提条件">前提条件</h1>
+<h2 id="前提条件">前提条件</h2>
 <ul>
 <li>Lambdaのリポジトリはgithub</li>
 <li>各種バージョン情報は下記の通り</li>
@@ -153,7 +153,7 @@ $ sam --version
 SAM CLI, version 0.17.0
 </code></pre></td></tr></table>
 </div>
-</div><h1 id="samで管理しているlambdaのデプロイをtravis-ciで自動化したい">SAMで管理しているLambdaのデプロイをTravis CIで自動化したい</h1>
+</div><h2 id="samで管理しているlambdaのデプロイをtravis-ciで自動化したい">SAMで管理しているLambdaのデプロイをTravis CIで自動化したい</h2>
 <p>SAMで管理しているLambdaのデプロイ自動化をTravis CIで行います。SAMで管理しているからにはSAMのテンプレートとaws-sam-cliを使ってデプロイを行いたいです。なので<a href="https://docs.travis-ci.com/user/deployment/lambda/">Travis公式のLambdaデプロイサポート</a>は使用しません。</p>
 <ul>
 <li>branch != master の場合のCI
@@ -172,7 +172,7 @@ SAM CLI, version 0.17.0
 </li>
 </ul>
 <p>これらを.travis.ymlで定義してデプロイを自動化します。</p>
-<h2 id="セキュアな環境変数の設定">セキュアな環境変数の設定</h2>
+<h3 id="セキュアな環境変数の設定">セキュアな環境変数の設定</h3>
 <p>Travis CIでsamコマンドを実行したい場合に必要な環境変数は下記の3つです。</p>
 <ul>
 <li>AWS_ACCESS_KEY_ID</li>
@@ -208,7 +208,7 @@ Please add the following to your .travis.yml file:
   secure: <span style="color:#4070a0">&#34;XXX&#34;</span>  <span style="color:#60a0b0;font-style:italic"># この内容を.travis.ymlに設定する</span>
 </code></pre></td></tr></table>
 </div>
-</div><h2 id="travisyml">.travis.yml</h2>
+</div><h3 id="travisyml">.travis.yml</h3>
 <div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
 <pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
@@ -378,7 +378,7 @@ sam deploy --template-file <span style="color:#70a0d0;font-style:italic">${</spa
 </div>
 </div><p>これで、今後masterブランチへのpushをトリガーに<code>go build</code> =&gt; <code>sam package</code> =&gt; <code>sam deploy</code> によるデプロイが自動で行われるようになります。</p>
 <p>今回の例のように<code>sam package</code> =&gt; <code>sam deploy</code> をシンプルに実行するだけのフローであれば（且つCodePipeline導入によるメリットを享受したい強い理由が無ければ）、Travis CIでも十分でした、という所感です。</p>
-<h1 id="ブックマーク">ブックマーク</h1>
+<h2 id="ブックマーク">ブックマーク</h2>
 <ul>
 <li><a href="https://dev.to/codevbus/deploy-aws-lambda-functions-with-aws-sam-cli-and-travis-ci-3m9m">Deploy AWS Lambda functions with aws-sam-cli and Travis-CI - DEV Community 👩‍💻👨‍💻</a></li>
 <li><a href="https://dev.to/codevbus/deploy-aws-lambda-functions-with-aws-sam-cli-and-travis-ci-part-2-2goh">Deploy AWS Lambda functions with aws-sam-cli and Travis-CI: Part 2 - DEV Community 👩‍💻👨‍💻</a></li>

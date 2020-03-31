@@ -115,17 +115,17 @@
       <h1>aws-sdk-go, aws-sdk-go-v2 でMFAトークンによるAssumeRoleに対応する</h1>
     </header>
 
-    <h1 id="summary">Summary</h1>
+    <h2 id="summary">Summary</h2>
 <ul>
 <li>aws-sdk-goで、標準入力からのMFAトークン入力によるAssumeRoleを実装する</li>
 <li>aws-sdk-go-v2で、標準入力からのMFAトークン入力によるAssumeRoleを実装する</li>
 </ul>
-<h1 id="前提条件">前提条件</h1>
+<h2 id="前提条件">前提条件</h2>
 <ul>
 <li>aws-sdk-go - v1.21.x</li>
 <li>aws-sdk-go-v2 - v0.10.0</li>
 </ul>
-<h1 id="aws-sdk-goで標準入力からのmfaトークン入力によるassumeroleを実装する">aws-sdk-goで、標準入力からのMFAトークン入力によるAssumeRoleを実装する</h1>
+<h2 id="aws-sdk-goで標準入力からのmfaトークン入力によるassumeroleを実装する">aws-sdk-goで、標準入力からのMFAトークン入力によるAssumeRoleを実装する</h2>
 <p>AssumeRole便利ですよね。AssumeRole自体の詳細な説明は<a href="https://docs.aws.amazon.com/ja_jp/IAM/latest/UserGuide/tutorial_cross-account-with-roles.html">公式のチュートリアル</a> 等の記事に任せるとして、aws-sdk-goもMFAによるAssumeRoleに対応しています。<a href="https://github.com/goldeneggg/lsec2">拙作のEC2インスタンス一覧取得ツール</a> で <a href="https://github.com/goldeneggg/lsec2/pull/21">これを実装する機会があった</a>ので、実装方法の備忘メモを残しておきます。</p>
 <p>今回の要件は下記を想定しました。</p>
 <ul>
@@ -138,7 +138,7 @@
 </li>
 <li>実際に利用する際はMFAトークンの入力を（標準入力から）促し、普段使っている2段階認証アプリ等で表示されたトークンを入力することで、切替先ロールの各種リソースにアクセスできるようにする</li>
 </ul>
-<h2 id="awscredentials-と-awsconfig-の設定内容"><code>~/.aws/credentials</code> と <code>~/.aws/config</code> の設定内容</h2>
+<h3 id="awscredentials-と-awsconfig-の設定内容"><code>~/.aws/credentials</code> と <code>~/.aws/config</code> の設定内容</h3>
 <p><a href="https://docs.aws.amazon.com/ja_jp/cli/latest/userguide/cli-configure-role.html?shortFooter=true#cli-configure-role-mfa">公式の例</a> を参考に下記のような内容で作成しておきます。リンク先でも触れられていますが、aws-sdk-goだけに限らず、他言語のSDKやawscliでもこの設定は使い回す事が出来ます。</p>
 <div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
@@ -190,7 +190,7 @@
 <span style="color:#4070a0">mfa_serial</span><span style="color:#666">=</span><span style="color:#4070a0">arn:aws:iam::987654321098:mfa/hoge.hugao</span>
 </code></pre></td></tr></table>
 </div>
-</div><h3 id="awssessionパッケージを活用したprofile読み込み処理の実装">aws.sessionパッケージを活用したprofile読み込み処理の実装</h3>
+</div><h4 id="awssessionパッケージを活用したprofile読み込み処理の実装">aws.sessionパッケージを活用したprofile読み込み処理の実装</h4>
 <p>今回の要件をaws-sdk-goで実装する方法は実は複数パターン提供されているのですが、 <strong>利用側が指定しなければならない情報を減らしたい（プロファイルさえ設定されていれば、その情報を使うようにしたい）</strong> という要件を達成する為に、<a href="https://godoc.org/github.com/aws/aws-sdk-go/aws/session">aws/session パッケージ</a> を活用した実装にします。下記に解説コメント付きでコード例を載せておきます。</p>
 <div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
@@ -263,7 +263,7 @@
 Assume Role MFA token code: <span style="color:#666">[</span>2段階認証アプリ等から取得したトークンを入力する<span style="color:#666">]</span>
 </code></pre></td></tr></table>
 </div>
-</div><h2 id="この実装でassumerole不要の別profileも利用できるの">この実装でAssumeRole不要の別profileも利用できるの？</h2>
+</div><h3 id="この実装でassumerole不要の別profileも利用できるの">この実装でAssumeRole不要の別profileも利用できるの？</h3>
 <p>できます。例えば下記例のように <code>default</code> というprofileが定義されている場合、先述のコードでprofileを指定している箇所に &ldquo;default&rdquo; を指定すればOKです。AssumeRoleとは無関係のprofileなので、当然MFAトークンの入力を求められる事もありません。</p>
 <div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
@@ -315,7 +315,7 @@ Assume Role MFA token code: <span style="color:#666">[</span>2段階認証アプ
 <span style="color:#4070a0">:</span>
 </code></pre></td></tr></table>
 </div>
-</div><h1 id="aws-sdk-go-v2の場合">aws-sdk-go-v2の場合</h1>
+</div><h2 id="aws-sdk-go-v2の場合">aws-sdk-go-v2の場合</h2>
 <p>v2では<a href="https://github.com/aws/aws-sdk-go-v2/issues/83">aws/session パッケージが削除されてしまった為(泣)</a> 別の実装を行う必要があるのですが、結論を書くと <a href="https://godoc.org/github.com/aws/aws-sdk-go-v2/aws/external#WithMFATokenFunc">aws/external パッケージの WithMFATokenFunc</a> の利用例をほぼそのまま使って実装できます。</p>
 <p>なお、configとcredentialsの両設定ファイルは、v1の実装例で紹介した設定内容をそのまま流用できます。</p>
 <div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
@@ -357,7 +357,7 @@ Assume Role MFA token code: <span style="color:#666">[</span>2段階認証アプ
 </code></pre></td></tr></table>
 </div>
 </div><p>この件に限らずv2はconfigの取り扱い方が大幅に変更されているのですが、便利な変更の一例として ~/.aws/config ファイルを読み込む為に <code>AWS_SDK_LOAD_CONFIG</code> 環境変数の設定が不要になっています。（v1の実装時は <code>session.SharedConfigEnable</code> を設定することで <code>AWS_SDK_LOAD_CONFIG</code> 環境変数の設定漏れをカバーしていたのですが、この考慮も不要になりました）</p>
-<h2 id="v2はまだカジュアルに仕様変更が行われているフェーズなので利用時はご注意を">v2はまだカジュアルに仕様変更が行われているフェーズなので、利用時はご注意を</h2>
+<h3 id="v2はまだカジュアルに仕様変更が行われているフェーズなので利用時はご注意を">v2はまだカジュアルに仕様変更が行われているフェーズなので、利用時はご注意を</h3>
 <p>v2はまだまだ活発に開発されている途上のフェーズで、docやexampleがv1の内容のまま残っていたりして、今回紹介する例と異なる実装例が公式のドキュメントで大量にHITします（そしてこれをそのまま流用しても動きません）。今回の例は本体のコード＆テストを読んで実装を行い、一応の動作確認までは済ませてある例になります。が、将来的にこの実装では動かなくなる可能性は無くは無さそうという点だけご留意ください。</p>
 
   </article>

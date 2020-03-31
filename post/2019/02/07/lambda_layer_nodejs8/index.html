@@ -111,7 +111,7 @@
       <h1>既存のLambda FunctionにLambda Layersを導入し、AWS SAMで管理する（Node.js）</h1>
     </header>
 
-    <h1 id="summary">Summary</h1>
+    <h2 id="summary">Summary</h2>
 <ul>
 <li>axiosなどのモジュールに依存した既存のNode.js Lambda Functionがある</li>
 <li>このfunctionで使用しているモジュールを<a href="https://docs.aws.amazon.com/ja_jp/lambda/latest/dg/configuration-layers.html#configuration-layers-path">AWS Lambda Layers</a>に移行し、aws-sam-cliでデプロイする</li>
@@ -130,7 +130,7 @@
 </ul>
 </li>
 </ul>
-<h1 id="前提条件">前提条件</h1>
+<h2 id="前提条件">前提条件</h2>
 <div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
 <pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
@@ -151,7 +151,7 @@ $ sam --version
 SAM CLI, version 0.10.0
 </code></pre></td></tr></table>
 </div>
-</div><h1 id="既存functionで使用中のモジュールをlayersに移行する">既存Functionで使用中のモジュールをLayersに移行する</h1>
+</div><h2 id="既存functionで使用中のモジュールをlayersに移行する">既存Functionで使用中のモジュールをLayersに移行する</h2>
 <p>Layer用のプロジェクトディレクトリを作成し、Layer化したいnpmモジュールをインストールします。
 ディレクトリの構成は<a href="https://docs.aws.amazon.com/ja_jp/lambda/latest/dg/configuration-layers.html#configuration-layers-path">公式ドキュメントの記載</a> の通り <code>nodejs/node_modules</code> という構成になるようにします。</p>
 <div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
@@ -189,7 +189,7 @@ $ npm install <span style="color:#666">[</span>必要なモジュール群<span 
     └── package.json
 </code></pre></td></tr></table>
 </div>
-</div><h2 id="zipでアーカイブ">zipでアーカイブ</h2>
+</div><h3 id="zipでアーカイブ">zipでアーカイブ</h3>
 <p>成果物を<code>nodejs</code> ディレクトリがトップディレクトリとなるようにアーカイブします。</p>
 <div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
@@ -201,7 +201,7 @@ $ npm install <span style="color:#666">[</span>必要なモジュール群<span 
 $ zip -r layer.zip ./
 </code></pre></td></tr></table>
 </div>
-</div><h2 id="zipをs3にアップロード">zipをS3にアップロード</h2>
+</div><h3 id="zipをs3にアップロード">zipをS3にアップロード</h3>
 <p>作成したzipをS3にアップロードします。バケットが別途必要であれば事前に作成しておきます。</p>
 <div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
@@ -223,7 +223,7 @@ $ aws s3 mb s3://<span style="color:#70a0d0;font-style:italic">${</span><span st
 $ aws s3 cp layer.zip s3://<span style="color:#70a0d0;font-style:italic">${</span><span style="color:#bb60d5">S3_BUCKET</span><span style="color:#70a0d0;font-style:italic">}</span>/<span style="color:#70a0d0;font-style:italic">${</span><span style="color:#bb60d5">S3_FOLDER</span><span style="color:#70a0d0;font-style:italic">}</span>/
 </code></pre></td></tr></table>
 </div>
-</div><h2 id="aws-samのテンプレートを作成">AWS SAMのテンプレートを作成</h2>
+</div><h3 id="aws-samのテンプレートを作成">AWS SAMのテンプレートを作成</h3>
 <p>デプロイテンプレートを作成します。テンプレートの形式は<a href="https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlesslayerversion">SAMの公式ドキュメント</a> を参考にします。<code>ContentUri</code> がS3にアップロードしたzipのURLになっている事がポイントです。</p>
 <div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
@@ -282,7 +282,7 @@ $ aws s3 cp layer.zip s3://<span style="color:#70a0d0;font-style:italic">${</spa
 
 </code></pre></td></tr></table>
 </div>
-</div><h2 id="デプロイ公開">デプロイ/公開</h2>
+</div><h3 id="デプロイ公開">デプロイ/公開</h3>
 <p>aws-sam-cliでデプロイします。</p>
 <div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
@@ -300,7 +300,7 @@ Waiting <span style="color:#007020;font-weight:bold">for</span> stack create/upd
 Successfully created/updated stack - layer-stack
 </code></pre></td></tr></table>
 </div>
-</div><h1 id="既存functionをlayerを使用する形式に変更する">既存functionをLayerを使用する形式に変更する</h1>
+</div><h2 id="既存functionをlayerを使用する形式に変更する">既存functionをLayerを使用する形式に変更する</h2>
 <p>今回筆者が対象にしたfunctionは下記のようなディレクトリ構成で、API Gatewayをeventトリガーとして処理を行うfunctionです。</p>
 <div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
@@ -344,7 +344,7 @@ Successfully created/updated stack - layer-stack
 <li>デプロイ＆動作確認</li>
 </ul>
 <p>という流れで移行作業を進めていきます。</p>
-<h2 id="layer移行済のモジュールを削除">Layer移行済のモジュールを削除</h2>
+<h3 id="layer移行済のモジュールを削除">Layer移行済のモジュールを削除</h3>
 <p>まずLayerに移行したモジュールを対象のfunctionから削除します。package.jsonのdependenciesから不要モジュールの記述を削除し、<code>npm install</code> を再実行します。</p>
 <p>例えば私のfunctionを例にすると、aws-sdk, axios, cheerioの3モジュールを全てLayerに移行したので、下記のdependenciesは全て不要になるので削除しました。</p>
 <div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
@@ -389,7 +389,7 @@ $ vi <span style="color:#70a0d0;font-style:italic">${</span><span style="color:#
 $ npm install
 </code></pre></td></tr></table>
 </div>
-</div><h2 id="templateyamlの修正">template.yamlの修正</h2>
+</div><h3 id="templateyamlの修正">template.yamlの修正</h3>
 <p>デプロイしたLayerのARNを下記コマンドで確認します。 <code>--layer-name</code> にはLayerのtemplate.yamlで設定した <code>LayerName</code> を指定します。正常終了すると下記形式の結果が返ってきます。（REGION と ACCOUNT_ID は適宜ご自身の環境に読み替えてください）</p>
 <div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
@@ -444,7 +444,7 @@ $ vi template.yaml
 </span><span style="color:#bbb">        </span>- arn:aws:lambda:ap-northeast<span style="color:#40a070">-1</span>:<span style="color:#40a070">123456789012</span>:layer:my-layer:<span style="color:#40a070">1</span><span style="color:#bbb">
 </span></code></pre></td></tr></table>
 </div>
-</div><h2 id="ローカルでfunctionの動作確認">ローカルでfunctionの動作確認</h2>
+</div><h3 id="ローカルでfunctionの動作確認">ローカルでfunctionの動作確認</h3>
 <p>Layerに移行した＆移行済モジュールを削除したので、ローカルでの実行がこれまで通り行えるかを確認しておきます。ローカルでの実行コマンドはLayer移行前から変える必要は無く、これまで通り <code>sal local invoke</code> コマンドを使用します。</p>
 <p>1点挙動が異なるのは、Layer移行後初回の実行時にデプロイ済のLayer Functionのダウンロードが実行される事です。デフォルトではダウンロード結果は <code>${HOME}/.aws-sam/layers-pkg/</code> 下に保存（キャッシュ）され、Layerのバージョンアップを行わない限りは2回目以降の実行時はキャッシュが利用されます。</p>
 <div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
@@ -463,9 +463,9 @@ Downloading arn:aws:lambda:ap-northeast-1:123456789012:layer:my-layer:1  <span s
 
 </code></pre></td></tr></table>
 </div>
-</div><h2 id="注意点-layers設定時のハマりどころ">注意点: Layers設定時のハマりどころ</h2>
+</div><h3 id="注意点-layers設定時のハマりどころ">注意点: Layers設定時のハマりどころ</h3>
 <p><a href="https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction">こちらのドキュメント</a>の例では、template.yamlの <code>Layers</code> セクションで組み込み関数 <code>Fn::Sub</code> の短縮形 <code>!Sub</code> が使われているのですが、これはlocalでの実行時は機能しません。この内容で <code>sam local invoke</code> を行うと、<code>Fn::Sub</code> 関数で期待している変数置換が実行されずLayerのARNが正しい内容で処理されない為、Layer Functionのダウンロードが実行されません。その結果「layerに含まれているモジュールが見つからない」という旨のエラーになってしまいます。localでの実行も考慮するなら、LayersのARNは文字列のみで記載するか、あるいは <code>Ref</code> 関数で「文字列のみで記載された別リソースを参照する」という手段で記述します。</p>
-<h2 id="デプロイ公開-1">デプロイ/公開</h2>
+<h3 id="デプロイ公開-1">デプロイ/公開</h3>
 <p>aws-sam-cliでデプロイします。</p>
 <div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
@@ -493,7 +493,7 @@ Waiting <span style="color:#007020;font-weight:bold">for</span> stack create/upd
 Successfully created/updated stack - layer-stack
 </code></pre></td></tr></table>
 </div>
-</div><h1 id="layerの更新">Layerの更新</h1>
+</div><h2 id="layerの更新">Layerの更新</h2>
 <p>node moduleの追加/削除などでLayerの更新が必要になった場合も作業の流れはほとんど変わりません。</p>
 <p>まずzipアーカイブとS3へのアップロードを再度実行します。</p>
 <div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
@@ -572,7 +572,7 @@ $ vi template.yaml
 </span><span style="color:#bbb">        </span>- arn:aws:lambda:ap-northeast<span style="color:#40a070">-1</span>:<span style="color:#40a070">123456789012</span>:layer:my-layer:<span style="color:#40a070">2</span><span style="color:#bbb">
 </span></code></pre></td></tr></table>
 </div>
-</div><h1 id="ブックマーク">ブックマーク</h1>
+</div><h2 id="ブックマーク">ブックマーク</h2>
 <ul>
 <li><a href="https://docs.aws.amazon.com/ja_jp/lambda/latest/dg/configuration-layers.html">AWS Lambda レイヤー - AWS Lambda</a></li>
 <li><a href="https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md">serverless-application-model/2016-10-31.md</a></li>
