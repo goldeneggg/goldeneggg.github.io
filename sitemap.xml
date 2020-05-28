@@ -4,22 +4,62 @@
   
   <url>
     <loc>https://horizoon.jp/categories/</loc>
-    <lastmod>2020-03-25T19:15:00+09:00</lastmod>
+    <lastmod>2020-05-28T20:05:36+09:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://horizoon.jp/categories/docker/</loc>
+    <lastmod>2020-05-28T20:05:36+09:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://horizoon.jp/categories/docker-compose/</loc>
+    <lastmod>2020-05-28T20:05:36+09:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://horizoon.jp/post/2020/05/28/rails6api_docker_github_actions/</loc>
+    <lastmod>2020-05-28T20:05:36+09:00</lastmod>
   </url>
   
   <url>
     <loc>https://horizoon.jp/categories/git/</loc>
-    <lastmod>2020-03-25T19:15:00+09:00</lastmod>
+    <lastmod>2020-05-28T20:05:36+09:00</lastmod>
   </url>
   
   <url>
     <loc>https://horizoon.jp/categories/github/</loc>
-    <lastmod>2020-03-25T19:15:00+09:00</lastmod>
+    <lastmod>2020-05-28T20:05:36+09:00</lastmod>
   </url>
   
   <url>
     <loc>https://horizoon.jp/categories/github-actions/</loc>
-    <lastmod>2020-03-25T19:15:00+09:00</lastmod>
+    <lastmod>2020-05-28T20:05:36+09:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://horizoon.jp/</loc>
+    <lastmod>2020-05-28T20:05:36+09:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://horizoon.jp/post/</loc>
+    <lastmod>2020-05-28T20:05:36+09:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://horizoon.jp/categories/rails/</loc>
+    <lastmod>2020-05-28T20:05:36+09:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://horizoon.jp/categories/rails-6/</loc>
+    <lastmod>2020-05-28T20:05:36+09:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://horizoon.jp/categories/rails-api/</loc>
+    <lastmod>2020-05-28T20:05:36+09:00</lastmod>
   </url>
   
   <url>
@@ -39,16 +79,6 @@
   
   <url>
     <loc>https://horizoon.jp/categories/golang/</loc>
-    <lastmod>2020-03-25T19:15:00+09:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://horizoon.jp/</loc>
-    <lastmod>2020-03-25T19:15:00+09:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://horizoon.jp/post/</loc>
     <lastmod>2020-03-25T19:15:00+09:00</lastmod>
   </url>
   

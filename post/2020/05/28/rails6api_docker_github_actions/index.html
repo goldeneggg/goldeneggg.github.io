@@ -1,0 +1,1164 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="author" content="Fuminori Sakamoto">
+    <meta name="description" content="horizoon&#39;s website">
+    <meta name="keywords" content="blog,developer,backpacker,personal">
+
+    <meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Dockerで構築したRailsアプリをGitHub Actionsで高速にCIする為のプラクティス（Rails 6 API編）"/>
+<meta name="twitter:description" content="Rails on GitHub Actions（或いは {Django,Laravel} on GitHub Actions）のCI事例として、
+ ホストランナー上にRuby（Python, PHP）をセットアップ MySQLやRedisはサービスコンテナで立ち上げ 依存ライブラリのインストール（bundle install） や ユニットテスト（rspec） もホストランナー上で直接実行  という事例は多く見かけるのですが、開発をDockerベースで行っていて、GitHub ActionsのCI Pipelineも同じくDockerベースで構築したい&hellip;というケースの事例があまり見当たらなかったので、自分が関わったプロジェクト（Rails 6 API mode）での事例を紹介します。
+前提条件  Ruby 2.7.1 Rails 6.0.3 (API mode) Docker (Docker for Mac)  Engine 19.03.8 Compose 1.25.5   MySQL 8.0.20 開発環境は全てDocker（Dockerfile/docker-compose.yml）で構築＆管理  bundle install や rails s や rspec などのコマンドは全てdocker-compose {run,exec} を介してコンテナ内で実行   Dockerfileはmulti-stage構成にはしない（今回の例ではひとまず開発用の設定だけが記述されている前提とする） リモートdocker registryは利用しない GitHub Actionsは現時点で公式にDocker layer cachingをサポートしていない 参考1, 参考2  これについては このissue で最新状況が追えそう しばらく対応され無さそう だけど、対応して欲しい&hellip;    TL;DR  dockerイメージのサイズを小さくしたい  イメージ自体でファイルを抱え込むような処理をDockerfileに書かない  ≒ Dockerfileに変更が無くてもビルドイメージに変更が発生し得るようなDockerfile にはしない   実行したいコマンドはコンテナ起動時に都度コマンドとして付与し、成果物を保存・永続化したければvolumesを活用する   CI時も開発環境と同じ Dockerfile/docker-compose."/>
+
+    <meta property="og:title" content="Dockerで構築したRailsアプリをGitHub Actionsで高速にCIする為のプラクティス（Rails 6 API編）" />
+<meta property="og:description" content="Rails on GitHub Actions（或いは {Django,Laravel} on GitHub Actions）のCI事例として、
+ ホストランナー上にRuby（Python, PHP）をセットアップ MySQLやRedisはサービスコンテナで立ち上げ 依存ライブラリのインストール（bundle install） や ユニットテスト（rspec） もホストランナー上で直接実行  という事例は多く見かけるのですが、開発をDockerベースで行っていて、GitHub ActionsのCI Pipelineも同じくDockerベースで構築したい&hellip;というケースの事例があまり見当たらなかったので、自分が関わったプロジェクト（Rails 6 API mode）での事例を紹介します。
+前提条件  Ruby 2.7.1 Rails 6.0.3 (API mode) Docker (Docker for Mac)  Engine 19.03.8 Compose 1.25.5   MySQL 8.0.20 開発環境は全てDocker（Dockerfile/docker-compose.yml）で構築＆管理  bundle install や rails s や rspec などのコマンドは全てdocker-compose {run,exec} を介してコンテナ内で実行   Dockerfileはmulti-stage構成にはしない（今回の例ではひとまず開発用の設定だけが記述されている前提とする） リモートdocker registryは利用しない GitHub Actionsは現時点で公式にDocker layer cachingをサポートしていない 参考1, 参考2  これについては このissue で最新状況が追えそう しばらく対応され無さそう だけど、対応して欲しい&hellip;    TL;DR  dockerイメージのサイズを小さくしたい  イメージ自体でファイルを抱え込むような処理をDockerfileに書かない  ≒ Dockerfileに変更が無くてもビルドイメージに変更が発生し得るようなDockerfile にはしない   実行したいコマンドはコンテナ起動時に都度コマンドとして付与し、成果物を保存・永続化したければvolumesを活用する   CI時も開発環境と同じ Dockerfile/docker-compose." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://horizoon.jp/post/2020/05/28/rails6api_docker_github_actions/" />
+<meta property="article:published_time" content="2020-05-28T20:05:36+09:00" />
+<meta property="article:modified_time" content="2020-05-28T20:05:36+09:00" />
+
+
+    
+      <base href="https://horizoon.jp/post/2020/05/28/rails6api_docker_github_actions/">
+    
+    <title>
+  Dockerで構築したRailsアプリをGitHub Actionsで高速にCIする為のプラクティス（Rails 6 API編） · horizoon
+</title>
+
+    
+      <link rel="canonical" href="https://horizoon.jp/post/2020/05/28/rails6api_docker_github_actions/">
+    
+
+    <link href="https://fonts.googleapis.com/css?family=Lato:400,700%7CMerriweather:300,700%7CSource+Code+Pro:400,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.11.2/css/all.css" integrity="sha384-KA6wR/X5RY4zFAHpv/CnoG2UW1uogYfdnP67Uv7eULvTveboZJg0qUpmJZb5VqzN" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css" integrity="sha256-l85OmPOjvil/SOvVt3HnSSjzF1TUMyT9eV0c2BzEGzU=" crossorigin="anonymous" />
+
+    
+      
+      
+      <link rel="stylesheet" href="https://horizoon.jp/css/coder.min.a4f332213a21ce8eb521670c614470c58923aaaf385e2a73982c31dd7642decb.css" integrity="sha256-pPMyITohzo61IWcMYURwxYkjqq84XipzmCwx3XZC3ss=" crossorigin="anonymous" media="screen" />
+    
+
+    
+
+    
+      
+        
+        
+        <link rel="stylesheet" href="https://horizoon.jp/css/coder-dark.min.83a2010dac9f59f943b3004cd6c4f230507ad036da635d3621401d42ec4e2835.css" integrity="sha256-g6IBDayfWflDswBM1sTyMFB60DbaY102IUAdQuxOKDU=" crossorigin="anonymous" media="screen" />
+      
+    
+
+    
+
+    
+
+    
+
+    <link rel="icon" type="image/png" href="https://horizoon.jp/favicon-32x32.png" sizes="32x32">
+    <link rel="icon" type="image/png" href="https://horizoon.jp/favicon-16x16.png" sizes="16x16">
+
+    <meta name="generator" content="Hugo 0.71.0" />
+  </head>
+
+  
+  
+    
+  
+  <body class="colorscheme-auto">
+    <main class="wrapper">
+      <nav class="navigation">
+  <section class="container">
+    <a class="navigation-title" href="https://horizoon.jp/">
+      horizoon
+    </a>
+    
+    <input type="checkbox" id="menu-toggle" />
+    <label class="menu-button float-right" for="menu-toggle"><i class="fas fa-bars"></i></label>
+    <ul class="navigation-list">
+      
+        
+          <li class="navigation-item">
+            <a class="navigation-link" href="https://horizoon.jp/post/">Blog</a>
+          </li>
+        
+          <li class="navigation-item">
+            <a class="navigation-link" href="https://horizoon.jp/projects/">Projects</a>
+          </li>
+        
+          <li class="navigation-item">
+            <a class="navigation-link" href="https://horizoon.jp/about/">About</a>
+          </li>
+        
+      
+      
+    </ul>
+    
+  </section>
+</nav>
+
+
+      <div class="content">
+        
+  <section class="container page">
+  <article>
+    <header>
+      <h1>Dockerで構築したRailsアプリをGitHub Actionsで高速にCIする為のプラクティス（Rails 6 API編）</h1>
+    </header>
+
+    <p>Rails on GitHub Actions（或いは {Django,Laravel} on GitHub Actions）のCI事例として、</p>
+<ul>
+<li>ホストランナー上にRuby（Python, PHP）をセットアップ</li>
+<li>MySQLやRedisは<a href="https://help.github.com/ja/actions/configuring-and-managing-workflows/about-service-containers">サービスコンテナ</a>で立ち上げ</li>
+<li>依存ライブラリのインストール（<code>bundle install</code>） や ユニットテスト（<code>rspec</code>） もホストランナー上で直接実行</li>
+</ul>
+<p>という事例は多く見かけるのですが、開発をDockerベースで行っていて、GitHub ActionsのCI Pipelineも同じくDockerベースで構築したい&hellip;というケースの事例があまり見当たらなかったので、自分が関わったプロジェクト（Rails 6 API mode）での事例を紹介します。</p>
+<h2 id="前提条件">前提条件</h2>
+<ul>
+<li>Ruby 2.7.1</li>
+<li>Rails 6.0.3 (API mode)</li>
+<li>Docker (Docker for Mac)
+<ul>
+<li>Engine 19.03.8</li>
+<li>Compose 1.25.5</li>
+</ul>
+</li>
+<li>MySQL 8.0.20</li>
+<li>開発環境は全てDocker（Dockerfile/docker-compose.yml）で構築＆管理
+<ul>
+<li><code>bundle install</code> や <code>rails s</code> や <code>rspec</code> などのコマンドは全て<code>docker-compose {run,exec}</code> を介してコンテナ内で実行</li>
+</ul>
+</li>
+<li>Dockerfileはmulti-stage構成にはしない（今回の例ではひとまず開発用の設定だけが記述されている前提とする）</li>
+<li>リモートdocker registryは利用しない</li>
+<li>GitHub Actionsは現時点で公式にDocker layer cachingをサポートしていない <a href="https://github.community/t/docker-layer-caching/17212">参考1</a>, <a href="https://github.community/t/cache-a-docker-image-built-in-workflow/16260">参考2</a>
+<ul>
+<li>これについては <a href="https://github.com/actions/cache/issues/31">このissue</a> で最新状況が追えそう</li>
+<li><del><a href="https://github.com/actions/cache/issues/31#issuecomment-624085429">しばらく対応され無さそう</a> だけど、対応して欲しい&hellip;</del></li>
+</ul>
+</li>
+</ul>
+<h2 id="tldr">TL;DR</h2>
+<ul>
+<li>dockerイメージのサイズを小さくしたい
+<ul>
+<li>イメージ自体でファイルを抱え込むような処理をDockerfileに書かない
+<ul>
+<li>≒ Dockerfileに変更が無くてもビルドイメージに変更が発生し得るようなDockerfile にはしない</li>
+</ul>
+</li>
+<li>実行したいコマンドはコンテナ起動時に都度コマンドとして付与し、成果物を保存・永続化したければ<code>volumes</code>を活用する</li>
+</ul>
+</li>
+<li>CI時も開発環境と同じ Dockerfile/docker-compose.yml をそのまま活用してセットアップしたい
+<ul>
+<li>CIでも <code>bundle install</code> や <code>rails s</code> や <code>rspec</code>  などのコマンドは全て<code>docker-compose {run,exec}</code> を介してコンテナ内で、且つ開発作業時と同じコマンドで実行できるように</li>
+<li>docker-composeでのmysql8.0起動に10秒超掛かるので、<a href="https://github.com/ufoscout/docker-compose-wait">ufoscout/docker-compose-wait</a>で起動を確実に待ってからテストを実行する</li>
+</ul>
+</li>
+<li>非・dockerでのCI時と同様に<code>bundle install</code>結果をキャッシュしたい
+<ul>
+<li>bundle install結果をrunnerインスタンスにvolume mountして、そのディレクトリをキャッシュ</li>
+</ul>
+</li>
+<li>dockerイメージをキャッシュしたい
+<ul>
+<li>BuildKitを有効化してビルド　※multi-stage構成ではなくても（少しではあるが）高速化の恩恵がある為</li>
+<li>ビルド結果を <code>docker image save</code> → <a href="https://github.com/actions/cache">公式 actions/cache</a> でキャッシュ＆リストア → リストアした後に <code>docker image load</code></li>
+<li>※ <a href="https://github.com/whoan/docker-build-with-cache-action">whoan/docker-build-with-cache-action</a> はregistry利用を前提にしているので今回の例では使わない。逆にregistry利用{可能,したい}なら検討余地あり
+<ul>
+<li>想定ユースケースとしては、例えばCIをスケーラブルに実行したいような場合か（例: 同じdockerイメージを多くの並列jobで使用したい）</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="dockerfile">Dockerfile</h2>
+<p>※ ファイル全体は<a href="https://gist.github.com/goldeneggg/7112424a9776122f73b10a610572933b">gistにup</a> しています。</p>
+<h3 id="アプリのファイルをイメージに含めない">アプリのファイルをイメージに含めない</h3>
+<p><code>COPY</code>や<code>ADD</code>によるファイルコピーを行わないことでアプリのファイルはイメージ内に含めないようにし、かつ<code>CMD</code>や<code>ENTRYPOINT</code>による処理を定義せずに「Railsアプリが動く環境を整える」事にのみ特化してイメージのサイズを小さくしています。<code>bundle install</code> や <code>rails s</code> といった処理は <code>docker-compose {run,exec}</code>を介してコンテナ内で実行し、ライブラリやアプリのファイルはvolumesでマウントしてコンテナにコピーする（イメージには含めないようにする）事を意図しています。</p>
+<h3 id="ufoscoutdocker-compose-wait-でdb起動を待つ">ufoscout/docker-compose-wait でDB起動を待つ</h3>
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-Dockerfile" data-lang="Dockerfile"><span style="color:#007020;font-weight:bold">ARG</span> <span style="color:#bb60d5">ARG_COMPOSE_WAIT_VER</span><span style="color:#666">=</span><span style="color:#40a070">2</span>.7.3<span style="">
+</span><span style=""></span><span style="color:#007020;font-weight:bold">RUN</span> curl -SL https://github.com/ufoscout/docker-compose-wait/releases/download/<span style="color:#70a0d0;font-style:italic">${</span><span style="color:#bb60d5">ARG_COMPOSE_WAIT_VER</span><span style="color:#70a0d0;font-style:italic">}</span>/wait -o /wait<span style="">
+</span><span style=""></span><span style="color:#007020;font-weight:bold">RUN</span> chmod +x /wait<span style="">
+</span></code></pre></td></tr></table>
+</div>
+</div><p>Dockerfileの末尾3行部分で <a href="https://github.com/ufoscout/docker-compose-wait">ufoscout/docker-compose-wait</a> をインストールしています。これはmysql等のミドルウェア・コンテナのポートがLISTEN状態になるのを待ってくれるRust製のツールで、名前の通りdocker-compose.ymlとの併用が意図されています。
+依存ミドルウェア起動をどうやって待つか？については、netcatやdockerizeを使った例だったり、<a href="https://docs.docker.com/compose/startup-order/">公式のPostgresの例ではシェルスクリプトを書いて頑張る例が紹介されていたりしますが（Badの反応が多いのが気になりますが&hellip;）</a>、このツールはミドルウェアの追加・削除時もdocker-compose.ymlに少し記述を追加するだけで対応できますし動作も確実性が高くて使い勝手が良かったです。具体的な使い方は後述のdocker-compose.ymlやGitHub Actionsに関する節で解説します。</p>
+<h2 id="docker-composeyml">docker-compose.yml</h2>
+<p>※ ファイル全体は<a href="https://gist.github.com/goldeneggg/e608c87e8176d52b2db200d6566ac848">gistにup</a> しています。</p>
+<h3 id="1つのdockerfileでdocker-composeの複数サービスを定義する">1つのDockerfileでdocker-composeの複数サービスを定義する</h3>
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">9
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yml" data-lang="yml"><span style="color:#bbb">  </span><span style="color:#007020;font-weight:bold">base</span>:<span style="color:#bbb"> </span><span style="color:#007020">&amp;base</span><span style="color:#bbb">
+</span><span style="color:#bbb">    </span><span style="color:#007020;font-weight:bold">build</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#007020;font-weight:bold">context</span>:<span style="color:#bbb"> </span>.<span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#007020;font-weight:bold">dockerfile</span>:<span style="color:#bbb"> </span>./Dockerfile<span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#007020;font-weight:bold">cache_from</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">        </span>- rails6api-development-cache<span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#007020;font-weight:bold">args</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">        </span><span style="color:#007020;font-weight:bold">ARG_RUBY_VERSION</span>:<span style="color:#bbb"> </span>${ARG_RUBY_VERSION:-<span style="color:#40a070">2.7.1</span>}<span style="color:#bbb">
+</span><span style="color:#bbb">    </span><span style="color:#007020;font-weight:bold">image</span>:<span style="color:#bbb"> </span>rails6api-development:<span style="color:#40a070">0.1.0</span><span style="color:#bbb">
+</span></code></pre></td></tr></table>
+</div>
+</div><p>docker-compose.ymlの<code>base</code>サービス以降の記述が先程のDockerfileを利用するサービスの設定になります。Dockerfileの冒頭で入力を期待している<code>ARG_RUBY_VERSION</code> ARGについては、「環境変数で指定されていたらその内容を、未設定時のデフォルト値は<code>2.7.1</code>を」指定するように<code>args</code>にて定義しています。</p>
+<p><code>base</code>サービスは、それ自体がcommandやentrypointによる処理を行ってはおらず、単にビルドする為だけのサービスとして定義しています。<code>&amp;base</code> とエイリアスを定義している事からも分かるように、これを後続サービスでマージして利用しています（後述）。ビルドに関する設定はこの<code>base</code>サービスにのみ集約してあるので、buildセクションの設定はこれ以降のサービスには出てきません。</p>
+<p><code>base</code>サービスのポイントは<code>cache_from</code>で<code>rails6api-development-cache</code>を指定している事です。この設定は開発作業時ではなくCI時での利用を想定したものです。詳細は後述します。</p>
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yml" data-lang="yml"><span style="color:#bbb">  </span><span style="color:#007020;font-weight:bold">wait-middleware</span>:<span style="color:#bbb"> </span><span style="color:#007020">&amp;wait-middleware</span><span style="color:#bbb">
+</span><span style="color:#bbb">    </span><span style="color:#007020;font-weight:bold">&lt;&lt;</span>:<span style="color:#bbb"> </span><span style="color:#007020">*base</span><span style="color:#bbb">
+</span><span style="color:#bbb">    </span><span style="color:#007020;font-weight:bold">environment</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#007020;font-weight:bold">WAIT_HOSTS</span>:<span style="color:#bbb"> </span>db:<span style="color:#40a070">3306</span><span style="color:#bbb">
+</span><span style="color:#bbb">    </span><span style="color:#007020;font-weight:bold">depends_on</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">      </span>- db<span style="color:#bbb">
+</span><span style="color:#bbb">    </span><span style="color:#007020;font-weight:bold">command</span>:<span style="color:#bbb"> </span>/wait<span style="color:#bbb">
+</span></code></pre></td></tr></table>
+</div>
+</div><p>このサービス定義が、Dockerfileの最後でインストールした<a href="https://github.com/ufoscout/docker-compose-wait">ufoscout/docker-compose-wait</a>を使って<code>db</code>サービスの起動を待つ為のサービスです。ymlの定義方法は公式を参照ください。先に定義した<code>base</code>サービスをmergeし、docker-compose-waitで必要な設定とdbサービスとの関連を定義しています。単独で実行したい場合は<code>docker-compose run</code>すればOKです。</p>
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">$ docker-compose run --rm wait-middleware
+
+Creating network <span style="color:#4070a0">&#34;rails6api_default&#34;</span> with the default driver
+Creating rails6api_db_1    ... <span style="color:#007020;font-weight:bold">done</span>
+--------------------------------------------------------
+ docker-compose-wait 2.7.3
+---------------------------
+Starting with configuration:
+ - Hosts to be waiting <span style="color:#007020;font-weight:bold">for</span>: <span style="color:#666">[</span>db:3306<span style="color:#666">]</span>
+ - Timeout before failure: <span style="color:#40a070">30</span> seconds
+ - TCP connection timeout before retry: <span style="color:#40a070">5</span> seconds
+ - Sleeping <span style="color:#007020">time</span> before checking <span style="color:#007020;font-weight:bold">for</span> hosts availability: <span style="color:#40a070">0</span> seconds
+ - Sleeping <span style="color:#007020">time</span> once all hosts are available: <span style="color:#40a070">0</span> seconds
+ - Sleeping <span style="color:#007020">time</span> between retries: <span style="color:#40a070">1</span> seconds
+--------------------------------------------------------
+Checking availability of db:3306
+Host db:3306 not yet available...
+Host db:3306 is now available!
+--------------------------------------------------------
+docker-compose-wait - Everything<span style="">&#39;</span>s fine, the application can now start!
+</code></pre></td></tr></table>
+</div>
+</div><p>上記実行例は筆者のMacでのもので、ほとんど待ちが発生せずdbが立ち上がります。この速さなら<a href="https://docs.docker.com/compose/compose-file/#depends_on">depends_on</a> で起動順さえ意識しておけば「DBが立ち上がっていない状態でアプリが動きそうになってエラー」という状況はほぼ発生しないのですが、GitHub ActionsのCI環境ではこの速さでは起動してくれず、<code>wait-middleware</code>の効果が大きくなります。これについても後述します。</p>
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yml" data-lang="yml"><span style="color:#bbb">  </span><span style="color:#007020;font-weight:bold">backend</span>:<span style="color:#bbb"> </span><span style="color:#007020">&amp;backend</span><span style="color:#bbb">
+</span><span style="color:#bbb">    </span><span style="color:#007020;font-weight:bold">&lt;&lt;</span>:<span style="color:#bbb"> </span><span style="color:#007020">*base</span><span style="color:#bbb">
+</span><span style="color:#bbb">    </span><span style="color:#007020;font-weight:bold">stdin_open</span>:<span style="color:#bbb"> </span><span style="color:#007020;font-weight:bold">true</span><span style="color:#bbb">
+</span><span style="color:#bbb">    </span><span style="color:#007020;font-weight:bold">tty</span>:<span style="color:#bbb"> </span><span style="color:#007020;font-weight:bold">true</span><span style="color:#bbb">
+</span><span style="color:#bbb">    </span><span style="color:#007020;font-weight:bold">volumes</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">      </span>- ./:/app:cached<span style="color:#bbb">
+</span><span style="color:#bbb">      </span>- ${GEMS_CACHE_DIR:-bundle-cache}:/bundle<span style="color:#bbb">
+</span><span style="color:#bbb">      </span>- rails-cache:/app/tmp/cache<span style="color:#bbb">
+</span><span style="color:#bbb">    </span><span style="color:#007020;font-weight:bold">depends_on</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">      </span>- db<span style="color:#bbb">
+</span><span style="color:#bbb">
+</span><span style="color:#bbb">  </span><span style="color:#007020;font-weight:bold">console</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">    </span><span style="color:#007020;font-weight:bold">&lt;&lt;</span>:<span style="color:#bbb"> </span><span style="color:#007020">*backend</span><span style="color:#bbb">
+</span><span style="color:#bbb">    </span><span style="color:#007020;font-weight:bold">ports</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">      </span>- <span style="color:#40a070">3333</span>:<span style="color:#40a070">3000</span><span style="color:#bbb">
+</span><span style="color:#bbb">    </span><span style="color:#007020;font-weight:bold">command</span>:<span style="color:#bbb"> </span>/bin/bash<span style="color:#bbb">
+</span><span style="color:#bbb">
+</span><span style="color:#bbb">  </span><span style="color:#007020;font-weight:bold">server</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">    </span><span style="color:#007020;font-weight:bold">&lt;&lt;</span>:<span style="color:#bbb"> </span><span style="color:#007020">*backend</span><span style="color:#bbb">
+</span><span style="color:#bbb">    </span><span style="color:#007020;font-weight:bold">ports</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">      </span>- <span style="color:#40a070">3333</span>:<span style="color:#40a070">3000</span><span style="color:#bbb">
+</span><span style="color:#bbb">    </span><span style="color:#007020;font-weight:bold">command</span>:<span style="color:#bbb"> </span>bash<span style="color:#bbb"> </span>-c<span style="color:#bbb"> </span><span style="color:#4070a0">&#34;rm -f tmp/pids/server.pid &amp;&amp; rails s -b 0.0.0.0&#34;</span><span style="color:#bbb">
+</span><span style="color:#bbb">
+</span><span style="color:#bbb"></span><span style="color:#007020;font-weight:bold">volumes</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">  </span><span style="color:#007020;font-weight:bold">mysql-data</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">  </span><span style="color:#007020;font-weight:bold">bundle-cache</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">  </span><span style="color:#007020;font-weight:bold">rails-cache</span>:<span style="color:#bbb">
+</span></code></pre></td></tr></table>
+</div>
+</div><p>bashログインしてのプロンプト作業や <code>rails s</code> する為のサービス定義と、volumeの定義部分です。<a href="https://techracho.bpsinc.jp/hachi8833/2019_09_06/79035">TechRachoさんの記事</a> で紹介されていた書き方を流用させてもらっています。</p>
+<p><code>console</code>と<code>server</code>の両サービスが<code>backend</code>というサービス定義をマージしているのですが、この<code>backend</code>のvolumesで <code>${GEMS_CACHE_DIR:-bundle-cache}:/bundle</code> と定義されているvolumeは<code>bundle install</code>先のディレクトリで、「環境変数<code>GEMS_CACHE_DIR</code>がセットされていればその内容で、セットされていなければ<code>bundle-cache</code>という名前のnamed volumeでマウント」する事を意図しており、CIの為にこのような設定を行っています。これも詳細は後述します。</p>
+<h2 id="env">.env</h2>
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">MYSQL_ROOT_PASSWORD=root
+MYSQL_ALLOW_EMPTY_PASSWORD=1
+DB_HOST=db
+
+MYSQL_FORWARDED_PORT=3806
+MYSQL_FORWARDED_X_PORT=38060
+</code></pre></td></tr></table>
+</div>
+</div><p>docker-compose.ymlのdbサービス内の<a href="https://docs.docker.com/compose/environment-variables/">環境変数</a>を<a href="https://docs.docker.com/compose/env-file/">.envの内容から展開</a> しています。</p>
+<h2 id="githubworkflowsciyml">.github/workflows/ci.yml</h2>
+<p>※ ファイル全体は<a href="https://gist.github.com/goldeneggg/348d82e8f1198086f002de46ff321051">gistにup</a> しています。</p>
+<h3 id="buildkitでビルドをちょっと高速化">BuildKitでビルドをちょっと高速化</h3>
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yml" data-lang="yml"><span style="color:#007020;font-weight:bold">env</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">  </span><span style="color:#007020;font-weight:bold">DOCKER_BUILDKIT</span>:<span style="color:#bbb"> </span><span style="color:#40a070">1</span><span style="color:#bbb">
+</span><span style="color:#bbb">  </span><span style="color:#007020;font-weight:bold">COMPOSE_DOCKER_CLI_BUILD</span>:<span style="color:#bbb"> </span><span style="color:#40a070">1</span><span style="color:#bbb">
+</span></code></pre></td></tr></table>
+</div>
+</div><p>グローバルな環境変数で<a href="https://www.docker.com/blog/faster-builds-in-compose-thanks-to-buildkit-support/">docker-compose向けにBuildKitを有効化</a>しています。今回のDockerfileはmulti-stageでも無くBuildKitによる恩恵はそこまで大きくはないのですが、有効化した事でビルド時間が速くなった（12%程度削減）ので有効化しています。</p>
+<h3 id="先にイメージのキャッシュリストアを実行しこのキャッシュで後続ジョブを並列に動かす">先にイメージのキャッシュ・リストアを実行し、このキャッシュで後続ジョブを並列に動かす</h3>
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yml" data-lang="yml"><span style="color:#007020;font-weight:bold">jobs</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">  </span><span style="color:#60a0b0;font-style:italic"># Dockerイメージのキャッシュ・リストア</span><span style="color:#bbb">
+</span><span style="color:#bbb">  </span><span style="color:#007020;font-weight:bold">image-cache-or-build</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">
+</span><span style="color:#bbb">  </span><span style="color:#60a0b0;font-style:italic"># アプリのテスト</span><span style="color:#bbb">
+</span><span style="color:#bbb">  </span><span style="color:#007020;font-weight:bold">test-app</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">    </span><span style="color:#007020;font-weight:bold">needs</span>:<span style="color:#bbb"> </span>image-cache-or-build<span style="color:#bbb">
+</span><span style="color:#bbb">
+</span><span style="color:#bbb">  </span><span style="color:#60a0b0;font-style:italic"># イメージの脆弱性スキャン</span><span style="color:#bbb">
+</span><span style="color:#bbb">  </span><span style="color:#007020;font-weight:bold">scan-image-by-trivy</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">    </span><span style="color:#007020;font-weight:bold">needs</span>:<span style="color:#bbb"> </span>image-cache-or-build<span style="color:#bbb">
+</span></code></pre></td></tr></table>
+</div>
+</div><p>最初に必ずDockerイメージのキャッシュリストア（キャッシュが無ければ新規ビルド→キャッシュ生成）を行い、後続のアプリテスト＆イメージスキャンはこのキャッシュからリストアしたイメージを使って実行するようにします。アプリテストとイメージスキャンは並列実行でも構わないので並列にしています。</p>
+<h3 id="docker-image-save-docker-image-load-cache_from-with-buildkit-でイメージのキャッシュリストアとビルド">docker image save, docker image load, cache_from with BuildKit でイメージのキャッシュ・リストアとビルド</h3>
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yml" data-lang="yml"><span style="color:#007020;font-weight:bold">jobs</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">  </span><span style="color:#007020;font-weight:bold">image-cache-or-build</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">    </span><span style="color:#007020;font-weight:bold">strategy</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#007020;font-weight:bold">matrix</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">        </span><span style="color:#007020;font-weight:bold">ruby</span>:<span style="color:#bbb"> </span>[<span style="color:#4070a0">&#34;2.7.1&#34;</span>]<span style="color:#bbb">
+</span><span style="color:#bbb">        </span><span style="color:#007020;font-weight:bold">os</span>:<span style="color:#bbb"> </span>[ubuntu<span style="color:#40a070">-18.04</span>]<span style="color:#bbb">
+</span><span style="color:#bbb">    </span><span style="color:#007020;font-weight:bold">runs-on</span>:<span style="color:#bbb"> </span>${{<span style="color:#bbb"> </span>matrix.os<span style="color:#bbb"> </span>}}<span style="color:#bbb">
+</span><span style="color:#bbb">    </span><span style="color:#007020;font-weight:bold">env</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#007020;font-weight:bold">ARG_RUBY_VERSION</span>:<span style="color:#bbb"> </span>${{<span style="color:#bbb"> </span>matrix.ruby<span style="color:#bbb"> </span>}}<span style="color:#bbb">
+</span><span style="color:#bbb">
+</span><span style="color:#bbb">    </span><span style="color:#007020;font-weight:bold">steps</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">    </span>- <span style="color:#007020;font-weight:bold">name</span>:<span style="color:#bbb"> </span>Check<span style="color:#bbb"> </span>out<span style="color:#bbb"> </span>code<span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#007020;font-weight:bold">id</span>:<span style="color:#bbb"> </span>checkout<span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#007020;font-weight:bold">uses</span>:<span style="color:#bbb"> </span>actions/checkout@v2<span style="color:#bbb">
+</span><span style="color:#bbb">
+</span><span style="color:#bbb">    </span>- <span style="color:#007020;font-weight:bold">name</span>:<span style="color:#bbb"> </span>Cache<span style="color:#bbb"> </span>docker<span style="color:#bbb"> </span>image<span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#007020;font-weight:bold">id</span>:<span style="color:#bbb"> </span>cache-docker-image<span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#007020;font-weight:bold">uses</span>:<span style="color:#bbb"> </span>actions/cache@v1<span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#007020;font-weight:bold">with</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">        </span><span style="color:#007020;font-weight:bold">path</span>:<span style="color:#bbb"> </span>${{<span style="color:#bbb"> </span>env.IMAGE_CACHE_DIR<span style="color:#bbb"> </span>}}<span style="color:#bbb">
+</span><span style="color:#bbb">        </span><span style="color:#007020;font-weight:bold">key</span>:<span style="color:#bbb"> </span>${{<span style="color:#bbb"> </span>runner.os<span style="color:#bbb"> </span>}}-${{<span style="color:#bbb"> </span>env.IMAGE_CACHE_KEY<span style="color:#bbb"> </span>}}-${{<span style="color:#bbb"> </span>matrix.ruby<span style="color:#bbb"> </span>}}-${{<span style="color:#bbb"> </span>hashFiles(<span style="color:#4070a0">&#39;Dockerfile&#39;</span>)<span style="color:#bbb"> </span>}}<span style="color:#bbb">
+</span><span style="color:#bbb">        </span><span style="color:#007020;font-weight:bold">restore-keys</span>:<span style="color:#bbb"> </span><span style="color:#4070a0;font-style:italic">|
+</span><span style="color:#4070a0;font-style:italic">          ${{ runner.os }}-${{ env.IMAGE_CACHE_KEY }}-${{ matrix.ruby }}-</span><span style="color:#bbb">
+</span></code></pre></td></tr></table>
+</div>
+</div><p>Dockerイメージのキャッシュリストアは、公式のキャッシュ処理用actionである<a href="https://github.com/actions/cache">actions/cache</a>で行います。</p>
+<p>キャッシュのキーに <code>${{ hashFiles('Dockerfile') }}</code> を含めているのは、Dockerfileに変更があった際にキャッシュHITさせないようにする事を意図したものです。先述のTL;DRに「イメージ自体でファイルを抱え込むような処理をDockerfileに書かない」と書いた通り、（たまたま）今回の例ではDockerfileに<code>COPY</code>や<code>ADD</code>が存在していないお陰で &ldquo;Dockerfileの変更有無&rdquo; によるキャッシュ管理が可能になっています。
+逆に言うと、Dockerfileに変更が無くてもビルドイメージに変更が起こり得る場合、例えば<code>COPY</code>や<code>ADD</code>の処理を含んでいてコピー元ファイルだけに変更が発生するような事もあり得る場合には <code>${{ hashFiles('Dockerfile') }}</code> でのキャッシュキー管理はやめておきましょう。</p>
+<p>なお、<a href="https://github.com/actions/cache#cache-limits">actions/cache を使ったキャッシュの上限はリポジトリ単位で5GB</a> です。今回のように「alpineベースでrailsが動くイメージを、<code>COPY</code>や<code>ADD</code>を排除した最小構成で構築」したイメージなら1GBにも満たないはずなのでまず心配は無用ですが、一応の留意はしておくと良さそうです。</p>
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yml" data-lang="yml"><span style="color:#007020;font-weight:bold">env</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">  </span><span style="color:#007020;font-weight:bold">DOCKER_BUILDKIT</span>:<span style="color:#bbb"> </span><span style="color:#40a070">1</span><span style="color:#bbb">
+</span><span style="color:#bbb">  </span><span style="color:#007020;font-weight:bold">COMPOSE_DOCKER_CLI_BUILD</span>:<span style="color:#bbb"> </span><span style="color:#40a070">1</span><span style="color:#bbb">
+</span><span style="color:#bbb">  </span><span style="color:#007020;font-weight:bold">APP_IMAGE_TAG</span>:<span style="color:#bbb"> </span>rails6api-development:<span style="color:#40a070">0.1.0</span><span style="color:#bbb">
+</span><span style="color:#bbb">  </span><span style="color:#007020;font-weight:bold">APP_IMAGE_CACHE_TAG</span>:<span style="color:#bbb"> </span>rails6api-development-cache<span style="color:#bbb">
+</span><span style="color:#bbb">
+</span><span style="color:#bbb"></span><span style="color:#60a0b0;font-style:italic"># 略</span><span style="color:#bbb">
+</span><span style="color:#bbb">
+</span><span style="color:#bbb">    </span>- <span style="color:#007020;font-weight:bold">name</span>:<span style="color:#bbb"> </span>Docker<span style="color:#bbb"> </span>load<span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#007020;font-weight:bold">id</span>:<span style="color:#bbb"> </span>docker-load<span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#007020;font-weight:bold">if</span>:<span style="color:#bbb"> </span>steps.cache-docker-image.outputs.cache-hit<span style="color:#bbb"> </span>==<span style="color:#bbb"> </span><span style="color:#4070a0">&#39;true&#39;</span><span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#007020;font-weight:bold">run</span>:<span style="color:#bbb"> </span>docker<span style="color:#bbb"> </span>image<span style="color:#bbb"> </span>load<span style="color:#bbb"> </span>-i<span style="color:#bbb"> </span>${IMAGE_CACHE_DIR}/image.tar<span style="color:#bbb">
+</span><span style="color:#bbb">
+</span><span style="color:#bbb">    </span>- <span style="color:#007020;font-weight:bold">name</span>:<span style="color:#bbb"> </span>Docker<span style="color:#bbb"> </span>build<span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#007020;font-weight:bold">id</span>:<span style="color:#bbb"> </span>docker-build<span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#007020;font-weight:bold">run</span>:<span style="color:#bbb"> </span>docker-compose<span style="color:#bbb"> </span>build<span style="color:#bbb"> </span>--build-arg<span style="color:#bbb"> </span>BUILDKIT_INLINE_CACHE=<span style="color:#40a070">1</span><span style="color:#bbb"> </span>base<span style="color:#bbb">
+</span><span style="color:#bbb">
+</span><span style="color:#bbb">    </span>- <span style="color:#007020;font-weight:bold">name</span>:<span style="color:#bbb"> </span>Docker<span style="color:#bbb"> </span>tag<span style="color:#bbb"> </span>and<span style="color:#bbb"> </span>save<span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#007020;font-weight:bold">id</span>:<span style="color:#bbb"> </span>docker-tag-save<span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#007020;font-weight:bold">if</span>:<span style="color:#bbb"> </span>steps.cache-docker-image.outputs.cache-hit<span style="color:#bbb"> </span>!=<span style="color:#bbb"> </span><span style="color:#4070a0">&#39;true&#39;</span><span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#007020;font-weight:bold">run</span>:<span style="color:#bbb"> </span>mkdir<span style="color:#bbb"> </span>-p<span style="color:#bbb"> </span>${IMAGE_CACHE_DIR}<span style="color:#bbb">
+</span><span style="color:#bbb">        </span><span style="color:#007020">&amp;&amp;</span><span style="color:#bbb"> </span>docker<span style="color:#bbb"> </span>image<span style="color:#bbb"> </span>tag<span style="color:#bbb"> </span>${APP_IMAGE_TAG}<span style="color:#bbb"> </span>${APP_IMAGE_CACHE_TAG}<span style="color:#bbb">
+</span><span style="color:#bbb">        </span><span style="color:#007020">&amp;&amp;</span><span style="color:#bbb"> </span>docker<span style="color:#bbb"> </span>image<span style="color:#bbb"> </span>save<span style="color:#bbb"> </span>-o<span style="color:#bbb"> </span>${IMAGE_CACHE_DIR}/image.tar<span style="color:#bbb"> </span>${APP_IMAGE_CACHE_TAG}<span style="color:#bbb">
+</span></code></pre></td></tr></table>
+</div>
+</div><p>上記step群の処理をまとめると、「ビルドされたイメージに <strong><code>rails6api-development-cache</code></strong> というタグを付与してtarに保存し、actions/cache のキャッシュ先ディレクトリに image.tar という名前で保存する」という処理を行っています。</p>
+<p>キャッシュHITの有無で処理の流れは下記のように変わります。</p>
+<ul>
+<li>キャッシュがHITしなかった場合
+<ul>
+<li><code>docker-build</code> のstepで新規にイメージがビルドされます
+<ul>
+<li>※<code>--build-arg BUILDKIT_INLINE_CACHE=true</code> オプションを指定している理由は、<a href="https://docs.docker.com/engine/reference/commandline/build/#specifying-external-cache-sources">BuildKitが有効化された状態でビルドされたイメージを<code>cache_from</code>で取り込むには、元のイメージがこのオプション付きでビルドされている必要がある</a>為です</li>
+<li>実際に<code>cache_from</code>が指定されているのは、docker-compose.ymlの<code>base</code>サービスのbuild設定の箇所（= <strong><code>rails6api-development-cache</code></strong>）</li>
+</ul>
+</li>
+<li>actions/cacheでキャッシュ先として指定した<code>${IMAGE_CACHE_DIR}</code>をmkdirします</li>
+<li>ビルド結果のイメージに別途「キャッシュ用のタグ」を付与します
+<ul>
+<li>= <code>APP_IMAGE_CACHE_TAG</code> = <strong><code>rails6api-development-cache</code></strong></li>
+</ul>
+</li>
+<li>「キャッシュ用のタグ」 = <strong><code>rails6api-development-cache</code></strong> を付与したイメージを<code>docker image save</code>で保存します。この保存先にactions/cacheでのキャッシュ先ディレクトリを指定します（ファイル名は image.tar）</li>
+</ul>
+</li>
+<li>キャッシュがHITした場合
+<ul>
+<li><code>docker-load</code> のstepで、キャッシュからリストアされたimage.tarが <code>docker image load</code> によって展開されます
+<ul>
+<li>展開されるイメージには「キャッシュ用のタグ」 = <strong><code>rails6api-development-cache</code></strong> が付与されています</li>
+</ul>
+</li>
+<li><code>docker-build</code> のstepでイメージがビルドされますが、先のloadのstepで展開されたイメージによって <code>cache_from</code> <strong><code>rails6api-development-cache</code></strong> の指定が効き、このビルドはすぐに終わります</li>
+<li>tagとsaveのstepは <code>if: steps.cache-docker-image.outputs.cache-hit != 'true'</code> の指定によりSKIPされます</li>
+</ul>
+</li>
+</ul>
+<h3 id="キャッシュリストアしたイメージを使って高速ci">キャッシュ・リストアしたイメージを使って高速CI</h3>
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">33
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">34
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yml" data-lang="yml"><span style="color:#007020;font-weight:bold">env</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">  </span><span style="color:#007020;font-weight:bold">DOCKER_BUILDKIT</span>:<span style="color:#bbb"> </span><span style="color:#40a070">1</span><span style="color:#bbb">
+</span><span style="color:#bbb">  </span><span style="color:#007020;font-weight:bold">COMPOSE_DOCKER_CLI_BUILD</span>:<span style="color:#bbb"> </span><span style="color:#40a070">1</span><span style="color:#bbb">
+</span><span style="color:#bbb">  </span><span style="color:#007020;font-weight:bold">APP_IMAGE_TAG</span>:<span style="color:#bbb"> </span>rails6api-development:<span style="color:#40a070">0.1.0</span><span style="color:#bbb">
+</span><span style="color:#bbb">  </span><span style="color:#007020;font-weight:bold">APP_IMAGE_CACHE_TAG</span>:<span style="color:#bbb"> </span>rails6api-development-cache<span style="color:#bbb">
+</span><span style="color:#bbb">
+</span><span style="color:#bbb"></span><span style="color:#60a0b0;font-style:italic"># 略</span><span style="color:#bbb">
+</span><span style="color:#bbb">
+</span><span style="color:#bbb"></span><span style="color:#007020;font-weight:bold">jobs</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">
+</span><span style="color:#bbb"></span><span style="color:#60a0b0;font-style:italic"># 略</span><span style="color:#bbb">
+</span><span style="color:#bbb">
+</span><span style="color:#bbb">  </span><span style="color:#007020;font-weight:bold">test-app</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">    </span><span style="color:#007020;font-weight:bold">needs</span>:<span style="color:#bbb"> </span>image-cache-or-build<span style="color:#bbb">
+</span><span style="color:#bbb">
+</span><span style="color:#bbb">    </span><span style="color:#60a0b0;font-style:italic"># 略</span><span style="color:#bbb">
+</span><span style="color:#bbb">
+</span><span style="color:#bbb">    </span>- <span style="color:#007020;font-weight:bold">name</span>:<span style="color:#bbb"> </span>Cache<span style="color:#bbb"> </span>docker<span style="color:#bbb"> </span>image<span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#007020;font-weight:bold">id</span>:<span style="color:#bbb"> </span>cache-docker-image<span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#007020;font-weight:bold">uses</span>:<span style="color:#bbb"> </span>actions/cache@v1<span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#007020;font-weight:bold">with</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">        </span><span style="color:#007020;font-weight:bold">path</span>:<span style="color:#bbb"> </span>${{<span style="color:#bbb"> </span>env.IMAGE_CACHE_DIR<span style="color:#bbb"> </span>}}<span style="color:#bbb">
+</span><span style="color:#bbb">        </span><span style="color:#007020;font-weight:bold">key</span>:<span style="color:#bbb"> </span>${{<span style="color:#bbb"> </span>runner.os<span style="color:#bbb"> </span>}}-${{<span style="color:#bbb"> </span>env.IMAGE_CACHE_KEY<span style="color:#bbb"> </span>}}-${{<span style="color:#bbb"> </span>matrix.ruby<span style="color:#bbb"> </span>}}-${{<span style="color:#bbb"> </span>hashFiles(<span style="color:#4070a0">&#39;Dockerfile&#39;</span>)<span style="color:#bbb"> </span>}}<span style="color:#bbb">
+</span><span style="color:#bbb">        </span><span style="color:#007020;font-weight:bold">restore-keys</span>:<span style="color:#bbb"> </span><span style="color:#4070a0;font-style:italic">|
+</span><span style="color:#4070a0;font-style:italic">          ${{ runner.os }}-${{ env.IMAGE_CACHE_KEY }}-${{ matrix.ruby }}-</span><span style="color:#bbb">
+</span><span style="color:#bbb">
+</span><span style="color:#bbb">    </span>- <span style="color:#007020;font-weight:bold">name</span>:<span style="color:#bbb"> </span>Docker<span style="color:#bbb"> </span>load<span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#007020;font-weight:bold">id</span>:<span style="color:#bbb"> </span>docker-load<span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#007020;font-weight:bold">if</span>:<span style="color:#bbb"> </span>steps.cache-docker-image.outputs.cache-hit<span style="color:#bbb"> </span>==<span style="color:#bbb"> </span><span style="color:#4070a0">&#39;true&#39;</span><span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#007020;font-weight:bold">run</span>:<span style="color:#bbb"> </span>docker<span style="color:#bbb"> </span>image<span style="color:#bbb"> </span>load<span style="color:#bbb"> </span>-i<span style="color:#bbb"> </span>${IMAGE_CACHE_DIR}/image.tar<span style="color:#bbb">
+</span><span style="color:#bbb">
+</span><span style="color:#bbb">    </span>- <span style="color:#007020;font-weight:bold">name</span>:<span style="color:#bbb"> </span>Docker<span style="color:#bbb"> </span>compose<span style="color:#bbb"> </span>build<span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#007020;font-weight:bold">id</span>:<span style="color:#bbb"> </span>docker-build<span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#007020;font-weight:bold">run</span>:<span style="color:#bbb"> </span>docker-compose<span style="color:#bbb"> </span>build<span style="color:#bbb"> </span>--build-arg<span style="color:#bbb"> </span>BUILDKIT_INLINE_CACHE=<span style="color:#40a070">1</span><span style="color:#bbb"> </span>base<span style="color:#bbb">
+</span></code></pre></td></tr></table>
+</div>
+</div><p>先述のイメージのビルド＆キャッシュjobが完了すると、アプリのテストを行う<code>test-app</code>が起動します。<code>docker-load</code>のstepでは「キャッシュ用のタグ」 = <strong><code>rails6api-development-cache</code></strong> が付与されているイメージが展開され、<code>docker-build</code>のstepでこのイメージを<code>cache_from</code>によって取り込んで<code>base</code>サービスのイメージ（＝ <code>rails6api-development:0.1.0</code> タグが付与されたイメージ）をビルドします。</p>
+<h3 id="ufoscoutdocker-compose-wait-でmysqlコンテナの起動を待つ">ufoscout/docker-compose-wait でMySQLコンテナの起動を待つ</h3>
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yml" data-lang="yml"><span style="color:#bbb">    </span>- <span style="color:#007020;font-weight:bold">name</span>:<span style="color:#bbb"> </span>Wait<span style="color:#bbb"> </span>middleware<span style="color:#bbb"> </span>services<span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#007020;font-weight:bold">id</span>:<span style="color:#bbb"> </span>wait-middleware<span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#007020;font-weight:bold">run</span>:<span style="color:#bbb"> </span>docker-compose<span style="color:#bbb"> </span>run<span style="color:#bbb"> </span>--rm<span style="color:#bbb"> </span>wait-middleware<span style="color:#bbb">
+</span><span style="color:#bbb">
+</span><span style="color:#bbb">    </span>- <span style="color:#007020;font-weight:bold">name</span>:<span style="color:#bbb"> </span>Confirm<span style="color:#bbb"> </span>docker-compose<span style="color:#bbb"> </span>logs<span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#007020;font-weight:bold">id</span>:<span style="color:#bbb"> </span>confirm-docker-compose-logs<span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#007020;font-weight:bold">run</span>:<span style="color:#bbb"> </span>docker-compose<span style="color:#bbb"> </span>logs<span style="color:#bbb"> </span>db<span style="color:#bbb">
+</span></code></pre></td></tr></table>
+</div>
+</div><p>Dockerfileの最後でインストールしてある<a href="https://github.com/ufoscout/docker-compose-wait">ufoscout/docker-compose-wait</a>を使って<code>db</code>サービスの起動を待ちます。</p>
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">Starting with configuration:
+ - Hosts to be waiting for: [db:3306]
+ - Timeout before failure: 30 seconds 
+ - TCP connection timeout before retry: 5 seconds 
+ - Sleeping time before checking for hosts availability: 0 seconds
+ - Sleeping time once all hosts are available: 0 seconds
+ - Sleeping time between retries: 1 seconds
+--------------------------------------------------------
+Checking availability of db:3306
+Host db:3306 not yet available...
+Host db:3306 not yet available...
+Host db:3306 not yet available...
+Host db:3306 not yet available...
+Host db:3306 not yet available...
+Host db:3306 not yet available...
+Host db:3306 not yet available...
+Host db:3306 not yet available...
+Host db:3306 not yet available...
+Host db:3306 not yet available...
+Host db:3306 not yet available...
+Host db:3306 is now available!
+--------------------------------------------------------
+docker-compose-wait - Everything&#39;s fine, the application can now start!
+--------------------------------------------------------
+</code></pre></td></tr></table>
+</div>
+</div><p>以前に「GitHub ActionsのCI環境ではこの速さでは起動してくれず、<code>wait-middleware</code>の効果が大きくなります」と書きましたが、上記ログがGitHub Actionsのrunnerインスタンス上での実行例で（<code>Host db:3306 not yet available...</code> でsleepを1秒挟んでいます）、ポート3306のLISTENまでに10秒以上掛かっています。このログ例のみならず、何度実行しても平均的に10秒超は掛かっていました。仮にこの所要時間でwaitするstepを挟まない（<code>depends_on</code>を指定するのみ）とすると、MySQL起動前に後続のRailsアプリに関するstepが走ってしまいエラーになるでしょう。</p>
+<h4 id="余談-mysqlコンテナの起動プロセスと処理時間">余談: MySQLコンテナの起動プロセスと処理時間</h4>
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">33
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">34
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">35
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">36
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">37
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">38
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">39
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">40
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">41
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">db_1               | 2020-05-25 16:36:40+00:00 [Note] [Entrypoint]: Entrypoint script for MySQL Server 8.0.20-1debian10 started.
+db_1               | 2020-05-25 16:36:40+00:00 [Note] [Entrypoint]: Switching to dedicated user &#39;mysql&#39;
+db_1               | 2020-05-25 16:36:40+00:00 [Note] [Entrypoint]: Entrypoint script for MySQL Server 8.0.20-1debian10 started.
+db_1               | 2020-05-25 16:36:40+00:00 [Note] [Entrypoint]: Initializing database files
+db_1               | 2020-05-25T16:36:40.990281Z 0 [Warning] [MY-011070] [Server] &#39;Disabling symbolic links using --skip-symbolic-links (or equivalent) is the default. Consider not using this option as it&#39; is deprecated and will be removed in a future release.
+db_1               | 2020-05-25T16:36:40.990349Z 0 [System] [MY-013169] [Server] /usr/sbin/mysqld (mysqld 8.0.20) initializing of server in progress as process 45
+db_1               | 2020-05-25T16:36:40.996092Z 1 [System] [MY-013576] [InnoDB] InnoDB initialization has started.
+db_1               | 2020-05-25T16:36:42.100882Z 1 [System] [MY-013577] [InnoDB] InnoDB initialization has ended.
+db_1               | 2020-05-25T16:36:43.312805Z 6 [Warning] [MY-010453] [Server] root@localhost is created with an empty password ! Please consider switching off the --initialize-insecure option.
+db_1               | 2020-05-25 16:36:46+00:00 [Note] [Entrypoint]: Database files initialized
+db_1               | 2020-05-25 16:36:46+00:00 [Note] [Entrypoint]: Starting temporary server
+db_1               | 2020-05-25T16:36:46.494377Z 0 [Warning] [MY-011070] [Server] &#39;Disabling symbolic links using --skip-symbolic-links (or equivalent) is the default. Consider not using this option as it&#39; is deprecated and will be removed in a future release.
+db_1               | 2020-05-25T16:36:46.494485Z 0 [System] [MY-010116] [Server] /usr/sbin/mysqld (mysqld 8.0.20) starting as process 92
+db_1               | 2020-05-25T16:36:46.507413Z 1 [System] [MY-013576] [InnoDB] InnoDB initialization has started.
+db_1               | 2020-05-25T16:36:46.819578Z 1 [System] [MY-013577] [InnoDB] InnoDB initialization has ended.
+db_1               | 2020-05-25T16:36:46.915827Z 0 [System] [MY-011323] [Server] X Plugin ready for connections. Socket: &#39;/var/run/mysqld/mysqlx.sock&#39;
+db_1               | 2020-05-25T16:36:47.015509Z 0 [Warning] [MY-010068] [Server] CA certificate ca.pem is self signed.
+db_1               | 2020-05-25T16:36:47.017398Z 0 [Warning] [MY-011810] [Server] Insecure configuration for --pid-file: Location &#39;/var/run/mysqld&#39; in the path is accessible to all OS users. Consider choosing a different directory.
+db_1               | 2020-05-25T16:36:47.034485Z 0 [System] [MY-010931] [Server] /usr/sbin/mysqld: ready for connections. Version: &#39;8.0.20&#39;  socket: &#39;/var/run/mysqld/mysqld.sock&#39;  port: 0  MySQL Community Server - GPL.
+
+db_1               | 2020-05-25 16:36:47+00:00 [Note] [Entrypoint]: Temporary server started.
+db_1               | Warning: Unable to load &#39;/usr/share/zoneinfo/iso3166.tab&#39; as time zone. Skipping it.
+db_1               | Warning: Unable to load &#39;/usr/share/zoneinfo/leap-seconds.list&#39; as time zone. Skipping it.
+db_1               | Warning: Unable to load &#39;/usr/share/zoneinfo/zone.tab&#39; as time zone. Skipping it.
+db_1               | Warning: Unable to load &#39;/usr/share/zoneinfo/zone1970.tab&#39; as time zone. Skipping it.
+db_1               | 
+db_1               | 2020-05-25 16:36:49+00:00 [Note] [Entrypoint]: Stopping temporary server
+db_1               | 2020-05-25T16:36:49.538277Z 10 [System] [MY-013172] [Server] Received SHUTDOWN from user root. Shutting down mysqld (Version: 8.0.20).
+db_1               | 2020-05-25T16:36:51.341063Z 0 [System] [MY-010910] [Server] /usr/sbin/mysqld: Shutdown complete (mysqld 8.0.20)  MySQL Community Server - GPL.
+db_1               | 2020-05-25 16:36:51+00:00 [Note] [Entrypoint]: Temporary server stopped
+db_1               | 
+db_1               | 2020-05-25 16:36:51+00:00 [Note] [Entrypoint]: MySQL init process done. Ready for start up.
+db_1               | 
+db_1               | 2020-05-25T16:36:51.806387Z 0 [Warning] [MY-011070] [Server] &#39;Disabling symbolic links using --skip-symbolic-links (or equivalent) is the default. Consider not using this option as it&#39; is deprecated and will be removed in a future release.
+db_1               | 2020-05-25T16:36:51.806498Z 0 [System] [MY-010116] [Server] /usr/sbin/mysqld (mysqld 8.0.20) starting as process 1
+db_1               | 2020-05-25T16:36:51.816008Z 1 [System] [MY-013576] [InnoDB] InnoDB initialization has started.
+db_1               | 2020-05-25T16:36:52.191532Z 1 [System] [MY-013577] [InnoDB] InnoDB initialization has ended.
+db_1               | 2020-05-25T16:36:52.286349Z 0 [System] [MY-011323] [Server] X Plugin ready for connections. Socket: &#39;/var/run/mysqld/mysqlx.sock&#39; bind-address: &#39;::&#39; port: 33060
+db_1               | 2020-05-25T16:36:52.341936Z 0 [Warning] [MY-010068] [Server] CA certificate ca.pem is self signed.
+db_1               | 2020-05-25T16:36:52.345030Z 0 [Warning] [MY-011810] [Server] Insecure configuration for --pid-file: Location &#39;/var/run/mysqld&#39; in the path is accessible to all OS users. Consider choosing a different directory.
+db_1               | 2020-05-25T16:36:52.363785Z 0 [System] [MY-010931] [Server] /usr/sbin/mysqld: ready for connections. Version: &#39;8.0.20&#39;  socket: &#39;/var/run/mysqld/mysqld.sock&#39;  port: 3306  MySQL Community Server - GPL.
+</code></pre></td></tr></table>
+</div>
+</div><p>上記はMySQLコンテナ（<code>db</code>サービス）起動時のログを <code>docker-compose logs db</code>で確認した際の例です。</p>
+<ul>
+<li><code>Initializing database files</code> から <code>Database files initialized</code> で6秒</li>
+<li><code>Starting temporary server</code> から <code>Temporary server stopped</code> で5秒</li>
+</ul>
+<p>この2処理で所要時間をほぼ半分ずつ要しています。</p>
+<h3 id="依存gemのvolumeマウントはnamed-volumeではなく書き込み可能なディレクトリを使う">依存gemのvolumeマウントはnamed volumeではなく書き込み可能なディレクトリを使う</h3>
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yml" data-lang="yml"><span style="color:#bbb">    </span><span style="color:#007020;font-weight:bold">env</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#007020;font-weight:bold">ARG_RUBY_VERSION</span>:<span style="color:#bbb"> </span>${{<span style="color:#bbb"> </span>matrix.ruby<span style="color:#bbb"> </span>}}<span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#007020;font-weight:bold">GEMS_CACHE_DIR</span>:<span style="color:#bbb"> </span>/tmp/cache/bundle<span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#007020;font-weight:bold">GEMS_CACHE_KEY</span>:<span style="color:#bbb"> </span>cache-gems<span style="color:#bbb">
+</span><span style="color:#bbb">
+</span><span style="color:#bbb">    </span><span style="color:#60a0b0;font-style:italic"># 略</span><span style="color:#bbb">
+</span><span style="color:#bbb">
+</span><span style="color:#bbb">    </span>- <span style="color:#007020;font-weight:bold">name</span>:<span style="color:#bbb"> </span>Cache<span style="color:#bbb"> </span>bundle<span style="color:#bbb"> </span>gems<span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#007020;font-weight:bold">id</span>:<span style="color:#bbb"> </span>cache-bundle-gems<span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#007020;font-weight:bold">uses</span>:<span style="color:#bbb"> </span>actions/cache@v1<span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#007020;font-weight:bold">with</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">        </span><span style="color:#007020;font-weight:bold">path</span>:<span style="color:#bbb"> </span>${{<span style="color:#bbb"> </span>env.GEMS_CACHE_DIR<span style="color:#bbb"> </span>}}<span style="color:#bbb">
+</span><span style="color:#bbb">        </span><span style="color:#007020;font-weight:bold">key</span>:<span style="color:#bbb"> </span>${{<span style="color:#bbb"> </span>runner.os<span style="color:#bbb"> </span>}}-${{<span style="color:#bbb"> </span>env.GEMS_CACHE_KEY<span style="color:#bbb"> </span>}}-${{<span style="color:#bbb"> </span>matrix.ruby<span style="color:#bbb"> </span>}}-${{<span style="color:#bbb"> </span>hashFiles(<span style="color:#4070a0">&#39;Gemfile.lock&#39;</span>)<span style="color:#bbb"> </span>}}<span style="color:#bbb">
+</span><span style="color:#bbb">        </span><span style="color:#007020;font-weight:bold">restore-keys</span>:<span style="color:#bbb"> </span><span style="color:#4070a0;font-style:italic">|
+</span><span style="color:#4070a0;font-style:italic">          ${{ runner.os }}-${{ env.GEMS_CACHE_KEY }}-${{ matrix.ruby }}-</span><span style="color:#bbb">
+</span></code></pre></td></tr></table>
+</div>
+</div><p>依存Gemのキャッシュリストアも、公式のキャッシュ処理用actionである<a href="https://github.com/actions/cache">actions/cache</a>で行います。キャッシュのキーに <code>${{ hashFiles('Gemfile.lock') }}</code> を含めているのは、Gemfile.lock（Gemfile）に変更があった際にキャッシュHITさせないようにする事を意図したものです。</p>
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yml:./docker-compose.yml" data-lang="yml:./docker-compose.yml"><span style="color:#bbb">  </span><span style="color:#007020;font-weight:bold">backend</span>:<span style="color:#bbb"> </span><span style="color:#007020">&amp;backend</span><span style="color:#bbb">
+</span><span style="color:#bbb">
+</span><span style="color:#bbb">    </span><span style="color:#60a0b0;font-style:italic"># 略</span><span style="color:#bbb">
+</span><span style="color:#bbb">
+</span><span style="color:#bbb">    </span><span style="color:#007020;font-weight:bold">volumes</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">      </span>- ./:/app:cached<span style="color:#bbb">
+</span><span style="color:#bbb">      </span>- ${GEMS_CACHE_DIR:-bundle-cache}:/bundle<span style="color:#bbb">
+</span><span style="color:#bbb">      </span>- rails-cache:/app/tmp/cache<span style="color:#bbb">
+</span><span style="color:#bbb">
+</span><span style="color:#bbb"></span><span style="color:#60a0b0;font-style:italic"># 略</span><span style="color:#bbb">
+</span><span style="color:#bbb">
+</span><span style="color:#bbb"></span><span style="color:#007020;font-weight:bold">volumes</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">  </span><span style="color:#007020;font-weight:bold">mysql-data</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">  </span><span style="color:#007020;font-weight:bold">bundle-cache</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">  </span><span style="color:#007020;font-weight:bold">rails-cache</span>:<span style="color:#bbb">
+</span></code></pre></td></tr></table>
+</div>
+</div><p>全てをDockerで行おうとしているので、<code>bundle install</code>もコンテナ内で行います。つまりインストールされたgemをキャッシュしたければ、volume mount先からインストール結果を取り出さなければなりません。</p>
+<p>↑のdocker-compose.ymlを紹介した際に「環境変数<code>GEMS_CACHE_DIR</code>がセットされていればその内容で、セットされていなければ<code>bundle-cache</code>という名前のnamed volumeでマウント」と書いたのですが、この<code>cache-bundle-gems</code>のstepがまさに「環境変数<code>GEMS_CACHE_DIR</code>がセットされていれば」なケースに該当します。これは「named volumeではなくマウント先のパスを環境変数で明示する」のが意図です。</p>
+<p><a href="https://docs.docker.com/compose/compose-file/#short-syntax-3">公式の<code>volumes</code>のSHORT SYNTAX</a>によると、パスが指定されていればそのパスが、固定文字列が指定されていればその名前のnamed volumeが、それぞれマウントされます。開発作業時は<code>GEMS_CACHE_DIR</code>を明示せずデフォルトの固定文字列（= named volume =<code>bundle-cache</code>）を使用しても良いですが、actions/cache で内容をキャッシュしようとした場合、そのディレクトリとしてnamed volumeの実体（具体的には <code>/var/lib/docker/volumes/xxx</code> というパス）を指定するとpermission deniedエラーでキャッシュに失敗してしまいます。なのでこれを回避する為にCI時のみ<code>GEMS_CACHE_DIR</code>として <code>/tmp/cache/bundle</code> という（permission deniedにならない）ディレクトリを明示しています。これによりCI時のbundle install結果はこの<code>GEMS_CACHE_DIR</code>ディレクトリに出力され、actions/cacheでディレクトリが丸ごとキャッシュされます。</p>
+<p>この記述は正直分かりやすいとは言えないので、<a href="https://docs.docker.com/compose/compose-file/#long-syntax-3">LONG SYNTAX</a>を利用して分かりにくさを軽減したいところなのですが、今回は「環境変数の中身によってvolume typeが変えられる」「1つのdocker-compose.ymlを開発作業とCIで併用しやすい」というメリットを優先してSHORT SYNTAXを採用しました。</p>
+<h3 id="アプリのセットアップテストもdockerコンテナ内で実行">アプリのセットアップ＆テストもDockerコンテナ内で実行</h3>
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yml" data-lang="yml"><span style="color:#bbb">    </span>- <span style="color:#007020;font-weight:bold">name</span>:<span style="color:#bbb"> </span>Setup<span style="color:#bbb"> </span>and<span style="color:#bbb"> </span>Run<span style="color:#bbb"> </span>test<span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#007020;font-weight:bold">id</span>:<span style="color:#bbb"> </span>setup-and-run-test<span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#007020;font-weight:bold">run</span>:<span style="color:#bbb"> </span>docker-compose<span style="color:#bbb"> </span>run<span style="color:#bbb"> </span>--rm<span style="color:#bbb"> </span>console<span style="color:#bbb"> </span>bash<span style="color:#bbb"> </span>-c<span style="color:#bbb"> </span><span style="color:#4070a0">&#34;bundle install &amp;&amp; rails db:prepare &amp;&amp; rspec&#34;</span><span style="color:#bbb">
+</span></code></pre></td></tr></table>
+</div>
+</div><p>このstepは構築するアプリの仕様ややりたい事次第で変わると思いますが、一応今回の例を紹介しておくと <code>bundle install</code>（結果は先述の通りキャッシュされる） → <code>db:prepare</code>でDBセットアップ（<a href="https://railsguides.jp/6_0_release_notes.html#active-record-%E4%B8%BB%E3%81%AA%E5%A4%89%E6%9B%B4">参考</a>） → テスト（今回使ったアプリでは<code>rspec</code>を使用しています）、という順にテストまで実施しています。それぞれのコマンドをrunnerインスタンス上で直接実行するのではなく、<code>docker-compose run</code> で<code>console</code>サービスを立ち上げてその中で実行するようにしています。</p>
+<h3 id="アプリのテストと並列でdockerイメージの脆弱性スキャンも実行">アプリのテストと並列でDockerイメージの脆弱性スキャンも実行</h3>
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">33
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">34
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">35
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">36
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">37
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">38
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">39
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">40
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">41
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">42
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">43
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">44
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">45
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">46
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">47
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">48
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yml" data-lang="yml"><span style="color:#007020;font-weight:bold">env</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">  </span><span style="color:#007020;font-weight:bold">DOCKER_BUILDKIT</span>:<span style="color:#bbb"> </span><span style="color:#40a070">1</span><span style="color:#bbb">
+</span><span style="color:#bbb">  </span><span style="color:#007020;font-weight:bold">COMPOSE_DOCKER_CLI_BUILD</span>:<span style="color:#bbb"> </span><span style="color:#40a070">1</span><span style="color:#bbb">
+</span><span style="color:#bbb">  </span><span style="color:#007020;font-weight:bold">APP_IMAGE_TAG</span>:<span style="color:#bbb"> </span>rails6api-development:<span style="color:#40a070">0.1.0</span><span style="color:#bbb">
+</span><span style="color:#bbb">  </span><span style="color:#007020;font-weight:bold">APP_IMAGE_CACHE_TAG</span>:<span style="color:#bbb"> </span>rails6api-development-cache<span style="color:#bbb">
+</span><span style="color:#bbb">  </span><span style="color:#007020;font-weight:bold">IMAGE_CACHE_DIR</span>:<span style="color:#bbb"> </span>/tmp/cache/docker-image<span style="color:#bbb">
+</span><span style="color:#bbb">  </span><span style="color:#007020;font-weight:bold">IMAGE_CACHE_KEY</span>:<span style="color:#bbb"> </span>cache-image<span style="color:#bbb">
+</span><span style="color:#bbb">
+</span><span style="color:#bbb"></span><span style="color:#60a0b0;font-style:italic"># 略</span><span style="color:#bbb">
+</span><span style="color:#bbb">
+</span><span style="color:#bbb">  </span><span style="color:#007020;font-weight:bold">scan-image-by-trivy</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">    </span><span style="color:#007020;font-weight:bold">needs</span>:<span style="color:#bbb"> </span>image-cache-or-build<span style="color:#bbb">
+</span><span style="color:#bbb">    </span><span style="color:#007020;font-weight:bold">strategy</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#007020;font-weight:bold">matrix</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">        </span><span style="color:#007020;font-weight:bold">ruby</span>:<span style="color:#bbb"> </span>[<span style="color:#4070a0">&#34;2.7.1&#34;</span>]<span style="color:#bbb">
+</span><span style="color:#bbb">        </span><span style="color:#007020;font-weight:bold">os</span>:<span style="color:#bbb"> </span>[ubuntu<span style="color:#40a070">-18.04</span>]<span style="color:#bbb">
+</span><span style="color:#bbb">    </span><span style="color:#007020;font-weight:bold">runs-on</span>:<span style="color:#bbb"> </span>${{<span style="color:#bbb"> </span>matrix.os<span style="color:#bbb"> </span>}}<span style="color:#bbb">
+</span><span style="color:#bbb">    </span><span style="color:#007020;font-weight:bold">env</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#007020;font-weight:bold">ARG_RUBY_VERSION</span>:<span style="color:#bbb"> </span>${{<span style="color:#bbb"> </span>matrix.ruby<span style="color:#bbb"> </span>}}<span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#007020;font-weight:bold">TRIVY_CACHE_DIR</span>:<span style="color:#bbb"> </span>/tmp/cache/trivy<span style="color:#bbb">
+</span><span style="color:#bbb">
+</span><span style="color:#bbb">    </span><span style="color:#007020;font-weight:bold">steps</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">    </span>- <span style="color:#007020;font-weight:bold">name</span>:<span style="color:#bbb"> </span>Check<span style="color:#bbb"> </span>out<span style="color:#bbb"> </span>code<span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#007020;font-weight:bold">id</span>:<span style="color:#bbb"> </span>checkout<span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#007020;font-weight:bold">uses</span>:<span style="color:#bbb"> </span>actions/checkout@v2<span style="color:#bbb">
+</span><span style="color:#bbb">
+</span><span style="color:#bbb">    </span>- <span style="color:#007020;font-weight:bold">name</span>:<span style="color:#bbb"> </span>Cache<span style="color:#bbb"> </span>docker<span style="color:#bbb"> </span>image<span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#007020;font-weight:bold">id</span>:<span style="color:#bbb"> </span>cache-docker-image<span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#007020;font-weight:bold">uses</span>:<span style="color:#bbb"> </span>actions/cache@v1<span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#007020;font-weight:bold">with</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">        </span><span style="color:#007020;font-weight:bold">path</span>:<span style="color:#bbb"> </span>${{<span style="color:#bbb"> </span>env.IMAGE_CACHE_DIR<span style="color:#bbb"> </span>}}<span style="color:#bbb">
+</span><span style="color:#bbb">        </span><span style="color:#007020;font-weight:bold">key</span>:<span style="color:#bbb"> </span>${{<span style="color:#bbb"> </span>runner.os<span style="color:#bbb"> </span>}}-${{<span style="color:#bbb"> </span>env.IMAGE_CACHE_KEY<span style="color:#bbb"> </span>}}-${{<span style="color:#bbb"> </span>matrix.ruby<span style="color:#bbb"> </span>}}-${{<span style="color:#bbb"> </span>hashFiles(<span style="color:#4070a0">&#39;Dockerfile&#39;</span>)<span style="color:#bbb"> </span>}}<span style="color:#bbb">
+</span><span style="color:#bbb">        </span><span style="color:#007020;font-weight:bold">restore-keys</span>:<span style="color:#bbb"> </span><span style="color:#4070a0;font-style:italic">|
+</span><span style="color:#4070a0;font-style:italic">          ${{ runner.os }}-${{ env.IMAGE_CACHE_KEY }}-${{ matrix.ruby }}-</span><span style="color:#bbb">
+</span><span style="color:#bbb">
+</span><span style="color:#bbb">    </span>- <span style="color:#007020;font-weight:bold">name</span>:<span style="color:#bbb"> </span>Docker<span style="color:#bbb"> </span>load<span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#007020;font-weight:bold">id</span>:<span style="color:#bbb"> </span>docker-load<span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#007020;font-weight:bold">if</span>:<span style="color:#bbb"> </span>steps.cache-docker-image.outputs.cache-hit<span style="color:#bbb"> </span>==<span style="color:#bbb"> </span><span style="color:#4070a0">&#39;true&#39;</span><span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#007020;font-weight:bold">run</span>:<span style="color:#bbb"> </span>docker<span style="color:#bbb"> </span>image<span style="color:#bbb"> </span>load<span style="color:#bbb"> </span>-i<span style="color:#bbb"> </span>${IMAGE_CACHE_DIR}/image.tar<span style="color:#bbb">
+</span><span style="color:#bbb">
+</span><span style="color:#bbb">    </span>- <span style="color:#007020;font-weight:bold">name</span>:<span style="color:#bbb"> </span>Scan<span style="color:#bbb"> </span>image<span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#007020;font-weight:bold">id</span>:<span style="color:#bbb"> </span>scan-image<span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#007020;font-weight:bold">run</span>:<span style="color:#bbb"> </span>docker<span style="color:#bbb"> </span>container<span style="color:#bbb"> </span>run<span style="color:#bbb">
+</span><span style="color:#bbb">        </span>--rm<span style="color:#bbb">
+</span><span style="color:#bbb">        </span>-v<span style="color:#bbb"> </span>/var/run/docker.sock:/var/run/docker.sock<span style="color:#bbb">
+</span><span style="color:#bbb">        </span>-v<span style="color:#bbb"> </span>${TRIVY_CACHE_DIR}:/root/.cache/<span style="color:#bbb">
+</span><span style="color:#bbb">        </span>aquasec/trivy<span style="color:#bbb">
+</span><span style="color:#bbb">        </span>${APP_IMAGE_CACHE_TAG}<span style="color:#bbb">
+</span></code></pre></td></tr></table>
+</div>
+</div><p>開発〜CIをDockerで完結させようとしているので、折角なのでCI時にDockerイメージの脆弱性スキャンも行っておきたいです。今回は <a href="https://github.com/aquasecurity/trivy">aquasecurity/trivy</a> を使わせてもらいました。Docker完結を目指しているので、trivyによるスキャンも<a href="https://github.com/aquasecurity/trivy#docker">公式に提供されているDocker</a>で行います。</p>
+<p><code>needs: image-cache-or-build</code> によってイメージビルド＆キャッシュが完了済なので、スキャンもそのキャッシュをload・展開したイメージに対して実施して高速化します（スキャン対象として <code>${APP_IMAGE_CACHE_TAG}</code> = <strong><code>rails6api-development-cache</code></strong> を指定）。
+毎回 aquasec/trivy をpullする事でスキャンそのものの仕様を常に最新化しているので、Dockerfileに変更がなくてもスキャンを実行するようにしています。</p>
+<h2 id="開発作業のユースケース例">開発作業のユースケース例</h2>
+<h3 id="新規参画エンジニアの環境構築手順は">新規参画エンジニアの環境構築手順は？</h3>
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh"><span style="color:#60a0b0;font-style:italic"># ビルド</span>
+docker-compose build base
+
+<span style="color:#60a0b0;font-style:italic"># セットアップ</span>
+docker-compose run --rm console bash -c <span style="color:#4070a0">&#34;bundle install &amp;&amp; rails db:prepare &amp;&amp; rails db:seed&#34;</span>
+
+<span style="color:#60a0b0;font-style:italic"># 起動</span>
+docker-compose up -d server
+</code></pre></td></tr></table>
+</div>
+</div><h3 id="railsを起動したい時は">railsを起動したい時は？</h3>
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">docker-compose up -d server
+</code></pre></td></tr></table>
+</div>
+</div><h3 id="起動中のrailsログをコンソールに流しておきたい時は">起動中のRailsログをコンソールに流しておきたい時は？</h3>
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh"><span style="color:#60a0b0;font-style:italic"># 下記コマンドでattachすれば、server コンテナの標準出力をtail風に確認可能</span>
+docker attach <span style="color:#4070a0">`</span>docker-compose ps -q server<span style="color:#4070a0">`</span>
+
+<span style="color:#60a0b0;font-style:italic"># attach状態を終了したければ Ctrl+P =&gt; Ctrl+Q する</span>
+</code></pre></td></tr></table>
+</div>
+</div><h3 id="テストrspecを実行したい時は">テスト（rspec）を実行したい時は？</h3>
+<p>起動中のserverサービスで</p>
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">docker-compose <span style="color:#007020">exec</span> server rspec <span style="color:#666">[</span>SPEC_FILES<span style="color:#666">]</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>consoleサービスで</p>
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">docker-compose run --rm console rspec <span style="color:#666">[</span>SPEC_FILES<span style="color:#666">]</span>
+</code></pre></td></tr></table>
+</div>
+</div><h3 id="rails-consoleに接続したい時は">Rails consoleに接続したい時は？</h3>
+<p>起動中のserverサービスで</p>
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">docker-compose <span style="color:#007020">exec</span> server rails c
+</code></pre></td></tr></table>
+</div>
+</div><h3 id="マイグレーションを追加修正適用したい時は">マイグレーションを追加・修正・適用したい時は？</h3>
+<p>起動中のserverサービスで</p>
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">9
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh"><span style="color:#60a0b0;font-style:italic"># マイグレーション新規生成</span>
+docker-compose <span style="color:#007020">exec</span> server rails g migration MIGRATION_NAME
+
+<span style="color:#60a0b0;font-style:italic"># :</span>
+<span style="color:#60a0b0;font-style:italic"># マイグレーションファイルを適宜修正</span>
+<span style="color:#60a0b0;font-style:italic"># :</span>
+
+<span style="color:#60a0b0;font-style:italic"># マイグレーションの適用</span>
+docker-compose <span style="color:#007020">exec</span> server rails db:migrate
+</code></pre></td></tr></table>
+</div>
+</div><p>※ この記事は <a href="https://qiita.com/jpshadowapps/items/f32314ba827510cfe504">以前Qiitaに公開した記事</a> の転載です。</p>
+
+  </article>
+</section>
+
+
+      </div>
+
+      <footer class="footer">
+  <section class="container">
+    
+    
+      
+        © 2017 - 2020
+      
+       Fuminori Sakamoto 
+    
+    
+       · 
+      Powered by <a href="https://gohugo.io/">Hugo</a> & <a href="https://github.com/luizdepra/hugo-coder/">Coder</a>.
+    
+    
+  </section>
+</footer>
+
+    </main>
+
+    
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+	ga('create', 'UA-129776715-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+
+
+    
+
+  </body>
+
+</html>

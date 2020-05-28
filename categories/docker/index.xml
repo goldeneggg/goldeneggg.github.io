@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>docker on horizoon</title>
+    <link>https://horizoon.jp/categories/docker/</link>
+    <description>Recent content in docker on horizoon</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <lastBuildDate>Thu, 28 May 2020 20:05:36 +0900</lastBuildDate>
+    
+	<atom:link href="https://horizoon.jp/categories/docker/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Dockerで構築したRailsアプリをGitHub Actionsで高速にCIする為のプラクティス（Rails 6 API編）</title>
+      <link>https://horizoon.jp/post/2020/05/28/rails6api_docker_github_actions/</link>
+      <pubDate>Thu, 28 May 2020 20:05:36 +0900</pubDate>
+      
+      <guid>https://horizoon.jp/post/2020/05/28/rails6api_docker_github_actions/</guid>
+      <description>Rails on GitHub Actions（或いは {Django,Laravel} on GitHub Actions）のCI事例として、
+ ホストランナー上にRuby（Python, PHP）をセットアップ MySQLやRedisはサービスコンテナで立ち上げ 依存ライブラリのインストール（bundle install） や ユニットテスト（rspec） もホストランナー上で直接実行  という事例は多く見かけるのですが、開発をDockerベースで行っていて、GitHub ActionsのCI Pipelineも同じくDockerベースで構築したい&amp;hellip;というケースの事例があまり見当たらなかったので、自分が関わったプロジェクト（Rails 6 API mode）での事例を紹介します。
+前提条件  Ruby 2.7.1 Rails 6.0.3 (API mode) Docker (Docker for Mac)  Engine 19.03.8 Compose 1.25.5   MySQL 8.0.20 開発環境は全てDocker（Dockerfile/docker-compose.yml）で構築＆管理  bundle install や rails s や rspec などのコマンドは全てdocker-compose {run,exec} を介してコンテナ内で実行   Dockerfileはmulti-stage構成にはしない（今回の例ではひとまず開発用の設定だけが記述されている前提とする） リモートdocker registryは利用しない GitHub Actionsは現時点で公式にDocker layer cachingをサポートしていない 参考1, 参考2  これについては このissue で最新状況が追えそう しばらく対応され無さそう だけど、対応して欲しい&amp;hellip;    TL;DR  dockerイメージのサイズを小さくしたい  イメージ自体でファイルを抱え込むような処理をDockerfileに書かない  ≒ Dockerfileに変更が無くてもビルドイメージに変更が発生し得るようなDockerfile にはしない   実行したいコマンドはコンテナ起動時に都度コマンドとして付与し、成果物を保存・永続化したければvolumesを活用する   CI時も開発環境と同じ Dockerfile/docker-compose.</description>
+    </item>
+    
+  </channel>
+</rss>
