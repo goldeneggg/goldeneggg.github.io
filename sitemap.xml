@@ -23,16 +23,6 @@
   </url>
   
   <url>
-    <loc>https://horizoon.jp/categories/git/</loc>
-    <lastmod>2020-05-28T20:05:36+09:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://horizoon.jp/categories/github/</loc>
-    <lastmod>2020-05-28T20:05:36+09:00</lastmod>
-  </url>
-  
-  <url>
     <loc>https://horizoon.jp/categories/github-actions/</loc>
     <lastmod>2020-05-28T20:05:36+09:00</lastmod>
   </url>
@@ -60,6 +50,11 @@
   <url>
     <loc>https://horizoon.jp/categories/rails-api/</loc>
     <lastmod>2020-05-28T20:05:36+09:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://horizoon.jp/categories/github/</loc>
+    <lastmod>2020-03-25T19:15:00+09:00</lastmod>
   </url>
   
   <url>
@@ -154,6 +149,11 @@
   
   <url>
     <loc>https://horizoon.jp/categories/diff/</loc>
+    <lastmod>2019-02-26T14:41:00+09:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://horizoon.jp/categories/git/</loc>
     <lastmod>2019-02-26T14:41:00+09:00</lastmod>
   </url>
   

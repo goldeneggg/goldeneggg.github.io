@@ -30,24 +30,6 @@
     </item>
     
     <item>
-      <title>git</title>
-      <link>https://horizoon.jp/categories/git/</link>
-      <pubDate>Thu, 28 May 2020 20:05:36 +0900</pubDate>
-      
-      <guid>https://horizoon.jp/categories/git/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>github</title>
-      <link>https://horizoon.jp/categories/github/</link>
-      <pubDate>Thu, 28 May 2020 20:05:36 +0900</pubDate>
-      
-      <guid>https://horizoon.jp/categories/github/</guid>
-      <description></description>
-    </item>
-    
-    <item>
       <title>github actions</title>
       <link>https://horizoon.jp/categories/github-actions/</link>
       <pubDate>Thu, 28 May 2020 20:05:36 +0900</pubDate>
@@ -80,6 +62,15 @@
       <pubDate>Thu, 28 May 2020 20:05:36 +0900</pubDate>
       
       <guid>https://horizoon.jp/categories/rails-api/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>github</title>
+      <link>https://horizoon.jp/categories/github/</link>
+      <pubDate>Wed, 25 Mar 2020 19:15:00 +0900</pubDate>
+      
+      <guid>https://horizoon.jp/categories/github/</guid>
       <description></description>
     </item>
     
@@ -188,6 +179,15 @@
       <pubDate>Tue, 26 Feb 2019 14:41:00 +0900</pubDate>
       
       <guid>https://horizoon.jp/categories/diff/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>git</title>
+      <link>https://horizoon.jp/categories/git/</link>
+      <pubDate>Tue, 26 Feb 2019 14:41:00 +0900</pubDate>
+      
+      <guid>https://horizoon.jp/categories/git/</guid>
       <description></description>
     </item>
     

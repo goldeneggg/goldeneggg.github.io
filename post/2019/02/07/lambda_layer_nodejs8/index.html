@@ -4,10 +4,14 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Language" content="en">
 
     <meta name="author" content="Fuminori Sakamoto">
-    <meta name="description" content="horizoon&#39;s website">
+    <meta name="description" content="Summary  axiosなどのモジュールに依存した既存のNode.js Lambda Functionがある このfunctionで使用しているモジュールをAWS Lambda Layersに移行し、aws-sam-cliでデプロイする 既存functionで個別にnpm installしていたモジュールを削除し、デプロイしたLayerを使用するように変更する Layer移行後も既存functionが sam local invoke コマンドでローカルで実行できる事を確認する Layerを使うように変更した既存functionをデプロイする 移行した結果  既存functionのサイズを半分以下に削減できた 既存functionの実行時間を半分以下に削減できた   AWS SAM 便利  Lambda Layerも便利、だけど、チーム開発でCIの仕組み構築まで考え始めると一工夫必要かも？    前提条件 1 2 3 4 5 6 7  # aws-cliのバージョン $ aws --version aws-cli/1.16.80 Python/3.7.1 Darwin/18.2.0 botocore/1.12.70 # aws-sam-cliのバージョン $ sam --version SAM CLI, version 0.10.0   既存Functionで使用中のモジュールをLayersに移行する Layer用のプロジェクトディレクトリを作成し、Layer化したいnpmモジュールをインストールします。 ディレクトリの構成は公式ドキュメントの記載 の通り nodejs/node_modules という構成になるようにします。
+1 2 3 4 5 6  $ cd &lt;PROJECT_ROOT&gt; $ mkdir nodejs $ cd nodejs $ npm init -y $ npm install [必要なモジュール群]   ここまで完了すると、PROJECT_ROOTの下には下記のディレクトリとファイルが作成された状態になります">
     <meta name="keywords" content="blog,developer,backpacker,personal">
+
+    
 
     <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="既存のLambda FunctionにLambda Layersを導入し、AWS SAMで管理する（Node.js）"/>
@@ -35,13 +39,13 @@
     
 
     <link href="https://fonts.googleapis.com/css?family=Lato:400,700%7CMerriweather:300,700%7CSource+Code+Pro:400,700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.11.2/css/all.css" integrity="sha384-KA6wR/X5RY4zFAHpv/CnoG2UW1uogYfdnP67Uv7eULvTveboZJg0qUpmJZb5VqzN" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.13.0/css/all.css" integrity="sha384-Bfad6CLCknfcloXFOyFnlgtENryhrpZCe29RTifKEixXQZ38WheV+i/6YWSzkz3V" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css" integrity="sha256-l85OmPOjvil/SOvVt3HnSSjzF1TUMyT9eV0c2BzEGzU=" crossorigin="anonymous" />
 
     
       
       
-      <link rel="stylesheet" href="https://horizoon.jp/css/coder.min.a4f332213a21ce8eb521670c614470c58923aaaf385e2a73982c31dd7642decb.css" integrity="sha256-pPMyITohzo61IWcMYURwxYkjqq84XipzmCwx3XZC3ss=" crossorigin="anonymous" media="screen" />
+      <link rel="stylesheet" href="https://horizoon.jp/css/coder.min.3219ef62ae52679b7a9c19043171c3cd9f523628c2a65f3ef247ee18836bc90b.css" integrity="sha256-MhnvYq5SZ5t6nBkEMXHDzZ9SNijCpl8&#43;8kfuGINryQs=" crossorigin="anonymous" media="screen" />
     
 
     
@@ -50,10 +54,8 @@
       
         
         
-        <link rel="stylesheet" href="https://horizoon.jp/css/coder-dark.min.83a2010dac9f59f943b3004cd6c4f230507ad036da635d3621401d42ec4e2835.css" integrity="sha256-g6IBDayfWflDswBM1sTyMFB60DbaY102IUAdQuxOKDU=" crossorigin="anonymous" media="screen" />
+        <link rel="stylesheet" href="https://horizoon.jp/css/coder-dark.min.e78e80fc3a585a4d1c8fc7f58623b6ff852411e38431a9cd1792877ecaa160f6.css" integrity="sha256-546A/DpYWk0cj8f1hiO2/4UkEeOEManNF5KHfsqhYPY=" crossorigin="anonymous" media="screen" />
       
-    
-
     
 
     
@@ -63,14 +65,16 @@
     <link rel="icon" type="image/png" href="https://horizoon.jp/favicon-32x32.png" sizes="32x32">
     <link rel="icon" type="image/png" href="https://horizoon.jp/favicon-16x16.png" sizes="16x16">
 
-    <meta name="generator" content="Hugo 0.71.0" />
+    <meta name="generator" content="Hugo 0.73.0" />
   </head>
 
   
   
     
   
-  <body class="colorscheme-auto">
+  <body class="colorscheme-auto"
+        onload=""
+  >
     <main class="wrapper">
       <nav class="navigation">
   <section class="container">
@@ -583,27 +587,33 @@ $ vi template.yaml
   </article>
 </section>
 
+  
 
       </div>
 
-      <footer class="footer">
-  <section class="container">
-    
-    
       
-        © 2017 - 2020
+  <footer class="footer">
+    <section class="container">
       
-       Fuminori Sakamoto 
-    
-    
-       · 
-      Powered by <a href="https://gohugo.io/">Hugo</a> & <a href="https://github.com/luizdepra/hugo-coder/">Coder</a>.
-    
-    
-  </section>
-</footer>
+      
+        ©
+        
+          2017 -
+        
+        2020
+         Fuminori Sakamoto 
+      
+      
+         · 
+        Powered by <a href="https://gohugo.io/">Hugo</a> & <a href="https://github.com/luizdepra/hugo-coder/">Coder</a>.
+      
+      
+    </section>
+  </footer>
 
     </main>
+
+    
 
     
 <script type="application/javascript">
