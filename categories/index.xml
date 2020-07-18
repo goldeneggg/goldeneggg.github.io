@@ -6,10 +6,28 @@
     <description>Recent content in Categories on horizoon</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Thu, 28 May 2020 20:05:36 +0900</lastBuildDate>
+    <lastBuildDate>Sat, 18 Jul 2020 11:45:36 +0900</lastBuildDate>
     
 	<atom:link href="https://horizoon.jp/categories/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>github</title>
+      <link>https://horizoon.jp/categories/github/</link>
+      <pubDate>Sat, 18 Jul 2020 11:45:36 +0900</pubDate>
+      
+      <guid>https://horizoon.jp/categories/github/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>oss</title>
+      <link>https://horizoon.jp/categories/oss/</link>
+      <pubDate>Sat, 18 Jul 2020 11:45:36 +0900</pubDate>
+      
+      <guid>https://horizoon.jp/categories/oss/</guid>
+      <description></description>
+    </item>
     
     <item>
       <title>docker</title>
@@ -62,15 +80,6 @@
       <pubDate>Thu, 28 May 2020 20:05:36 +0900</pubDate>
       
       <guid>https://horizoon.jp/categories/rails-api/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>github</title>
-      <link>https://horizoon.jp/categories/github/</link>
-      <pubDate>Wed, 25 Mar 2020 19:15:00 +0900</pubDate>
-      
-      <guid>https://horizoon.jp/categories/github/</guid>
       <description></description>
     </item>
     

@@ -6,10 +6,22 @@
     <description>Recent content in github on horizoon</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Wed, 25 Mar 2020 19:15:00 +0900</lastBuildDate>
+    <lastBuildDate>Sat, 18 Jul 2020 11:45:36 +0900</lastBuildDate>
     
 	<atom:link href="https://horizoon.jp/categories/github/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>GitHub Arctic Code Vault で北極圏にコードが保存されました記念</title>
+      <link>https://horizoon.jp/post/2020/07/18/github_arctic_code_vault/</link>
+      <pubDate>Sat, 18 Jul 2020 11:45:36 +0900</pubDate>
+      
+      <guid>https://horizoon.jp/post/2020/07/18/github_arctic_code_vault/</guid>
+      <description>GitHub Archive Program: the journey of the world&amp;rsquo;s open source code to the Arctic - The GitHub Blog
+1000年後にデータを残すための「GitHub Archive Program」で21TBのリポジトリの北極圏への保管が完了 - GIGAZINE
+私のコードも保存されたようです　※という記念の為（だけ）の備忘記事
+ </description>
+    </item>
     
     <item>
       <title>Go: GoReleaserの設定ファイルをGithub ActionsのPull Request時CIでテスト/検証する</title>

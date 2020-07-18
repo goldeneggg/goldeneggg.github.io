@@ -6,10 +6,22 @@
     <description>Recent content on horizoon</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Thu, 28 May 2020 20:05:36 +0900</lastBuildDate>
+    <lastBuildDate>Sat, 18 Jul 2020 11:45:36 +0900</lastBuildDate>
     
 	<atom:link href="https://horizoon.jp/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>GitHub Arctic Code Vault で北極圏にコードが保存されました記念</title>
+      <link>https://horizoon.jp/post/2020/07/18/github_arctic_code_vault/</link>
+      <pubDate>Sat, 18 Jul 2020 11:45:36 +0900</pubDate>
+      
+      <guid>https://horizoon.jp/post/2020/07/18/github_arctic_code_vault/</guid>
+      <description>GitHub Archive Program: the journey of the world&amp;rsquo;s open source code to the Arctic - The GitHub Blog
+1000年後にデータを残すための「GitHub Archive Program」で21TBのリポジトリの北極圏への保管が完了 - GIGAZINE
+私のコードも保存されたようです　※という記念の為（だけ）の備忘記事
+ </description>
+    </item>
     
     <item>
       <title>Dockerで構築したRailsアプリをGitHub Actionsで高速にCIする為のプラクティス（Rails 6 API編）</title>
