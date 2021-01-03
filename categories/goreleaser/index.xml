@@ -6,11 +6,7 @@
     <description>Recent content in goreleaser on horizoon</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Mon, 25 Feb 2019 08:17:54 +0900</lastBuildDate>
-    
-	<atom:link href="https://horizoon.jp/categories/goreleaser/index.xml" rel="self" type="application/rss+xml" />
-    
-    
+    <lastBuildDate>Mon, 25 Feb 2019 08:17:54 +0900</lastBuildDate><atom:link href="https://horizoon.jp/categories/goreleaser/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>depからgo modulesへの移行と、移行時にTravis CI &amp; GoReleaserでハマる（かもしれない）ポイント</title>
       <link>https://horizoon.jp/post/2019/02/25/dep_to_go_mod/</link>

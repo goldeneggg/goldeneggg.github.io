@@ -6,11 +6,7 @@
     <description>Recent content in aws-sdk-go on horizoon</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Fri, 16 Aug 2019 17:10:35 +0900</lastBuildDate>
-    
-	<atom:link href="https://horizoon.jp/categories/aws-sdk-go/index.xml" rel="self" type="application/rss+xml" />
-    
-    
+    <lastBuildDate>Fri, 16 Aug 2019 17:10:35 +0900</lastBuildDate><atom:link href="https://horizoon.jp/categories/aws-sdk-go/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>aws-sdk-go, aws-sdk-go-v2 でMFAトークンによるAssumeRoleに対応する</title>
       <link>https://horizoon.jp/post/2019/08/16/aws_sdk_go_assumerole/</link>

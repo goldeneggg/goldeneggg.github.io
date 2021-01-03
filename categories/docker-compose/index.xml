@@ -6,11 +6,7 @@
     <description>Recent content in docker-compose on horizoon</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Thu, 28 May 2020 20:05:36 +0900</lastBuildDate>
-    
-	<atom:link href="https://horizoon.jp/categories/docker-compose/index.xml" rel="self" type="application/rss+xml" />
-    
-    
+    <lastBuildDate>Thu, 28 May 2020 20:05:36 +0900</lastBuildDate><atom:link href="https://horizoon.jp/categories/docker-compose/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Dockerで構築したRailsアプリをGitHub Actionsで高速にCIする為のプラクティス（Rails 6 API編）</title>
       <link>https://horizoon.jp/post/2020/05/28/rails6api_docker_github_actions/</link>

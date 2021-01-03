@@ -6,11 +6,7 @@
     <description>Recent content in aws sam on horizoon</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Tue, 11 Jun 2019 17:16:54 +0900</lastBuildDate>
-    
-	<atom:link href="https://horizoon.jp/categories/aws-sam/index.xml" rel="self" type="application/rss+xml" />
-    
-    
+    <lastBuildDate>Tue, 11 Jun 2019 17:16:54 +0900</lastBuildDate><atom:link href="https://horizoon.jp/categories/aws-sam/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Travis CIによるLambdaの自動デプロイ with AWS SAM in Go</title>
       <link>https://horizoon.jp/post/2019/06/11/sam_cicd/</link>

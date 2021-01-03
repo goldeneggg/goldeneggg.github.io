@@ -6,11 +6,7 @@
     <description>Recent content on horizoon</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Sat, 18 Jul 2020 11:45:36 +0900</lastBuildDate>
-    
-	<atom:link href="https://horizoon.jp/index.xml" rel="self" type="application/rss+xml" />
-    
-    
+    <lastBuildDate>Sat, 18 Jul 2020 11:45:36 +0900</lastBuildDate><atom:link href="https://horizoon.jp/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>GitHub Arctic Code Vault で北極圏にコードが保存されました記念</title>
       <link>https://horizoon.jp/post/2020/07/18/github_arctic_code_vault/</link>
@@ -44,7 +40,7 @@
 もしCIで.goreleaser.ymlのテスト/検証が出来れば、Release前にymlの不備を検知する事が出来ます。以前書いたdepからgo modulesへの移行に関する記事にも載せた のですが、GoReleaserにはdry-runの機能があります。具体的にはgoreleaserコマンドに --skip-publish という公開（release）をskip出来るオプションと、 --snapshot というバージョンタグのチェックを行わず現状のコードベースの成果物を出力するオプションがあり、GoReleaserのgithub actions でもこれらのオプションはそのまま利用可能です。
 yamlの例 yaml内に (番号) 形式でコメントしている箇所については後述します。
 .github/workflows/ci.yml ※ 拙作ツールのファイル全体像は こちら
-1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39  name:CIon:# (1)push:branches:- masterpull_request:jobs:validate-goreleaser:name:Validate.</description>
+1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39  name:CIon:# (1)push:branches:- masterpull_request:jobs:validate-goreleaser:name:Validate .</description>
     </item>
     
     <item>
@@ -174,7 +170,7 @@ Hugoの導入 サイトジェネレータの選定だが、Go製の hugo が生�
       
       <guid>https://horizoon.jp/about/</guid>
       <description>I&amp;rsquo;m Engineering Manager, AWS Solution Architect and Web Developer, especially good at server side engineering.
-  I also like the technology itself, but I like the job of assembling customer&amp;rsquo;s tasks into concrete system requirements and I&amp;rsquo;m good at it. I have plenty of knowledge on Fintech.
+I also like the technology itself, but I like the job of assembling customer&amp;rsquo;s tasks into concrete system requirements and I&amp;rsquo;m good at it. I have plenty of knowledge on Fintech.
 And I&amp;rsquo;m a backpacker. I love all south east asian countries!! and I like taking photos of my visited places with CANON EOS Kiss M!</description>
     </item>
     
@@ -184,7 +180,7 @@ And I&amp;rsquo;m a backpacker. I love all south east asian countries!! and I li
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
       <guid>https://horizoon.jp/projects/</guid>
-      <description>Tools &amp;amp; Libraries   lsec2 - Go: List view of aws ec2 instances.   gat - Go: Concatnating and printing file to various services.   structil - Go: Runtime and dynamic struct utilities.   And others&amp;hellip;  Services Coming soon&amp;hellip;</description>
+      <description>Tools &amp;amp; Libraries   lsec2 - Go: List view of aws ec2 instances.   structil - Go: Runtime and dynamic struct utilities.   gat - Go: Concatnating and printing file to various services.   And others&amp;hellip;  Services Coming soon&amp;hellip;</description>
     </item>
     
   </channel>
