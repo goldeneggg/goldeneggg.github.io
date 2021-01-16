@@ -7,7 +7,7 @@
     <meta http-equiv="Content-Language" content="en">
 
     <meta name="author" content="Fuminori Sakamoto">
-    <meta name="description" content="Summary  「PDFをコピペしたい時に改行が含まれて翻訳結果が変になる問題」を雑にどうにかするAlfredワークフローを作った  https://github.com/goldeneggg/alfred-workflow-selected-text-translator    前提条件  Alfred Powerpackを導入している（＝Alfredのワークフロー機能が利用できる）  「選択したテキストが翻訳される」という体験をPDF（等のE-Books）翻訳でも再現したい 「PDFをコピペしたい時に改行が含まれて翻訳結果が変になる問題」って何？というイメージがこちらです。文章途中で改行が混ざった結果、翻訳結果が変になる、という事象です。同じ経験をされた方も多いのではないかと思います。
+    <meta name="description" content="Summary  「PDFをコピペして翻訳サービスで翻訳したい時に、改行が含まれて翻訳結果が変になる問題」を雑にどうにかするAlfredワークフローを作った  https://github.com/goldeneggg/alfred-workflow-selected-text-translator    前提条件  Alfred Powerpackを導入している（＝Alfredのワークフロー機能が利用できる）  PDFからコピペした文章の翻訳を、「選択したテキストが翻訳される」という体験で実現したい 「PDFをコピペしたい時に改行が含まれて翻訳結果が変になる問題」って何？というイメージがこちらです。文章途中で改行が混ざった結果、翻訳結果が変になる、という事象です。同じ経験をされた方も多いのではないかと思います。
  PDF 翻訳 改行 等でググると様々な解決策がHITしますが、普段ChromeのGoogle翻訳拡張に慣れている筆者としては、やはり「ドラッグして選択したテキストが翻訳される」という体験をPDF（等のE-Books）翻訳でも再現したいな と考え、「選択したテキストに対して何かをする事が出来ると言えば AlfredワークフローのHotkeyトリガー だ」と雑に思いついて作ってみたワークフローがこちらです。
 https://github.com/goldeneggg/alfred-workflow-selected-text-translator
 このワークフローを使うことで
@@ -20,8 +20,8 @@ https://github.com/goldeneggg/alfred-workflow-selected-text-translator
     <meta name="keywords" content="blog,developer,backpacker,personal">
 
     <meta name="twitter:card" content="summary"/>
-<meta name="twitter:title" content="AlfredワークフローでPDF等の改行が含まれるテキストをサクッと翻訳"/>
-<meta name="twitter:description" content="Summary  「PDFをコピペしたい時に改行が含まれて翻訳結果が変になる問題」を雑にどうにかするAlfredワークフローを作った  https://github.com/goldeneggg/alfred-workflow-selected-text-translator    前提条件  Alfred Powerpackを導入している（＝Alfredのワークフロー機能が利用できる）  「選択したテキストが翻訳される」という体験をPDF（等のE-Books）翻訳でも再現したい 「PDFをコピペしたい時に改行が含まれて翻訳結果が変になる問題」って何？というイメージがこちらです。文章途中で改行が混ざった結果、翻訳結果が変になる、という事象です。同じ経験をされた方も多いのではないかと思います。
+<meta name="twitter:title" content="AlfredワークフローでPDF等の改行が含まれるテキストをサクッと正確に翻訳"/>
+<meta name="twitter:description" content="Summary  「PDFをコピペして翻訳サービスで翻訳したい時に、改行が含まれて翻訳結果が変になる問題」を雑にどうにかするAlfredワークフローを作った  https://github.com/goldeneggg/alfred-workflow-selected-text-translator    前提条件  Alfred Powerpackを導入している（＝Alfredのワークフロー機能が利用できる）  PDFからコピペした文章の翻訳を、「選択したテキストが翻訳される」という体験で実現したい 「PDFをコピペしたい時に改行が含まれて翻訳結果が変になる問題」って何？というイメージがこちらです。文章途中で改行が混ざった結果、翻訳結果が変になる、という事象です。同じ経験をされた方も多いのではないかと思います。
  PDF 翻訳 改行 等でググると様々な解決策がHITしますが、普段ChromeのGoogle翻訳拡張に慣れている筆者としては、やはり「ドラッグして選択したテキストが翻訳される」という体験をPDF（等のE-Books）翻訳でも再現したいな と考え、「選択したテキストに対して何かをする事が出来ると言えば AlfredワークフローのHotkeyトリガー だ」と雑に思いついて作ってみたワークフローがこちらです。
 https://github.com/goldeneggg/alfred-workflow-selected-text-translator
 このワークフローを使うことで
@@ -32,8 +32,8 @@ https://github.com/goldeneggg/alfred-workflow-selected-text-translator
  次にHotkeyトリガーから渡されてきたテキストを Write File Output に渡してtemporaryなテキストファイルに出力しておきます。
  そしてRun Script Action で、このファイルをcatした結果を tr コマンドをかまして改行除去します。Run Script Actionから後続アクションに渡される内容は「スクリプトで標準出力に出力した内容」になりますので、特にAlfredワークフローだからと言って何かを意識せず、普段bashでスクリプトを書く時と同様に書けばOKです。"/>
 
-    <meta property="og:title" content="AlfredワークフローでPDF等の改行が含まれるテキストをサクッと翻訳" />
-<meta property="og:description" content="Summary  「PDFをコピペしたい時に改行が含まれて翻訳結果が変になる問題」を雑にどうにかするAlfredワークフローを作った  https://github.com/goldeneggg/alfred-workflow-selected-text-translator    前提条件  Alfred Powerpackを導入している（＝Alfredのワークフロー機能が利用できる）  「選択したテキストが翻訳される」という体験をPDF（等のE-Books）翻訳でも再現したい 「PDFをコピペしたい時に改行が含まれて翻訳結果が変になる問題」って何？というイメージがこちらです。文章途中で改行が混ざった結果、翻訳結果が変になる、という事象です。同じ経験をされた方も多いのではないかと思います。
+    <meta property="og:title" content="AlfredワークフローでPDF等の改行が含まれるテキストをサクッと正確に翻訳" />
+<meta property="og:description" content="Summary  「PDFをコピペして翻訳サービスで翻訳したい時に、改行が含まれて翻訳結果が変になる問題」を雑にどうにかするAlfredワークフローを作った  https://github.com/goldeneggg/alfred-workflow-selected-text-translator    前提条件  Alfred Powerpackを導入している（＝Alfredのワークフロー機能が利用できる）  PDFからコピペした文章の翻訳を、「選択したテキストが翻訳される」という体験で実現したい 「PDFをコピペしたい時に改行が含まれて翻訳結果が変になる問題」って何？というイメージがこちらです。文章途中で改行が混ざった結果、翻訳結果が変になる、という事象です。同じ経験をされた方も多いのではないかと思います。
  PDF 翻訳 改行 等でググると様々な解決策がHITしますが、普段ChromeのGoogle翻訳拡張に慣れている筆者としては、やはり「ドラッグして選択したテキストが翻訳される」という体験をPDF（等のE-Books）翻訳でも再現したいな と考え、「選択したテキストに対して何かをする事が出来ると言えば AlfredワークフローのHotkeyトリガー だ」と雑に思いついて作ってみたワークフローがこちらです。
 https://github.com/goldeneggg/alfred-workflow-selected-text-translator
 このワークフローを使うことで
@@ -50,7 +50,7 @@ https://github.com/goldeneggg/alfred-workflow-selected-text-translator
 
 
     <title>
-  AlfredワークフローでPDF等の改行が含まれるテキストをサクッと翻訳 · horizoon
+  AlfredワークフローでPDF等の改行が含まれるテキストをサクッと正確に翻訳 · horizoon
 </title>
 
     
@@ -147,12 +147,12 @@ https://github.com/goldeneggg/alfred-workflow-selected-text-translator
   <section class="container page">
   <article>
     <header>
-      <h1>AlfredワークフローでPDF等の改行が含まれるテキストをサクッと翻訳</h1>
+      <h1>AlfredワークフローでPDF等の改行が含まれるテキストをサクッと正確に翻訳</h1>
     </header>
 
     <h2 id="summary">Summary</h2>
 <ul>
-<li>「PDFをコピペしたい時に改行が含まれて翻訳結果が変になる問題」を雑にどうにかするAlfredワークフローを作った
+<li>「PDFをコピペして翻訳サービスで翻訳したい時に、改行が含まれて翻訳結果が変になる問題」を雑にどうにかするAlfredワークフローを作った
 <ul>
 <li><a href="https://github.com/goldeneggg/alfred-workflow-selected-text-translator">https://github.com/goldeneggg/alfred-workflow-selected-text-translator</a></li>
 </ul>
@@ -162,7 +162,7 @@ https://github.com/goldeneggg/alfred-workflow-selected-text-translator
 <ul>
 <li>Alfred Powerpackを導入している（＝Alfredのワークフロー機能が利用できる）</li>
 </ul>
-<h2 id="選択したテキストが翻訳されるという体験をpdf等のe-books翻訳でも再現したい">「選択したテキストが翻訳される」という体験をPDF（等のE-Books）翻訳でも再現したい</h2>
+<h2 id="pdfからコピペした文章の翻訳を選択したテキストが翻訳されるという体験で実現したい">PDFからコピペした文章の翻訳を、「選択したテキストが翻訳される」という体験で実現したい</h2>
 <p>「PDFをコピペしたい時に改行が含まれて翻訳結果が変になる問題」って何？というイメージがこちらです。文章途中で改行が混ざった結果、翻訳結果が変になる、という事象です。同じ経験をされた方も多いのではないかと思います。</p>
 <figure class="center">
     <img src="https://horizoon.jp/img/translation_with_alfred_workflow/1.gif"/> 

@@ -8,12 +8,12 @@
     <language>en</language>
     <lastBuildDate>Sat, 16 Jan 2021 13:05:00 +0900</lastBuildDate><atom:link href="https://horizoon.jp/categories/alfred-workflow/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>AlfredワークフローでPDF等の改行が含まれるテキストをサクッと翻訳</title>
+      <title>AlfredワークフローでPDF等の改行が含まれるテキストをサクッと正確に翻訳</title>
       <link>https://horizoon.jp/post/2021/01/16/translation_with_alfred_workflow/</link>
       <pubDate>Sat, 16 Jan 2021 13:05:00 +0900</pubDate>
       
       <guid>https://horizoon.jp/post/2021/01/16/translation_with_alfred_workflow/</guid>
-      <description>Summary  「PDFをコピペしたい時に改行が含まれて翻訳結果が変になる問題」を雑にどうにかするAlfredワークフローを作った  https://github.com/goldeneggg/alfred-workflow-selected-text-translator    前提条件  Alfred Powerpackを導入している（＝Alfredのワークフロー機能が利用できる）  「選択したテキストが翻訳される」という体験をPDF（等のE-Books）翻訳でも再現したい 「PDFをコピペしたい時に改行が含まれて翻訳結果が変になる問題」って何？というイメージがこちらです。文章途中で改行が混ざった結果、翻訳結果が変になる、という事象です。同じ経験をされた方も多いのではないかと思います。
+      <description>Summary  「PDFをコピペして翻訳サービスで翻訳したい時に、改行が含まれて翻訳結果が変になる問題」を雑にどうにかするAlfredワークフローを作った  https://github.com/goldeneggg/alfred-workflow-selected-text-translator    前提条件  Alfred Powerpackを導入している（＝Alfredのワークフロー機能が利用できる）  PDFからコピペした文章の翻訳を、「選択したテキストが翻訳される」という体験で実現したい 「PDFをコピペしたい時に改行が含まれて翻訳結果が変になる問題」って何？というイメージがこちらです。文章途中で改行が混ざった結果、翻訳結果が変になる、という事象です。同じ経験をされた方も多いのではないかと思います。
  PDF 翻訳 改行 等でググると様々な解決策がHITしますが、普段ChromeのGoogle翻訳拡張に慣れている筆者としては、やはり「ドラッグして選択したテキストが翻訳される」という体験をPDF（等のE-Books）翻訳でも再現したいな と考え、「選択したテキストに対して何かをする事が出来ると言えば AlfredワークフローのHotkeyトリガー だ」と雑に思いついて作ってみたワークフローがこちらです。
 https://github.com/goldeneggg/alfred-workflow-selected-text-translator
 このワークフローを使うことで
