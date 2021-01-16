@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>translator on horizoon</title>
+    <link>https://horizoon.jp/categories/translator/</link>
+    <description>Recent content in translator on horizoon</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <lastBuildDate>Sat, 16 Jan 2021 13:05:00 +0900</lastBuildDate><atom:link href="https://horizoon.jp/categories/translator/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>AlfredワークフローでPDF等の改行が含まれるテキストをサクッと翻訳</title>
+      <link>https://horizoon.jp/post/2021/01/16/translation_with_alfred_workflow/</link>
+      <pubDate>Sat, 16 Jan 2021 13:05:00 +0900</pubDate>
+      
+      <guid>https://horizoon.jp/post/2021/01/16/translation_with_alfred_workflow/</guid>
+      <description>Summary  「PDFをコピペしたい時に改行が含まれて翻訳結果が変になる問題」を雑にどうにかするAlfredワークフローを作った  https://github.com/goldeneggg/alfred-workflow-selected-text-translator    前提条件  Alfred Powerpackを導入している（＝Alfredのワークフロー機能が利用できる）  「選択したテキストが翻訳される」という体験をPDF（等のE-Books）翻訳でも再現したい 「PDFをコピペしたい時に改行が含まれて翻訳結果が変になる問題」って何？というイメージがこちらです。文章途中で改行が混ざった結果、翻訳結果が変になる、という事象です。同じ経験をされた方も多いのではないかと思います。
+ PDF 翻訳 改行 等でググると様々な解決策がHITしますが、普段ChromeのGoogle翻訳拡張に慣れている筆者としては、やはり「ドラッグして選択したテキストが翻訳される」という体験をPDF（等のE-Books）翻訳でも再現したいな と考え、「選択したテキストに対して何かをする事が出来ると言えば AlfredワークフローのHotkeyトリガー だ」と雑に思いついて作ってみたワークフローがこちらです。
+https://github.com/goldeneggg/alfred-workflow-selected-text-translator
+このワークフローを使うことで
+ PDF等のE-Booksのテキストをドラッグ＆選択し、 設定したHotkey（例: Option + Shift + Command + T など）を押せば、 ブラウザで　改行が混ざっていない文章の翻訳結果が Google翻訳で表示される  ようになります。
+ インストール手順は 上記reposのREADME を参照ください。
+ワークフローの構成紹介 ワークフロー全体のイメージはこんな感じです。
+ まず AlfredワークフローのHotkeyトリガー を下記のように設定します。Argument を Selection in macOS にすることで、ドラッグして選択しているテキストの内容を後続のアクションに渡す事が出来ます。
+ 次にHotkeyトリガーから渡されてきたテキストを Write File Output に渡してtemporaryなテキストファイルに出力しておきます。
+ そしてRun Script Action で、このファイルをcatした結果を tr コマンドをかまして改行除去します。Run Script Actionから後続アクションに渡される内容は「スクリプトで標準出力に出力した内容」になりますので、特にAlfredワークフローだからと言って何かを意識せず、普段bashでスクリプトを書く時と同様に書けばOKです。</description>
+    </item>
+    
+  </channel>
+</rss>

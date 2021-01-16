@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Language" content="en">
+
+    <meta name="author" content="Fuminori Sakamoto">
+    <meta name="description" content="Summary  「PDFをコピペしたい時に改行が含まれて翻訳結果が変になる問題」を雑にどうにかするAlfredワークフローを作った  https://github.com/goldeneggg/alfred-workflow-selected-text-translator    前提条件  Alfred Powerpackを導入している（＝Alfredのワークフロー機能が利用できる）  「選択したテキストが翻訳される」という体験をPDF（等のE-Books）翻訳でも再現したい 「PDFをコピペしたい時に改行が含まれて翻訳結果が変になる問題」って何？というイメージがこちらです。文章途中で改行が混ざった結果、翻訳結果が変になる、という事象です。同じ経験をされた方も多いのではないかと思います。
+ PDF 翻訳 改行 等でググると様々な解決策がHITしますが、普段ChromeのGoogle翻訳拡張に慣れている筆者としては、やはり「ドラッグして選択したテキストが翻訳される」という体験をPDF（等のE-Books）翻訳でも再現したいな と考え、「選択したテキストに対して何かをする事が出来ると言えば AlfredワークフローのHotkeyトリガー だ」と雑に思いついて作ってみたワークフローがこちらです。
+https://github.com/goldeneggg/alfred-workflow-selected-text-translator
+このワークフローを使うことで
+ PDF等のE-Booksのテキストをドラッグ＆選択し、 設定したHotkey（例: Option &#43; Shift &#43; Command &#43; T など）を押せば、 ブラウザで　改行が混ざっていない文章の翻訳結果が Google翻訳で表示される  ようになります。
+ インストール手順は 上記reposのREADME を参照ください。
+ワークフローの構成紹介 ワークフロー全体のイメージはこんな感じです。
+ まず AlfredワークフローのHotkeyトリガー を下記のように設定します。Argument を Selection in macOS にすることで、ドラッグして選択しているテキストの内容を後続のアクションに渡す事が出来ます。
+ 次にHotkeyトリガーから渡されてきたテキストを Write File Output に渡してtemporaryなテキストファイルに出力しておきます。
+ そしてRun Script Action で、このファイルをcatした結果を tr コマンドをかまして改行除去します。Run Script Actionから後続アクションに渡される内容は「スクリプトで標準出力に出力した内容」になりますので、特にAlfredワークフローだからと言って何かを意識せず、普段bashでスクリプトを書く時と同様に書けばOKです。">
+    <meta name="keywords" content="blog,developer,backpacker,personal">
+
+    <meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="AlfredワークフローでPDF等の改行が含まれるテキストをサクッと翻訳"/>
+<meta name="twitter:description" content="Summary  「PDFをコピペしたい時に改行が含まれて翻訳結果が変になる問題」を雑にどうにかするAlfredワークフローを作った  https://github.com/goldeneggg/alfred-workflow-selected-text-translator    前提条件  Alfred Powerpackを導入している（＝Alfredのワークフロー機能が利用できる）  「選択したテキストが翻訳される」という体験をPDF（等のE-Books）翻訳でも再現したい 「PDFをコピペしたい時に改行が含まれて翻訳結果が変になる問題」って何？というイメージがこちらです。文章途中で改行が混ざった結果、翻訳結果が変になる、という事象です。同じ経験をされた方も多いのではないかと思います。
+ PDF 翻訳 改行 等でググると様々な解決策がHITしますが、普段ChromeのGoogle翻訳拡張に慣れている筆者としては、やはり「ドラッグして選択したテキストが翻訳される」という体験をPDF（等のE-Books）翻訳でも再現したいな と考え、「選択したテキストに対して何かをする事が出来ると言えば AlfredワークフローのHotkeyトリガー だ」と雑に思いついて作ってみたワークフローがこちらです。
+https://github.com/goldeneggg/alfred-workflow-selected-text-translator
+このワークフローを使うことで
+ PDF等のE-Booksのテキストをドラッグ＆選択し、 設定したHotkey（例: Option &#43; Shift &#43; Command &#43; T など）を押せば、 ブラウザで　改行が混ざっていない文章の翻訳結果が Google翻訳で表示される  ようになります。
+ インストール手順は 上記reposのREADME を参照ください。
+ワークフローの構成紹介 ワークフロー全体のイメージはこんな感じです。
+ まず AlfredワークフローのHotkeyトリガー を下記のように設定します。Argument を Selection in macOS にすることで、ドラッグして選択しているテキストの内容を後続のアクションに渡す事が出来ます。
+ 次にHotkeyトリガーから渡されてきたテキストを Write File Output に渡してtemporaryなテキストファイルに出力しておきます。
+ そしてRun Script Action で、このファイルをcatした結果を tr コマンドをかまして改行除去します。Run Script Actionから後続アクションに渡される内容は「スクリプトで標準出力に出力した内容」になりますので、特にAlfredワークフローだからと言って何かを意識せず、普段bashでスクリプトを書く時と同様に書けばOKです。"/>
+
+    <meta property="og:title" content="AlfredワークフローでPDF等の改行が含まれるテキストをサクッと翻訳" />
+<meta property="og:description" content="Summary  「PDFをコピペしたい時に改行が含まれて翻訳結果が変になる問題」を雑にどうにかするAlfredワークフローを作った  https://github.com/goldeneggg/alfred-workflow-selected-text-translator    前提条件  Alfred Powerpackを導入している（＝Alfredのワークフロー機能が利用できる）  「選択したテキストが翻訳される」という体験をPDF（等のE-Books）翻訳でも再現したい 「PDFをコピペしたい時に改行が含まれて翻訳結果が変になる問題」って何？というイメージがこちらです。文章途中で改行が混ざった結果、翻訳結果が変になる、という事象です。同じ経験をされた方も多いのではないかと思います。
+ PDF 翻訳 改行 等でググると様々な解決策がHITしますが、普段ChromeのGoogle翻訳拡張に慣れている筆者としては、やはり「ドラッグして選択したテキストが翻訳される」という体験をPDF（等のE-Books）翻訳でも再現したいな と考え、「選択したテキストに対して何かをする事が出来ると言えば AlfredワークフローのHotkeyトリガー だ」と雑に思いついて作ってみたワークフローがこちらです。
+https://github.com/goldeneggg/alfred-workflow-selected-text-translator
+このワークフローを使うことで
+ PDF等のE-Booksのテキストをドラッグ＆選択し、 設定したHotkey（例: Option &#43; Shift &#43; Command &#43; T など）を押せば、 ブラウザで　改行が混ざっていない文章の翻訳結果が Google翻訳で表示される  ようになります。
+ インストール手順は 上記reposのREADME を参照ください。
+ワークフローの構成紹介 ワークフロー全体のイメージはこんな感じです。
+ まず AlfredワークフローのHotkeyトリガー を下記のように設定します。Argument を Selection in macOS にすることで、ドラッグして選択しているテキストの内容を後続のアクションに渡す事が出来ます。
+ 次にHotkeyトリガーから渡されてきたテキストを Write File Output に渡してtemporaryなテキストファイルに出力しておきます。
+ そしてRun Script Action で、このファイルをcatした結果を tr コマンドをかまして改行除去します。Run Script Actionから後続アクションに渡される内容は「スクリプトで標準出力に出力した内容」になりますので、特にAlfredワークフローだからと言って何かを意識せず、普段bashでスクリプトを書く時と同様に書けばOKです。" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://horizoon.jp/post/2021/01/16/translation_with_alfred_workflow/" />
+<meta property="article:published_time" content="2021-01-16T13:05:00+09:00" />
+<meta property="article:modified_time" content="2021-01-16T13:05:00+09:00" />
+
+
+    <title>
+  AlfredワークフローでPDF等の改行が含まれるテキストをサクッと翻訳 · horizoon
+</title>
+
+    
+      <link rel="canonical" href="https://horizoon.jp/post/2021/01/16/translation_with_alfred_workflow/">
+    
+
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css?family=Lato:400,700%7CMerriweather:300,700%7CSource+Code+Pro:400,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fork-awesome@1.1.7/css/fork-awesome.min.css"
+      integrity="sha256-gsmEoJAws/Kd3CjuOQzLie5Q3yshhvmo7YNtBG7aaEY=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/normalize.css@8/normalize.min.css">
+    
+      
+      
+      <link rel="stylesheet" href="https://horizoon.jp/css/coder.min.f01c647a0d25b40da992a37c3376291185eed8a50ced8c26cc2c0bcfe38c97df.css" integrity="sha256-8Bxkeg0ltA2pkqN8M3YpEYXu2KUM7YwmzCwLz&#43;OMl98=" crossorigin="anonymous" media="screen" />
+    
+
+    
+
+    
+      
+        
+        
+        <link rel="stylesheet" href="https://horizoon.jp/css/coder-dark.min.126ad3988d46bdae6217a11105b53c9662bca05f39d42d3c0fb366919d334620.css" integrity="sha256-EmrTmI1Gva5iF6ERBbU8lmK8oF851C08D7NmkZ0zRiA=" crossorigin="anonymous" media="screen" />
+      
+    
+
+    
+
+    
+
+    <link rel="icon" type="image/png" href="https://horizoon.jp/favicon-32x32.png" sizes="32x32">
+    <link rel="icon" type="image/png" href="https://horizoon.jp/favicon-16x16.png" sizes="16x16">
+
+    <link rel="apple-touch-icon" href="https://horizoon.jp/images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="https://horizoon.jp/images/apple-touch-icon.png">
+
+    
+
+    <meta name="generator" content="Hugo 0.80.0" />
+  </head>
+
+  
+  
+    
+  
+  <body class="colorscheme-auto"
+        onload=""
+  >
+    
+<div class="float-container">
+    <a id="dark-mode-toggle" class="colorscheme-toggle">
+        <i class="fa fa-adjust fa-fw" aria-hidden="true"></i>
+    </a>
+</div>
+
+
+    <main class="wrapper">
+      <nav class="navigation">
+  <section class="container">
+    <a class="navigation-title" href="https://horizoon.jp/">
+      horizoon
+    </a>
+    
+      <input type="checkbox" id="menu-toggle" />
+      <label class="menu-button float-right" for="menu-toggle">
+        <i class="fa fa-bars fa-fw" aria-hidden="true"></i>
+      </label>
+      <ul class="navigation-list">
+        
+          
+            <li class="navigation-item">
+              <a class="navigation-link" href="https://horizoon.jp/post/">Blog</a>
+            </li>
+          
+            <li class="navigation-item">
+              <a class="navigation-link" href="https://horizoon.jp/projects/">Projects</a>
+            </li>
+          
+            <li class="navigation-item">
+              <a class="navigation-link" href="https://horizoon.jp/about/">About</a>
+            </li>
+          
+        
+        
+      </ul>
+    
+  </section>
+</nav>
+
+
+      <div class="content">
+        
+  <section class="container page">
+  <article>
+    <header>
+      <h1>AlfredワークフローでPDF等の改行が含まれるテキストをサクッと翻訳</h1>
+    </header>
+
+    <h2 id="summary">Summary</h2>
+<ul>
+<li>「PDFをコピペしたい時に改行が含まれて翻訳結果が変になる問題」を雑にどうにかするAlfredワークフローを作った
+<ul>
+<li><a href="https://github.com/goldeneggg/alfred-workflow-selected-text-translator">https://github.com/goldeneggg/alfred-workflow-selected-text-translator</a></li>
+</ul>
+</li>
+</ul>
+<h2 id="前提条件">前提条件</h2>
+<ul>
+<li>Alfred Powerpackを導入している（＝Alfredのワークフロー機能が利用できる）</li>
+</ul>
+<h2 id="選択したテキストが翻訳されるという体験をpdf等のe-books翻訳でも再現したい">「選択したテキストが翻訳される」という体験をPDF（等のE-Books）翻訳でも再現したい</h2>
+<p>「PDFをコピペしたい時に改行が含まれて翻訳結果が変になる問題」って何？というイメージがこちらです。文章途中で改行が混ざった結果、翻訳結果が変になる、という事象です。同じ経験をされた方も多いのではないかと思います。</p>
+<figure class="center">
+    <img src="https://horizoon.jp/img/translation_with_alfred_workflow/1.gif"/> 
+</figure>
+
+<p><code>PDF 翻訳 改行</code> 等でググると様々な解決策がHITしますが、<strong>普段ChromeのGoogle翻訳拡張に慣れている筆者としては、やはり「ドラッグして選択したテキストが翻訳される」という体験をPDF（等のE-Books）翻訳でも再現したいな</strong> と考え、「選択したテキストに対して何かをする事が出来ると言えば <a href="https://www.alfredapp.com/help/workflows/triggers/hotkey/">AlfredワークフローのHotkeyトリガー</a> だ」と雑に思いついて作ってみたワークフローがこちらです。</p>
+<p><a href="https://github.com/goldeneggg/alfred-workflow-selected-text-translator">https://github.com/goldeneggg/alfred-workflow-selected-text-translator</a></p>
+<p>このワークフローを使うことで</p>
+<ol>
+<li>PDF等のE-Booksのテキストをドラッグ＆選択し、</li>
+<li>設定したHotkey（例: <code>Option + Shift + Command + T</code> など）を押せば、</li>
+<li>ブラウザで　<strong>改行が混ざっていない文章の翻訳結果が</strong> Google翻訳で表示される</li>
+</ol>
+<p>ようになります。</p>
+<figure class="center">
+    <img src="https://horizoon.jp/img/translation_with_alfred_workflow/result.gif"/> 
+</figure>
+
+<p>インストール手順は <a href="https://github.com/goldeneggg/alfred-workflow-selected-text-translator#install-this-workflow">上記reposのREADME</a> を参照ください。</p>
+<h2 id="ワークフローの構成紹介">ワークフローの構成紹介</h2>
+<p>ワークフロー全体のイメージはこんな感じです。</p>
+<figure class="center">
+    <img src="https://horizoon.jp/img/translation_with_alfred_workflow/2.png"/> 
+</figure>
+
+<p>まず <a href="https://www.alfredapp.com/help/workflows/triggers/hotkey/">AlfredワークフローのHotkeyトリガー</a> を下記のように設定します。<code>Argument</code> を <code>Selection in macOS</code> にすることで、ドラッグして選択しているテキストの内容を後続のアクションに渡す事が出来ます。</p>
+<figure class="center">
+    <img src="https://horizoon.jp/img/translation_with_alfred_workflow/3.png"/> 
+</figure>
+
+<p>次にHotkeyトリガーから渡されてきたテキストを <a href="https://www.alfredapp.com/help/workflows/outputs/write-file/">Write File Output</a> に渡してtemporaryなテキストファイルに出力しておきます。</p>
+<figure class="center">
+    <img src="https://horizoon.jp/img/translation_with_alfred_workflow/4.png"/> 
+</figure>
+
+<p>そして<a href="https://www.alfredapp.com/help/workflows/actions/run-script/">Run Script Action</a> で、このファイルをcatした結果を <code>tr</code> コマンドをかまして改行除去します。Run Script Actionから後続アクションに渡される内容は「スクリプトで標準出力に出力した内容」になりますので、特にAlfredワークフローだからと言って何かを意識せず、普段bashでスクリプトを書く時と同様に書けばOKです。</p>
+<figure class="center">
+    <img src="https://horizoon.jp/img/translation_with_alfred_workflow/5.png"/> 
+</figure>
+
+<p>次に<a href="https://www.alfredapp.com/help/workflows/utilities/conditional/">Conditional Utility</a> でGoogle翻訳かDeepLを使うか？で分岐します。この機能は完全におまけで用意したもので、ワークフローの環境変数 <code>USE_DEEPL</code> に 1 をセットする事でDeepLを使います（デフォルトは 0 = Google翻訳）</p>
+<figure class="center">
+    <img src="https://horizoon.jp/img/translation_with_alfred_workflow/6.png"/> 
+</figure>
+
+<p>最後に、渡されてきた内容 = <code>{query}</code> というプレースホルダー をGoogle翻訳のURLにセットし、そのURLを<a href="https://www.alfredapp.com/help/workflows/actions/open-url/">Open URL Action</a> のURLにセットすれば、普段使いのブラウザでGoogle翻訳の結果が開きます。</p>
+<figure class="center">
+    <img src="https://horizoon.jp/img/translation_with_alfred_workflow/7.png"/> 
+</figure>
+
+<p>DeepLの場合の設定はこうなっています。</p>
+<figure class="center">
+    <img src="https://horizoon.jp/img/translation_with_alfred_workflow/8.png"/> 
+</figure>
+
+
+  </article>
+</section>
+
+  
+
+      </div>
+
+      
+  <footer class="footer">
+    <section class="container">
+      
+      
+        ©
+        
+          2017 -
+        
+        2021
+         Fuminori Sakamoto 
+      
+      
+         · 
+        Powered by <a href="https://gohugo.io/">Hugo</a> & <a href="https://github.com/luizdepra/hugo-coder/">Coder</a>.
+      
+      
+    </section>
+  </footer>
+
+
+    </main>
+
+    
+      
+        
+        <script src="https://horizoon.jp/js/dark-mode.min.0213e1773e6d1c5a644f847c67a6f8abac49a3776e2976f6008038af8c5b76a1.js"></script>
+      
+    
+
+    
+
+    
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+	ga('create', 'UA-129776715-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+
+
+    
+
+    
+
+    
+
+    
+  </body>
+
+</html>
