@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Language" content="en">
+
+    <meta name="author" content="Fuminori Sakamoto">
+    <meta name="description" content="※この記事は以前zenn.devで公開した記事 の、筆者による転載となります。
+Summary  Node.jsのLambdaで、レイヤー用のスタックと、それを利用するFunctionスタックのAWS SAMによる作成を以下の手順で実施  レイヤーのスタックをデプロイ レイヤーを利用するLambda Functionのスタックで、sam local invoke によるローカル実行で動作確認 レイヤーを利用するLambda Functionのスタックをデプロイ   レイヤーのスタックでは、&lt;テンプレートのContentUriで指定したフォルダ&gt;/nodejs/node_modules というフォルダにライブラリがインストールされるようにフォルダを構成する sam deploy を --guided オプション付きで実行するとデプロイ成果物配置用のS3バケットを自動で作成（既にあれば再利用）してくれるが、このバケットは &ldquo;バージョニング有・ライフサイクル未設定&rdquo; で作成されるので、samconfig.tomlによって2回目以降のデプロイ手順を簡略化する事が出来る恩恵とバージョニングの恩恵 vs コスト面の課題 のメリデメを判断して利用する  --guided オプションと --s3-bucket オプションでの固有バケット指定を併用すると、--s3-bucket オプションの内容は無視される    前提条件  Summaryに記載の通り、スタックがレイヤー用とそれを利用するLambda Functionで別々になっている、というケースを想定しています  1 2 3 4 5 6 7 8 9 10 11 12 13 14 15  # aws-cliのバージョン $ aws --version aws-cli/2.1.28 Python/3.9.2 Darwin/19.6.0 source/x86_64 prompt/off # aws-sam-cliのバージョン $ sam --version SAM CLI, version 1.">
+    <meta name="keywords" content="blog,developer,backpacker,personal">
+
+    <meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="AWS SAMによるLambda Layers ＆ Layers利用Functionの作成手順と運用観点での注意点（2021年3月, SAM 1.19版）"/>
+<meta name="twitter:description" content="※この記事は以前zenn.devで公開した記事 の、筆者による転載となります。
+Summary  Node.jsのLambdaで、レイヤー用のスタックと、それを利用するFunctionスタックのAWS SAMによる作成を以下の手順で実施  レイヤーのスタックをデプロイ レイヤーを利用するLambda Functionのスタックで、sam local invoke によるローカル実行で動作確認 レイヤーを利用するLambda Functionのスタックをデプロイ   レイヤーのスタックでは、&lt;テンプレートのContentUriで指定したフォルダ&gt;/nodejs/node_modules というフォルダにライブラリがインストールされるようにフォルダを構成する sam deploy を --guided オプション付きで実行するとデプロイ成果物配置用のS3バケットを自動で作成（既にあれば再利用）してくれるが、このバケットは &ldquo;バージョニング有・ライフサイクル未設定&rdquo; で作成されるので、samconfig.tomlによって2回目以降のデプロイ手順を簡略化する事が出来る恩恵とバージョニングの恩恵 vs コスト面の課題 のメリデメを判断して利用する  --guided オプションと --s3-bucket オプションでの固有バケット指定を併用すると、--s3-bucket オプションの内容は無視される    前提条件  Summaryに記載の通り、スタックがレイヤー用とそれを利用するLambda Functionで別々になっている、というケースを想定しています  1 2 3 4 5 6 7 8 9 10 11 12 13 14 15  # aws-cliのバージョン $ aws --version aws-cli/2.1.28 Python/3.9.2 Darwin/19.6.0 source/x86_64 prompt/off # aws-sam-cliのバージョン $ sam --version SAM CLI, version 1."/>
+
+    <meta property="og:title" content="AWS SAMによるLambda Layers ＆ Layers利用Functionの作成手順と運用観点での注意点（2021年3月, SAM 1.19版）" />
+<meta property="og:description" content="※この記事は以前zenn.devで公開した記事 の、筆者による転載となります。
+Summary  Node.jsのLambdaで、レイヤー用のスタックと、それを利用するFunctionスタックのAWS SAMによる作成を以下の手順で実施  レイヤーのスタックをデプロイ レイヤーを利用するLambda Functionのスタックで、sam local invoke によるローカル実行で動作確認 レイヤーを利用するLambda Functionのスタックをデプロイ   レイヤーのスタックでは、&lt;テンプレートのContentUriで指定したフォルダ&gt;/nodejs/node_modules というフォルダにライブラリがインストールされるようにフォルダを構成する sam deploy を --guided オプション付きで実行するとデプロイ成果物配置用のS3バケットを自動で作成（既にあれば再利用）してくれるが、このバケットは &ldquo;バージョニング有・ライフサイクル未設定&rdquo; で作成されるので、samconfig.tomlによって2回目以降のデプロイ手順を簡略化する事が出来る恩恵とバージョニングの恩恵 vs コスト面の課題 のメリデメを判断して利用する  --guided オプションと --s3-bucket オプションでの固有バケット指定を併用すると、--s3-bucket オプションの内容は無視される    前提条件  Summaryに記載の通り、スタックがレイヤー用とそれを利用するLambda Functionで別々になっている、というケースを想定しています  1 2 3 4 5 6 7 8 9 10 11 12 13 14 15  # aws-cliのバージョン $ aws --version aws-cli/2.1.28 Python/3.9.2 Darwin/19.6.0 source/x86_64 prompt/off # aws-sam-cliのバージョン $ sam --version SAM CLI, version 1." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://horizoon.jp/post/2021/03/05/lambda_layer_nodejs_2/" /><meta property="article:section" content="post" />
+<meta property="article:published_time" content="2021-03-05T12:03:36&#43;09:00" />
+<meta property="article:modified_time" content="2021-03-05T12:03:36&#43;09:00" />
+
+
+
+    <title>
+  AWS SAMによるLambda Layers ＆ Layers利用Functionの作成手順と運用観点での注意点（2021年3月, SAM 1.19版） · horizoon
+</title>
+
+    
+      <link rel="canonical" href="https://horizoon.jp/post/2021/03/05/lambda_layer_nodejs_2/">
+    
+
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css?family=Lato:400,700%7CMerriweather:300,700%7CSource+Code+Pro:400,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fork-awesome@1.1.7/css/fork-awesome.min.css"
+      integrity="sha256-gsmEoJAws/Kd3CjuOQzLie5Q3yshhvmo7YNtBG7aaEY=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/normalize.css@8/normalize.min.css">
+    
+      
+      
+      <link rel="stylesheet" href="https://horizoon.jp/css/coder.min.f01c647a0d25b40da992a37c3376291185eed8a50ced8c26cc2c0bcfe38c97df.css" integrity="sha256-8Bxkeg0ltA2pkqN8M3YpEYXu2KUM7YwmzCwLz&#43;OMl98=" crossorigin="anonymous" media="screen" />
+    
+
+    
+
+    
+      
+        
+        
+        <link rel="stylesheet" href="https://horizoon.jp/css/coder-dark.min.126ad3988d46bdae6217a11105b53c9662bca05f39d42d3c0fb366919d334620.css" integrity="sha256-EmrTmI1Gva5iF6ERBbU8lmK8oF851C08D7NmkZ0zRiA=" crossorigin="anonymous" media="screen" />
+      
+    
+
+    
+
+    
+
+    <link rel="icon" type="image/png" href="https://horizoon.jp/favicon-32x32.png" sizes="32x32">
+    <link rel="icon" type="image/png" href="https://horizoon.jp/favicon-16x16.png" sizes="16x16">
+
+    <link rel="apple-touch-icon" href="https://horizoon.jp/images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="https://horizoon.jp/images/apple-touch-icon.png">
+
+    
+
+    <meta name="generator" content="Hugo 0.81.0" />
+  </head>
+
+  
+  
+    
+  
+  <body class="colorscheme-auto"
+        onload=""
+  >
+    
+<div class="float-container">
+    <a id="dark-mode-toggle" class="colorscheme-toggle">
+        <i class="fa fa-adjust fa-fw" aria-hidden="true"></i>
+    </a>
+</div>
+
+
+    <main class="wrapper">
+      <nav class="navigation">
+  <section class="container">
+    <a class="navigation-title" href="https://horizoon.jp/">
+      horizoon
+    </a>
+    
+      <input type="checkbox" id="menu-toggle" />
+      <label class="menu-button float-right" for="menu-toggle">
+        <i class="fa fa-bars fa-fw" aria-hidden="true"></i>
+      </label>
+      <ul class="navigation-list">
+        
+          
+            <li class="navigation-item">
+              <a class="navigation-link" href="https://horizoon.jp/post/">Blog</a>
+            </li>
+          
+            <li class="navigation-item">
+              <a class="navigation-link" href="https://horizoon.jp/projects/">Projects</a>
+            </li>
+          
+            <li class="navigation-item">
+              <a class="navigation-link" href="https://horizoon.jp/about/">About</a>
+            </li>
+          
+        
+        
+      </ul>
+    
+  </section>
+</nav>
+
+
+      <div class="content">
+        
+  <section class="container page">
+  <article>
+    <header>
+      <h1>AWS SAMによるLambda Layers ＆ Layers利用Functionの作成手順と運用観点での注意点（2021年3月, SAM 1.19版）</h1>
+    </header>
+
+    <p>※この記事は<a href="https://zenn.dev/goldeneggg/articles/e295dd50202116">以前zenn.devで公開した記事</a> の、筆者による転載となります。</p>
+<h2 id="summary">Summary</h2>
+<ul>
+<li>Node.jsのLambdaで、レイヤー用のスタックと、それを利用するFunctionスタックのAWS SAMによる作成を以下の手順で実施
+<ol>
+<li>レイヤーのスタックをデプロイ</li>
+<li>レイヤーを利用するLambda Functionのスタックで、<code>sam local invoke</code> によるローカル実行で動作確認</li>
+<li>レイヤーを利用するLambda Functionのスタックをデプロイ</li>
+</ol>
+</li>
+<li>レイヤーのスタックでは、<code>&lt;テンプレートのContentUriで指定したフォルダ&gt;/nodejs/node_modules</code> というフォルダにライブラリがインストールされるようにフォルダを構成する</li>
+<li><code>sam deploy</code> を <code>--guided</code> オプション付きで実行するとデプロイ成果物配置用のS3バケットを自動で作成（既にあれば再利用）してくれるが、このバケットは &ldquo;バージョニング有・ライフサイクル未設定&rdquo; で作成されるので、samconfig.tomlによって2回目以降のデプロイ手順を簡略化する事が出来る恩恵とバージョニングの恩恵 vs コスト面の課題 のメリデメを判断して利用する
+<ul>
+<li><code>--guided</code> オプションと <code>--s3-bucket</code> オプションでの固有バケット指定を併用すると、<code>--s3-bucket</code> オプションの内容は無視される</li>
+</ul>
+</li>
+</ul>
+<h2 id="前提条件">前提条件</h2>
+<ul>
+<li>Summaryに記載の通り、スタックがレイヤー用とそれを利用するLambda Functionで別々になっている、というケースを想定しています</li>
+</ul>
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh"><span style="color:#60a0b0;font-style:italic"># aws-cliのバージョン</span>
+$ aws --version
+aws-cli/2.1.28 Python/3.9.2 Darwin/19.6.0 source/x86_64 prompt/off
+
+<span style="color:#60a0b0;font-style:italic"># aws-sam-cliのバージョン</span>
+$ sam --version
+SAM CLI, version 1.19.1
+
+<span style="color:#60a0b0;font-style:italic"># Dockerのバージョン</span>
+$  docker version | grep Version | head -1
+Version:           20.10.2  <span style="color:#60a0b0;font-style:italic"># Docker Desktop for Mac Ver 3.1.0</span>
+
+<span style="color:#60a0b0;font-style:italic"># nodeのバージョン</span>
+$ node -v
+v12.18.4
+</code></pre></td></tr></table>
+</div>
+</div><h2 id="レイヤーのスタックを構築デプロイ">レイヤーのスタックを構築・デプロイ</h2>
+<h3 id="レイヤー用スタックのフォルダ構成">レイヤー用スタックのフォルダ構成</h3>
+<p>下記構成で用意します。テンプレートファイルと、レイヤーに含めるライブラリ群を配置するフォルダ（例では <code>node-base-layer</code> ）、という構成です。</p>
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">.
+├── .node-version
+├── node-base-layer
+│   └── nodejs
+│       ├── node_modules
+│       ├── package-lock.json
+│       └── package.json
+└── template.yaml
+</code></pre></td></tr></table>
+</div>
+</div><h3 id="templateyaml">template.yaml</h3>
+<p>例えば下記のような内容になります。</p>
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">33
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">34
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">35
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">36
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">37
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">38
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">39
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">40
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">41
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">42
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">43
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">44
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">45
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#0e84b5;font-weight:bold">---</span><span style="color:#bbb">
+</span><span style="color:#bbb"></span><span style="color:#062873;font-weight:bold">AWSTemplateFormatVersion</span>:<span style="color:#bbb"> </span>2010-09-09<span style="color:#bbb">
+</span><span style="color:#bbb">
+</span><span style="color:#bbb"></span><span style="color:#062873;font-weight:bold">Description</span>:<span style="color:#bbb"> </span>Lambda Layer for Node.js<span style="color:#bbb">
+</span><span style="color:#bbb">
+</span><span style="color:#bbb"></span><span style="color:#062873;font-weight:bold">Transform</span>:<span style="color:#bbb"> </span>AWS::Serverless-2016-10-31<span style="color:#bbb">
+</span><span style="color:#bbb">
+</span><span style="color:#bbb"></span><span style="color:#062873;font-weight:bold">Parameters</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">
+</span><span style="color:#bbb">  </span><span style="color:#062873;font-weight:bold">NodeBaseLayerNameParam</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">    </span><span style="color:#062873;font-weight:bold">Description</span>:<span style="color:#bbb"> </span>Layer Name for NodeBaseLayer<span style="color:#bbb">
+</span><span style="color:#bbb">    </span><span style="color:#062873;font-weight:bold">Type</span>:<span style="color:#bbb"> </span>String<span style="color:#bbb">
+</span><span style="color:#bbb">    </span><span style="color:#062873;font-weight:bold">Default</span>:<span style="color:#bbb"> </span>node-base-layer<span style="color:#bbb">
+</span><span style="color:#bbb">
+</span><span style="color:#bbb"></span><span style="color:#062873;font-weight:bold">Resources</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">
+</span><span style="color:#bbb">  </span><span style="color:#062873;font-weight:bold">NodeBaseLayer</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">    </span><span style="color:#062873;font-weight:bold">Type</span>:<span style="color:#bbb"> </span>AWS::Serverless::LayerVersion<span style="color:#bbb">
+</span><span style="color:#bbb">    </span><span style="color:#062873;font-weight:bold">Properties</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#062873;font-weight:bold">Description</span>:<span style="color:#bbb"> </span>Base Layer for Node.js<span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#062873;font-weight:bold">LayerName</span>:<span style="color:#bbb"> </span>!Ref NodeBaseLayerNameParam <span style="color:#bbb"> </span><span style="color:#60a0b0;font-style:italic"># デフォルト = &#34;node-base-layer&#34;</span><span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#062873;font-weight:bold">ContentUri</span>:<span style="color:#bbb"> </span>node-base-layer/<span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#062873;font-weight:bold">RetentionPolicy</span>:<span style="color:#bbb"> </span>Retain<span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#062873;font-weight:bold">CompatibleRuntimes</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">        </span>- nodejs12.x<span style="color:#bbb">
+</span><span style="color:#bbb">
+</span><span style="color:#bbb">  </span><span style="color:#062873;font-weight:bold">NodeBaseLayerPermission</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">    </span><span style="color:#062873;font-weight:bold">Type</span>:<span style="color:#bbb"> </span>AWS::Lambda::LayerVersionPermission<span style="color:#bbb">
+</span><span style="color:#bbb">    </span><span style="color:#062873;font-weight:bold">Properties</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#062873;font-weight:bold">Action</span>:<span style="color:#bbb"> </span>lambda:GetLayerVersion<span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#062873;font-weight:bold">LayerVersionArn</span>:<span style="color:#bbb"> </span>!Ref NodeBaseLayer<span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#062873;font-weight:bold">Principal</span>:<span style="color:#bbb"> </span>!Ref AWS::AccountId<span style="color:#bbb">
+</span><span style="color:#bbb">
+</span><span style="color:#bbb"></span><span style="color:#062873;font-weight:bold">Outputs</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">  </span><span style="color:#062873;font-weight:bold">Name</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">    </span><span style="color:#062873;font-weight:bold">Description</span>:<span style="color:#bbb"> </span>Stack Name.<span style="color:#bbb">
+</span><span style="color:#bbb">    </span><span style="color:#062873;font-weight:bold">Value</span>:<span style="color:#bbb"> </span>!Ref AWS::StackName<span style="color:#bbb">
+</span><span style="color:#bbb">    </span><span style="color:#062873;font-weight:bold">Export</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#062873;font-weight:bold">Name</span>:<span style="color:#bbb"> </span>!Ref AWS::StackName<span style="color:#bbb">
+</span><span style="color:#bbb">
+</span><span style="color:#bbb">  </span><span style="color:#062873;font-weight:bold">NodeBaseLayerArn</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">    </span><span style="color:#062873;font-weight:bold">Description</span>:<span style="color:#bbb"> </span>Published NodeBaseLayer ARN.<span style="color:#bbb">
+</span><span style="color:#bbb">    </span><span style="color:#062873;font-weight:bold">Value</span>:<span style="color:#bbb"> </span>!Ref NodeBaseLayer<span style="color:#bbb">
+</span><span style="color:#bbb">    </span><span style="color:#062873;font-weight:bold">Export</span>:<span style="color:#bbb">
+</span><span style="color:#bbb">      </span><span style="color:#062873;font-weight:bold">Name</span>:<span style="color:#bbb"> </span>!Sub ${AWS::StackName}-layer-arn<span style="color:#bbb">
+</span></code></pre></td></tr></table>
+</div>
+</div><h3 id="packagejson">package.json</h3>
+<p>例えば下記のような内容になります。※ 後ほどの動作確認用にライブラリとして <code>cheerio</code> だけを含めています。</p>
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">{
+  <span style="color:#062873;font-weight:bold">&#34;name&#34;</span>: <span style="color:#4070a0">&#34;nodejs&#34;</span>,
+  <span style="color:#062873;font-weight:bold">&#34;version&#34;</span>: <span style="color:#4070a0">&#34;1.0.0&#34;</span>,
+  <span style="color:#062873;font-weight:bold">&#34;description&#34;</span>: <span style="color:#4070a0">&#34;Lambda Layer for Node.js&#34;</span>,
+  <span style="color:#062873;font-weight:bold">&#34;main&#34;</span>: <span style="color:#4070a0">&#34;index.js&#34;</span>,
+  <span style="color:#062873;font-weight:bold">&#34;dependencies&#34;</span>: {
+    <span style="color:#062873;font-weight:bold">&#34;cheerio&#34;</span>: <span style="color:#4070a0">&#34;^1.0.0-rc.5&#34;</span>
+  },
+  <span style="color:#062873;font-weight:bold">&#34;devDependencies&#34;</span>: {},
+  <span style="color:#062873;font-weight:bold">&#34;scripts&#34;</span>: {},
+  <span style="color:#062873;font-weight:bold">&#34;keywords&#34;</span>: [],
+  <span style="color:#062873;font-weight:bold">&#34;author&#34;</span>: <span style="color:#4070a0">&#34;&#34;</span>,
+  <span style="color:#062873;font-weight:bold">&#34;license&#34;</span>: <span style="color:#4070a0">&#34;ISC&#34;</span>
+}
+</code></pre></td></tr></table>
+</div>
+</div><h3 id="npm-install--デプロイ">npm install → デプロイ</h3>
+<p><a href="https://docs.aws.amazon.com/ja_jp/lambda/latest/dg/configuration-layers.html#configuration-layers-path">公式ドキュメントで言及されているフォルダ配置のルール</a> に則ってレイヤーに含めるライブラリ（Nodeの場合は <code>node_modules</code> ）を配置し、テンプレートの <code>ContentUri</code> で指定するローカルパスもそれに合わせたものにする必要があります。今回の例では <code>node-base-layer/nodejs/node_modules</code> というパスにライブラリがあり、テンプレートの <code>ContentUri</code> には <code>node-base-layaer/</code> を指定します。</p>
+<p><strong>結果的に <code>&lt;テンプレートのContentUriで指定したフォルダ&gt;/nodejs/node_modules</code> というフォルダがライブラリ配置先と合致していればOK</strong> です。</p>
+<p>※ <a href="https://github.com/awsdocs/aws-lambda-developer-guide/tree/master/sample-apps/blank-nodejs">公式リポジトリに用意されているNode.js用の雛形プロジェクト</a> の場合では、<a href="https://github.com/awsdocs/aws-lambda-developer-guide/blob/master/sample-apps/blank-nodejs/2-build-layer.sh"><code>lib/nodejs/node_modules</code> というフォルダをライブラリ配置先にしてあります</a> 。 （なので <a href="https://github.com/awsdocs/aws-lambda-developer-guide/blob/master/sample-apps/blank-nodejs/template.yml#L26">ContentUri には<code>lib/</code>が指定されています</a>）</p>
+<p>実際の運用は</p>
+<ol>
+<li>package.jsonを編集してライブラリを追加なり更新なり削除し</li>
+<li><code>npm install</code> して</li>
+<li><code>sam deploy</code> する
+<ul>
+<li>デプロイ成果物を置くS3バケットの作成・管理をAWS SAMにおまかせしたければ <code>--guided</code> オプションを指定する（参考: <a href="https://aws.amazon.com/jp/about-aws/whats-new/2019/11/aws-sam-cli-simplifies-deploying-serverless-applications-with-single-command-deploy/"><code>--guided</code> オプション初出時の公式記事</a>）</li>
+</ul>
+</li>
+</ol>
+<p>という流れになります。今回はバケット自動作成のお試しも兼ねて <code>--guided</code> オプション付きでデプロイしてみます。</p>
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh"><span style="color:#60a0b0;font-style:italic"># ライブラリのインストール</span>
+$ <span style="color:#007020">cd</span> node-base-layer/nodejs
+$ npm install
+
+<span style="color:#60a0b0;font-style:italic"># デプロイ</span>
+$ <span style="color:#007020">cd</span> ../..
+$ sam deploy --template template.yaml --region &lt;YOUR_REGION&gt; --stack-name layer-stack --capabilities CAPABILITY_IAM --guided
+
+Configuring SAM <span style="color:#bb60d5">deploy</span>
+<span style="color:#666">======================</span>
+
+        Looking <span style="color:#007020;font-weight:bold">for</span> config file <span style="color:#666">[</span>samconfig.toml<span style="color:#666">]</span> :  Not found
+
+        Setting default arguments <span style="color:#007020;font-weight:bold">for</span> <span style="color:#4070a0">&#39;sam deploy&#39;</span>
+        <span style="color:#666">=========================================</span>
+        Stack Name <span style="color:#666">[</span>layer-stack<span style="color:#666">]</span>: 
+        AWS Region <span style="color:#666">[</span>ap-northeast-1<span style="color:#666">]</span>: 
+        <span style="color:#60a0b0;font-style:italic">#Shows you resources changes to be deployed and require a &#39;Y&#39; to initiate deploy</span>
+        Confirm changes before deploy <span style="color:#666">[</span>y/N<span style="color:#666">]</span>: y
+        <span style="color:#60a0b0;font-style:italic">#SAM needs permission to be able to create roles to connect to the resources in your template</span>
+        Allow SAM CLI IAM role creation <span style="color:#666">[</span>Y/n<span style="color:#666">]</span>: Y
+        Save arguments to configuration file <span style="color:#666">[</span>Y/n<span style="color:#666">]</span>: Y
+        SAM configuration file <span style="color:#666">[</span>samconfig.toml<span style="color:#666">]</span>: 
+        SAM configuration environment <span style="color:#666">[</span>default<span style="color:#666">]</span>: 
+
+
+Deploy this changeset? <span style="color:#666">[</span>y/N<span style="color:#666">]</span>: y
+</code></pre></td></tr></table>
+</div>
+</div><h3 id="デプロイ結果確認">デプロイ結果確認</h3>
+<p>デプロイが正常に完了すれば、AWS::Lambda::LayerVersion リソースと AWS::Lambda::LayerVersionPermission リソースがそれぞれ作成されます。<code>aws lambda list-layer-versions</code> コマンドでそのARNを確認できればOKです。</p>
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh"><span style="color:#60a0b0;font-style:italic"># 出力結果の末尾の数値はバージョン番号なので、バージョンが増える度に表示される結果も増えます</span>
+$ aws lambda list-layer-versions --layer-name node-base-layer | jq <span style="color:#4070a0">&#39;.LayerVersions[].LayerVersionArn&#39;</span>
+
+<span style="color:#4070a0">&#34;arn:aws:lambda:ap-northeast-1:&lt;自身のAccountId&gt;:layer:node-base-layer:1&#34;</span>
+</code></pre></td></tr></table>
+</div>
+</div><h3 id="注意点---guided-オプション付きでデプロイした際に自動作成されるs3バケットについて">注意点: <code>--guided</code> オプション付きでデプロイした際に自動作成されるS3バケットについて</h3>
+<p>ところで、<code>sam deploy</code> を <code>--guided</code> オプション付きで実行すると <a href="https://docs.aws.amazon.com/ja_jp/serverless-application-model/latest/developerguide/serverless-sam-cli-config.html">samconfig.toml（＝デフォルトのファイル名） というファイル</a> が作成されます。</p>
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-toml" data-lang="toml">version = <span style="color:#40a070">0.1</span>
+[default]
+[default.deploy]
+[default.deploy.parameters]
+stack_name = <span style="color:#4070a0">&#34;layer-stack&#34;</span>
+<span style="color:#60a0b0;font-style:italic"># バケット</span>
+s3_bucket = <span style="color:#4070a0">&#34;aws-sam-cli-managed-default-samclisourcebucket-xxxxxxxxxxxx&#34;</span>
+<span style="color:#60a0b0;font-style:italic"># プレフィクス</span>
+s3_prefix = <span style="color:#4070a0">&#34;layer-stack&#34;</span>
+region = <span style="color:#4070a0">&#34;ap-northeast-1&#34;</span>
+confirm_changeset = <span style="color:#007020;font-weight:bold">true</span>
+capabilities = <span style="color:#4070a0">&#34;CAPABILITY_IAM&#34;</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>この中の <code>s3_bucket</code> が、<code>--guided</code> オプション付きでのデプロイ時にSAMが自動で作成してくれるデプロイ成果物配置用バケットの名前です。実は<a href="https://horizoon.jp/post/2019/02/07/lambda_layer_nodejs8/">2年前に同テーマの記事を書いた</a>当時はレイヤーをzipアーカイブ→S3にアップロード という操作は自前で行う必要があったのですが、<a href="https://aws.amazon.com/jp/about-aws/whats-new/2019/11/aws-sam-cli-simplifies-deploying-serverless-applications-with-single-command-deploy/">2019年11月リリースのバージョンからバケット自動作成に対応されました</a>。これによりレイヤー用スタックの管理運用作業が「ライブラリの追加や更新」→「<code>sam deploy</code>」という操作だけで済むようになりました。</p>
+<p>作成されたバケットには、デプロイされたレイヤーのテンプレートとパッケージングされたライブラリ群の2種類のオブジェクトが存在しています。</p>
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">$ aws s3api list-objects --bucket aws-sam-cli-managed-default-samclisourcebucket-xxxxxxxxxxxx | jq <span style="color:#4070a0">&#39;.Contents[].Key&#39;</span>
+
+<span style="color:#4070a0">&#34;layer-stack/xxxxxxxxxxxxxxx.template&#34;</span>
+<span style="color:#4070a0">&#34;layer-stack/yyyyyyyyyyyyyyyyyyyy&#34;</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>この自動作成されるバケットの注意点は、<strong>バージョニングが有効になっている、且つ、ライフサイクルが未設定</strong> な事です。つまりこのバケットを配置先としてデプロイを実行するとその都度成果物が新バージョンで登録され続ける＆それらが残り続ける事になります。<code>--guided</code> オプション付きでのデプロイによりsamconfig.tomlに（デフォルトの）設定を出力しておく事によって2回目以降のデプロイ手順を簡略化する事が出来るという恩恵＋バージョニングの恩恵は得られるものの、コスト面の注意は払っておいた方が良いかも知れません。
+例えば <code>sam deploy</code> にはバケット明示用の <code>--s3-bucket</code> やプレフィクス指定用の <code>--s3-prefix</code> というオプションも用意されていますので、これらを利用して自動作成バケットの利用を回避する、という策も検討の余地がありそうです（ちなみにSAM 1.19では、<code>--guided</code> と <code>--s3-bucket</code> を両方指定すると <code>--s3-bucket</code> の方が無視される。という挙動になっています）</p>
+<h2 id="レイヤーを利用するfunctionのスタックでsam-local-invoke-によるローカル実行">レイヤーを利用するFunctionのスタックで、<code>sam local invoke</code> によるローカル実行</h2>
+<h3 id="function用スタックの準備">Function用スタックの準備</h3>
+<p>続いてレイヤーを利用するFunctionを準備します。デプロイ済のレイヤーに含まれているライブラリを参照できるという事だけを確認したいので、とりあえず <code>sam init</code> で単純なプロジェクトを作っておきます。</p>
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">33
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">34
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">35
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">36
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">37
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">38
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">39
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">40
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">41
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">42
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">43
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">44
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">45
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">46
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">47
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">48
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">49
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">50
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">51
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">52
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">53
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">54
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">$ sam init
+
+Which template <span style="color:#007020">source</span> would you like to use?
+        <span style="color:#40a070">1</span> - AWS Quick Start Templates
+        <span style="color:#40a070">2</span> - Custom Template Location
+Choice: <span style="color:#40a070">1</span>
+What package <span style="color:#007020">type</span> would you like to use?
+        <span style="color:#40a070">1</span> - Zip <span style="color:#666">(</span>artifact is a zip uploaded to S3<span style="color:#666">)</span>
+        <span style="color:#40a070">2</span> - Image <span style="color:#666">(</span>artifact is an image uploaded to an ECR image repository<span style="color:#666">)</span>
+Package type: <span style="color:#40a070">1</span>
+
+Which runtime would you like to use?
+        <span style="color:#40a070">1</span> - nodejs14.x
+        <span style="color:#40a070">2</span> - python3.8
+        <span style="color:#40a070">3</span> - ruby2.7
+        <span style="color:#40a070">4</span> - go1.x
+        <span style="color:#40a070">5</span> - java11
+        <span style="color:#40a070">6</span> - dotnetcore3.1
+        <span style="color:#40a070">7</span> - nodejs12.x
+        <span style="color:#40a070">8</span> - nodejs10.x
+        <span style="color:#40a070">9</span> - python3.7
+        <span style="color:#40a070">10</span> - python3.6
+        <span style="color:#40a070">11</span> - python2.7
+        <span style="color:#40a070">12</span> - ruby2.5
+        <span style="color:#40a070">13</span> - java8.al2
+        <span style="color:#40a070">14</span> - java8
+        <span style="color:#40a070">15</span> - dotnetcore2.1
+Runtime: <span style="color:#40a070">7</span>
+
+Project name <span style="color:#666">[</span>sam-app<span style="color:#666">]</span>:
+
+Cloning app templates from https://github.com/aws/aws-sam-cli-app-templates
+
+AWS quick start application templates:
+        <span style="color:#40a070">1</span> - Hello World Example
+        <span style="color:#40a070">2</span> - Step Functions Sample App <span style="color:#666">(</span>Stock Trader<span style="color:#666">)</span>
+        <span style="color:#40a070">3</span> - Quick Start: From Scratch
+        <span style="color:#40a070">4</span> - Quick Start: Scheduled Events
+        <span style="color:#40a070">5</span> - Quick Start: S3
+        <span style="color:#40a070">6</span> - Quick Start: SNS
+        <span style="color:#40a070">7</span> - Quick Start: SQS
+        <span style="color:#40a070">8</span> - Quick Start: Web Backend
+Template selection: <span style="color:#40a070">1</span>
+
+    -----------------------
+    Generating application:
+    -----------------------
+    Name: sam-app
+    Runtime: nodejs12.x
+    Dependency Manager: npm
+    Application Template: hello-world
+    Output Directory: .
+
+    Next steps can be found in the README file at ./sam-app/README.md
+</code></pre></td></tr></table>
+</div>
+</div><p>sam-app というプロジェクトが作成されますので、この中のFunctionをデプロイ済レイヤーを参照・利用するよう変更します。</p>
+<h3 id="templateyaml-1">template.yaml</h3>
+<p>「パラメータでレイヤーのARNを指定し、それを対象FunctionのLayersに設定」するように修正しておきます（以下差分）</p>
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-diff" data-lang="diff"><span style="color:#800080;font-weight:bold">@@ -5,6 +5,11 @@
+</span><span style="color:#800080;font-weight:bold"></span>
+   Sample SAM Template for sam-app
+
+<span style="color:#00a000">+Parameters:
+</span><span style="color:#00a000">+  LayerArnParam:
+</span><span style="color:#00a000">+    Description: Layer ARN
+</span><span style="color:#00a000">+    Type: String
+</span><span style="color:#00a000">+
+</span><span style="color:#00a000"></span> # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+ Globals:
+   Function:
+<span style="color:#800080;font-weight:bold">@@ -23,6 +28,8 @@
+</span><span style="color:#800080;font-weight:bold"></span>           Properties:
+             Path: /hello
+             Method: get
+<span style="color:#00a000">+      Layers:
+</span><span style="color:#00a000">+        - !Ref LayerArnParam
+</span><span style="color:#00a000"></span>
+ Outputs:
+   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function```
+</code></pre></td></tr></table>
+</div>
+</div><h3 id="関数コード-appjs">関数コード app.js</h3>
+<p>「レイヤーに含まれているライブラリをrequireする」というコードを追加しておきます。</p>
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-diff" data-lang="diff"><span style="color:#800080;font-weight:bold">@@ -1,5 +1,6 @@
+</span><span style="color:#800080;font-weight:bold"></span> // const axios = require(&#39;axios&#39;)
+ // const url = &#39;http://checkip.amazonaws.com/&#39;;
+<span style="color:#00a000">+const cheerio = require(&#39;cheerio&#39;)
+</span><span style="color:#00a000"></span> let response;
+
+ /**
+</code></pre></td></tr></table>
+</div>
+</div><h3 id="sam-local-invoke-でローカル実行">sam local invoke でローカル実行</h3>
+<p><code>npm install</code> → <code>sam build</code> → <code>sam local invoke</code> の順で、正常に実行されるか確認してみます。</p>
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh"><span style="color:#60a0b0;font-style:italic"># sam-app のpackage.jsonにもデフォルトでいくつかライブラリを含んでいるのでそれをインストールしておく</span>
+$ <span style="color:#007020">cd</span> hello-world
+$ npm install
+
+
+<span style="color:#60a0b0;font-style:italic"># build （--parameter-overrides の LayerArnParam でデプロイしたレイヤーのARNを指定）</span>
+$ <span style="color:#007020">cd</span> ..
+$ sam build --template template.yaml --region &lt;YOUR_REGION&gt; --parameter-overrides <span style="color:#bb60d5">LayerArnParam</span><span style="color:#666">=</span>&lt;DEPLOYED_LAYER_ARN&gt;
+
+Build Succeeded
+
+Built Artifacts  : .aws-sam/build
+Built Template   : .aws-sam/build/template.yaml
+
+Commands you can use <span style="color:#bb60d5">next</span>
+<span style="color:#666">=========================</span>
+<span style="color:#666">[</span>*<span style="color:#666">]</span> Invoke Function: sam <span style="color:#007020">local</span> invoke
+<span style="color:#666">[</span>*<span style="color:#666">]</span> Deploy: sam deploy --guided
+
+
+<span style="color:#60a0b0;font-style:italic"># local invoke （レイヤーのARNは --parameter-overrides オプションのパラメータで設定）</span>
+$ sam <span style="color:#007020">local</span> invoke HelloWorldFunction --template template.yaml --region &lt;YOUR_REGION&gt; --parameter-overrides <span style="color:#bb60d5">LayerArnParam</span><span style="color:#666">=</span>&lt;DEPLOYED_LAYER_ARN&gt;
+
+<span style="color:#666">{</span><span style="color:#4070a0">&#34;statusCode&#34;</span>:200,<span style="color:#4070a0">&#34;body&#34;</span>:<span style="color:#4070a0">&#34;{\&#34;message\&#34;:\&#34;hello world\&#34;}&#34;</span><span style="color:#666">}</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>requireしたライブラリがレイヤーから読み込めていれば正常終了します。</p>
+<h3 id="補足-デプロイ済レイヤーを-sam-local-invoke-実行時に参照する仕組み">補足: デプロイ済レイヤーを sam local invoke 実行時に参照する仕組み</h3>
+<p><a href="https://docs.aws.amazon.com/ja_jp/serverless-application-model/latest/developerguide/serverless-sam-cli-layers.html">公式ドキュメントに解説があります</a>が、ザックリまとめると、</p>
+<ul>
+<li><code>${HOME}/.aws-sam/layers-pkg/&lt;LAYER_NAME&gt;-&lt;LAYER_VERSION_NUMBER&gt;-xxxxxxxxxx</code> というパスにレイヤーがダウンロード＆キャッシュされる
+<ul>
+<li>Node.jsの場合、<code>${HOME}/.aws-sam/layers-pkg/&lt;LAYER_NAME&gt;-&lt;LAYER_VERSION_NUMBER&gt;-xxxxxxxxxx/nodejs/node_modules</code> というフォルダ構成になっていればOK</li>
+</ul>
+</li>
+<li><code>sam local invoke</code> の実行環境であるDockerイメージ = &ldquo;samcli/lambda&rdquo; イメージがビルドされる。この際にこのDockerイメージ内へダウンロード＆キャッシュ済のレイヤーが取り込まれる</li>
+<li><a href="https://docs.aws.amazon.com/ja_jp/lambda/latest/dg/configuration-layers.html">レイヤーは実行環境の <code>/opt</code> ディレクトリ下に展開される</a> ので、つまりNode.jsの場合は <code>/opt/nodejs/node_modules</code> 下に展開されていればOK
+<ul>
+<li>ローカルの&quot;samcli/lambda&quot; Dockerイメージでも同様のフォルダが展開されていればOK。実際に<code>/opt</code> 下にどんなパスで展開されたか？は <code>docker run</code> でコンテナに入って確認できる（<a href="https://docs.aws.amazon.com/ja_jp/serverless-application-model/latest/developerguide/serverless-sam-cli-layers.html">公式でも同様の確認手順が紹介されている</a>）
+<ul>
+<li><strong>※逆に、<code>/opt/nodejs/node_modules</code> に展開できていなかったりすると、<code>sam local invoke</code> 時にレイヤーに含まれているライブラリを参照しようとしたタイミングで &ldquo;Cannot find module&rdquo; なエラーが発生します</strong></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="レイヤーを利用するfunctionのスタックのデプロイ">レイヤーを利用するFunctionのスタックのデプロイ</h2>
+<p>レイヤーの初回デプロイ時と同様に、Functionスタックの初回デプロイも <code>--guided</code> オプション付きで実行してみます。</p>
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">$ sam deploy --template template.yaml --region &lt;YOUR_REGION&gt; --stack-name sam-app --capabilities CAPABILITY_IAM --guided --parameter-overrides <span style="color:#bb60d5">LayerArnParam</span><span style="color:#666">=</span>&lt;DEPLOYED_LAYER_ARN&gt;
+
+Configuring SAM <span style="color:#bb60d5">deploy</span>
+<span style="color:#666">======================</span>
+
+        Looking <span style="color:#007020;font-weight:bold">for</span> config file <span style="color:#666">[</span>samconfig.toml<span style="color:#666">]</span> :  Not found
+
+        Setting default arguments <span style="color:#007020;font-weight:bold">for</span> <span style="color:#4070a0">&#39;sam deploy&#39;</span>
+        <span style="color:#666">=========================================</span>
+        Stack Name <span style="color:#666">[</span>sam-app<span style="color:#666">]</span>: 
+        AWS Region <span style="color:#666">[</span>ap-northeast-1<span style="color:#666">]</span>: 
+        Parameter LayerArnParam <span style="color:#666">[</span>arn:aws:lambda:ap-northeast-1:&lt;自身のAccountId&gt;:layer:node-base-layer:1<span style="color:#666">]</span>: 
+        <span style="color:#60a0b0;font-style:italic">#Shows you resources changes to be deployed and require a &#39;Y&#39; to initiate deploy</span>
+        Confirm changes before deploy <span style="color:#666">[</span>y/N<span style="color:#666">]</span>: y
+        <span style="color:#60a0b0;font-style:italic">#SAM needs permission to be able to create roles to connect to the resources in your template</span>
+        Allow SAM CLI IAM role creation <span style="color:#666">[</span>Y/n<span style="color:#666">]</span>: Y
+        HelloWorldFunction may not have authorization defined, Is this okay? <span style="color:#666">[</span>y/N<span style="color:#666">]</span>: y
+        Save arguments to configuration file <span style="color:#666">[</span>Y/n<span style="color:#666">]</span>: Y
+        SAM configuration file <span style="color:#666">[</span>samconfig.toml<span style="color:#666">]</span>: 
+        SAM configuration environment <span style="color:#666">[</span>default<span style="color:#666">]</span>: 
+
+
+Deploy this changeset? <span style="color:#666">[</span>y/N<span style="color:#666">]</span>: y
+</code></pre></td></tr></table>
+</div>
+</div><p>レイヤーデプロイ時と同様に生成される samconfig.toml の内容を見てみると、レイヤーデプロイ時に自動作成されたバケットが（特に実行時に指定したわけでも無いのに）再利用されている事が分かります。</p>
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-toml" data-lang="toml"><span style="color:#60a0b0;font-style:italic"># レイヤーデプロイ時に作成されたバケット</span>
+s3_bucket = <span style="color:#4070a0">&#34;aws-sam-cli-managed-default-samclisourcebucket-xxxxxxxxxxxx&#34;</span>
+</code></pre></td></tr></table>
+</div>
+</div><p><code>sam deploy</code> の <code>--guided</code> オプションは、</p>
+<ul>
+<li>まず「&ldquo;aws-sam-cli-managed-default&rdquo; というスタックと、そのスタックで作成する &ldquo;aws-sam-cli-managed-default-samclisourcebucket-xxxxxxxxxxxx&rdquo; という形式の名前のS3バケット」の取得を試みる</li>
+<li>存在していなければ、その作成処理が実行される</li>
+</ul>
+<p>という仕様になっており（参考: <a href="https://github.com/aws/aws-sam-cli/blob/develop/samcli/lib/bootstrap/bootstrap.py#L25">ソースコード = samcli/lib/bootstrap/bootstrap.py の manage_stack 関数</a> ）、今回のケースではレイヤーデプロイ時にスタック＆バケットが既に作成済であった為、Functionのデプロイ時にはそれが自動で再利用されました。</p>
+<p>繰り返しになりますが、このバケットは <strong>バージョニングが有効になっている、且つ、ライフサイクルが未設定</strong> なので、レイヤー・Function共にこのバケットを利用する場合はそれぞれの成果物が削除されずデプロイの度に新バージョンが登録され続ける事になります。samconfig.tomlによる2回目以降のデプロイ簡略化の恩恵＋バージョニングの恩恵 vs コスト面の課題、これらのメリデメを判断して利用した方が良さそうです。</p>
+<h2 id="ブックマーク">ブックマーク</h2>
+<ul>
+<li><a href="https://docs.aws.amazon.com/lambda/latest/dg/configuration-layers.html">Lambda layers - AWS Lambda</a></li>
+<li><a href="https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-cli-layers.html">Working with layers - AWS Serverless Application Model</a></li>
+<li><a href="https://aws.amazon.com/jp/about-aws/whats-new/2019/11/aws-sam-cli-simplifies-deploying-serverless-applications-with-single-command-deploy/">AWS SAM CLI は、単一コマンドのデプロイでサーバーレスアプリケーションのデプロイを簡素化します</a></li>
+<li><a href="https://aws.amazon.com/jp/s3/faqs/">Q: バージョニングの使用に対してどのように課金されますか?</a></li>
+<li><a href="https://docs.aws.amazon.com/ja_jp/AmazonS3/latest/dev/object-lifecycle-mgmt.html">オブジェクトのライフサイクル管理 - Amazon Simple Storage Service</a></li>
+<li><a href="http://localhost:1313/post/2019/02/07/lambda_layer_nodejs8/">筆者が2年前に同様のテーマで書いた記事（比較用）</a></li>
+</ul>
+
+  </article>
+</section>
+
+  
+
+      </div>
+
+      
+  <footer class="footer">
+    <section class="container">
+      
+      
+        ©
+        
+          2017 -
+        
+        2021
+         Fuminori Sakamoto 
+      
+      
+         · 
+        Powered by <a href="https://gohugo.io/">Hugo</a> & <a href="https://github.com/luizdepra/hugo-coder/">Coder</a>.
+      
+      
+    </section>
+  </footer>
+
+
+    </main>
+
+    
+      
+        
+        <script src="https://horizoon.jp/js/dark-mode.min.aee9c8a464eb7b3534c7110f7c5e169e7039e2fd92710e0626d451d6725af137.js"></script>
+      
+    
+
+    
+
+    
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+	ga('create', 'UA-129776715-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+
+
+    
+
+    
+
+    
+
+    
+  </body>
+
+</html>

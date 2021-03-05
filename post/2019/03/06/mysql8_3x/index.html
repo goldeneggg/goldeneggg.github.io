@@ -17,9 +17,10 @@
     <meta property="og:title" content="MySQL8.0 Document Store関連技術まとめ" />
 <meta property="og:description" content="Summary  ver 5.7.12 で追加された「3つのX」。ver 8.0からGA  X Protocol X DevAPI X Plugin   X Protocol  アプリケーションがX Pluginと通信するために使われる新プロトコル。MySQLへの（これまで通りの）SQLインターフェース ＋ NoSQLインタフェースの両方をサポートしている   X DevAPI  MySQL用のNoSQLソリューションを開発したり、Document StoreとしてMySQLを使用したりすることを可能にするAPI Connectors  X DevAPIをサポートしている、言語別クライアント C&#43;&#43;, Java, Node.js, .NET, Python の各言語向けライブラリが公式に提供されている   MySQL Shell  MySQLサーバへの新しい対話型インタフェースで、Connector同様にX DevAPIをサポートしている 以前からのmysqlコマンドと同じSQLインタフェースに加えて、JavaScript, Pythonでもコンソール上での各種操作が可能。 JSやPythonでmysqlコンソールを操作できる     X Plugin  X Protocolをサーバー側で有効にして、X Protocolを使ってクライアントとの通信を可能にする為のプラグイン Document StoreとしてMySQLを使用する為にはX Pluginが有効化されていなければならない  ver 8.0.11以降はデフォルトで有効化されている     Document Store  「3つのX」を使って、JSON DocumentをNoSQL/DocumentDB likeに取り扱う仕組み     X Protocol 公式 - MySQL :: MySQL Internals Manual :: 15 X Protocol" />
 <meta property="og:type" content="article" />
-<meta property="og:url" content="https://horizoon.jp/post/2019/03/06/mysql8_3x/" />
-<meta property="article:published_time" content="2019-03-06T12:15:00+09:00" />
-<meta property="article:modified_time" content="2019-03-06T12:15:00+09:00" />
+<meta property="og:url" content="https://horizoon.jp/post/2019/03/06/mysql8_3x/" /><meta property="article:section" content="post" />
+<meta property="article:published_time" content="2019-03-06T12:15:00&#43;09:00" />
+<meta property="article:modified_time" content="2019-03-06T12:15:00&#43;09:00" />
+
 
 
     <title>
@@ -63,7 +64,7 @@
 
     
 
-    <meta name="generator" content="Hugo 0.80.0" />
+    <meta name="generator" content="Hugo 0.81.0" />
   </head>
 
   
@@ -511,7 +512,7 @@ $ mysqlsh -u root -proot -h localhost -P33060 --sql
     
       
         
-        <script src="https://horizoon.jp/js/dark-mode.min.0213e1773e6d1c5a644f847c67a6f8abac49a3776e2976f6008038af8c5b76a1.js"></script>
+        <script src="https://horizoon.jp/js/dark-mode.min.aee9c8a464eb7b3534c7110f7c5e169e7039e2fd92710e0626d451d6725af137.js"></script>
       
     
 

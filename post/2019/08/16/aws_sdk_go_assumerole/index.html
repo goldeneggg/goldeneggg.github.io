@@ -26,9 +26,10 @@
  一時的セキュリティ認証情報(STS)を利用した実装 にはしない 代わりに 切替用のIAMロールを設定ファイル経由で使用できるようにする 実装にする  ~/.aws/credentials と ~/.aws/config に、IAMユーザのprofileと切替先ロールのprofileを定義し、これを使用する この実装にすることで、コマンドやライブラリを使う側が指定しなければならない情報（例えばRoleARNやSessionTokenなど）を削減できる   実際に利用する際はMFAトークンの入力を（標準入力から）促し、普段使っている2段階認証アプリ等で表示されたトークンを入力することで、切替先ロールの各種リソースにアクセスできるようにする  ~/.aws/credentials と ~/.aws/config の設定内容 公式の例 を参考に下記のような内容で作成しておきます。リンク先でも触れられていますが、aws-sdk-goだけに限らず、他言語のSDKやawscliでもこの設定は使い回す事が出来ます。
 1 2 3 4 5 6  # ~/.aws/credentials # IAMユーザーのアクセスキー情報が hoge という名前のprofileで定義されている [hoge] aws_access_key_id=ACCESS_KEY_ID aws_secret_access_key=SECRET_ACCESS_KEY   1 2 3 4 5 6 7 8 9 10 11 12 13  # ~/." />
 <meta property="og:type" content="article" />
-<meta property="og:url" content="https://horizoon.jp/post/2019/08/16/aws_sdk_go_assumerole/" />
-<meta property="article:published_time" content="2019-08-16T17:10:35+09:00" />
-<meta property="article:modified_time" content="2019-08-16T17:10:35+09:00" />
+<meta property="og:url" content="https://horizoon.jp/post/2019/08/16/aws_sdk_go_assumerole/" /><meta property="article:section" content="post" />
+<meta property="article:published_time" content="2019-08-16T17:10:35&#43;09:00" />
+<meta property="article:modified_time" content="2019-08-16T17:10:35&#43;09:00" />
+
 
 
     <title>
@@ -72,7 +73,7 @@
 
     
 
-    <meta name="generator" content="Hugo 0.80.0" />
+    <meta name="generator" content="Hugo 0.81.0" />
   </head>
 
   
@@ -410,7 +411,7 @@ Assume Role MFA token code: <span style="color:#666">[</span>2段階認証アプ
     
       
         
-        <script src="https://horizoon.jp/js/dark-mode.min.0213e1773e6d1c5a644f847c67a6f8abac49a3776e2976f6008038af8c5b76a1.js"></script>
+        <script src="https://horizoon.jp/js/dark-mode.min.aee9c8a464eb7b3534c7110f7c5e169e7039e2fd92710e0626d451d6725af137.js"></script>
       
     
 

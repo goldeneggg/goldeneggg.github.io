@@ -6,7 +6,17 @@
     <description>Recent content in javascript on horizoon</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Thu, 07 Feb 2019 14:42:54 +0900</lastBuildDate><atom:link href="https://horizoon.jp/categories/javascript/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Fri, 05 Mar 2021 12:03:36 +0900</lastBuildDate><atom:link href="https://horizoon.jp/categories/javascript/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>AWS SAMによるLambda Layers ＆ Layers利用Functionの作成手順と運用観点での注意点（2021年3月, SAM 1.19版）</title>
+      <link>https://horizoon.jp/post/2021/03/05/lambda_layer_nodejs_2/</link>
+      <pubDate>Fri, 05 Mar 2021 12:03:36 +0900</pubDate>
+      
+      <guid>https://horizoon.jp/post/2021/03/05/lambda_layer_nodejs_2/</guid>
+      <description>※この記事は以前zenn.devで公開した記事 の、筆者による転載となります。
+Summary  Node.jsのLambdaで、レイヤー用のスタックと、それを利用するFunctionスタックのAWS SAMによる作成を以下の手順で実施  レイヤーのスタックをデプロイ レイヤーを利用するLambda Functionのスタックで、sam local invoke によるローカル実行で動作確認 レイヤーを利用するLambda Functionのスタックをデプロイ   レイヤーのスタックでは、&amp;lt;テンプレートのContentUriで指定したフォルダ&amp;gt;/nodejs/node_modules というフォルダにライブラリがインストールされるようにフォルダを構成する sam deploy を --guided オプション付きで実行するとデプロイ成果物配置用のS3バケットを自動で作成（既にあれば再利用）してくれるが、このバケットは &amp;ldquo;バージョニング有・ライフサイクル未設定&amp;rdquo; で作成されるので、samconfig.tomlによって2回目以降のデプロイ手順を簡略化する事が出来る恩恵とバージョニングの恩恵 vs コスト面の課題 のメリデメを判断して利用する  --guided オプションと --s3-bucket オプションでの固有バケット指定を併用すると、--s3-bucket オプションの内容は無視される    前提条件  Summaryに記載の通り、スタックがレイヤー用とそれを利用するLambda Functionで別々になっている、というケースを想定しています  1 2 3 4 5 6 7 8 9 10 11 12 13 14 15  # aws-cliのバージョン $ aws --version aws-cli/2.1.28 Python/3.9.2 Darwin/19.6.0 source/x86_64 prompt/off # aws-sam-cliのバージョン $ sam --version SAM CLI, version 1.</description>
+    </item>
+    
     <item>
       <title>既存のLambda FunctionにLambda Layersを導入し、AWS SAMで管理する（Node.js）</title>
       <link>https://horizoon.jp/post/2019/02/07/lambda_layer_nodejs8/</link>

@@ -23,9 +23,10 @@
  ホストランナー上にRuby（Python, PHP）をセットアップ MySQLやRedisはサービスコンテナで立ち上げ 依存ライブラリのインストール（bundle install） や ユニットテスト（rspec） もホストランナー上で直接実行  という事例は多く見かけるのですが、開発をDockerベースで行っていて、GitHub ActionsのCI Pipelineも同じくDockerベースで構築したい&hellip;というケースの事例があまり見当たらなかったので、自分が関わったプロジェクト（Rails 6 API mode）での事例を紹介します。
 前提条件  Ruby 2.7.1 Rails 6.0.3 (API mode) Docker (Docker for Mac)  Engine 19.03.8 Compose 1.25.5   MySQL 8.0.20 開発環境は全てDocker（Dockerfile/docker-compose.yml）で構築＆管理  bundle install や rails s や rspec などのコマンドは全てdocker-compose {run,exec} を介してコンテナ内で実行   Dockerfileはmulti-stage構成にはしない（今回の例ではひとまず開発用の設定だけが記述されている前提とする） リモートdocker registryは利用しない GitHub Actionsは現時点で公式にDocker layer cachingをサポートしていない 参考1, 参考2  これについては このissue で最新状況が追えそう しばらく対応され無さそう だけど、対応して欲しい&hellip;    TL;DR  dockerイメージのサイズを小さくしたい  イメージ自体でファイルを抱え込むような処理をDockerfileに書かない  ≒ Dockerfileに変更が無くてもビルドイメージに変更が発生し得るようなDockerfile にはしない   実行したいコマンドはコンテナ起動時に都度コマンドとして付与し、成果物を保存・永続化したければvolumesを活用する   CI時も開発環境と同じ Dockerfile/docker-compose." />
 <meta property="og:type" content="article" />
-<meta property="og:url" content="https://horizoon.jp/post/2020/05/28/rails6api_docker_github_actions/" />
-<meta property="article:published_time" content="2020-05-28T20:05:36+09:00" />
-<meta property="article:modified_time" content="2020-05-28T20:05:36+09:00" />
+<meta property="og:url" content="https://horizoon.jp/post/2020/05/28/rails6api_docker_github_actions/" /><meta property="article:section" content="post" />
+<meta property="article:published_time" content="2020-05-28T20:05:36&#43;09:00" />
+<meta property="article:modified_time" content="2020-05-28T20:05:36&#43;09:00" />
+
 
 
     <title>
@@ -69,7 +70,7 @@
 
     
 
-    <meta name="generator" content="Hugo 0.80.0" />
+    <meta name="generator" content="Hugo 0.81.0" />
   </head>
 
   
@@ -1166,7 +1167,7 @@ docker-compose <span style="color:#007020">exec</span> server rails db:migrate
     
       
         
-        <script src="https://horizoon.jp/js/dark-mode.min.0213e1773e6d1c5a644f847c67a6f8abac49a3776e2976f6008038af8c5b76a1.js"></script>
+        <script src="https://horizoon.jp/js/dark-mode.min.aee9c8a464eb7b3534c7110f7c5e169e7039e2fd92710e0626d451d6725af137.js"></script>
       
     
 
