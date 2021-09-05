@@ -226,6 +226,7 @@
 <h2 id="検証環境の構成">検証環境の構成</h2>
 <p>検証環境構築にはterraformを利用しました。※動作確認アプリ＆検証環境構築用terraformは<a href="https://github.com/practice-goldeneggg/s3-cloudfront-website-pattern">こちらのリポジトリ</a>にupしておきました。</p>
 <h3 id="s3webサイトホスティング--cloudfront-の設定">S3(webサイトホスティング) × CloudFront の設定</h3>
+<p><em><strong>※<a href="https://github.com/practice-goldeneggg/s3-cloudfront-website-pattern/blob/master/tf/website.tf">tfファイル</a></strong></em></p>
 <p>S3は下記の通りwebサイトホスティング前提の内容でbucket、public_access_block、bucket_policyを定義しておきます。</p>
 <ol>
 <li><code>acl = &quot;public-read&quot;</code> 設定</li>
@@ -234,10 +235,10 @@
 <li>※定義はするものの、バケットの前段にCloudFrontを配置する構成だとバケット直アクセスは想定しなくなり、この設定が実際に利用される場面はなくなる</li>
 </ul>
 </li>
-<li>public_access_block は <a href="https://dev.classmethod.jp/articles/cfn-s3-webhosting-cloudfront/#toc-2">クラスメソッドさんのこちらの記事</a>を参考に、ACLに対して設定</li>
+<li><code>public_access_block</code> は <a href="https://dev.classmethod.jp/articles/cfn-s3-webhosting-cloudfront/#toc-2">クラスメソッドさんのこちらの記事</a>を参考に、ACLに対して設定</li>
 <li>バケットポリシーは <code>&quot;aws:UserAgent&quot; = &quot;Amazon CloudFront&quot;</code> に対するAllowを設定
 <ul>
-<li>逆に「`&ldquo;aws:UserAgent&rdquo; = &ldquo;Amazon CloudFront&rdquo; 以外を Deny」する設定は行わない。これを設定すると「&ldquo;Amazon CloudFront&rdquo; 以外」に該当する範囲全て（それこそ普段AWSコンソールにログインしているIAMユーザーなど）にも影響が波及し、作業に支障をきたす恐れがある為</li>
+<li>逆に「 <code>&quot;aws:UserAgent&quot; = &quot;Amazon CloudFront&quot;</code> 以外を Deny」する設定は行わない。これを設定すると、&ldquo;Amazon CloudFront&rdquo; 以外に該当する範囲全て（それこそ普段AWSコンソールにログインしているIAMユーザーなど）にも影響が波及し、作業に支障をきたす恐れがある為</li>
 <li>webサイトホスティング = パブリックアクセスを許可するバケットで <a href="https://aws.amazon.com/jp/premiumsupport/knowledge-center/s3-website-cloudfront-error-403/"><code>s3:ListBucket</code> Actionを許可するのはセキュリティ上のベストプラクティスでは無いと公式でも言及されており</a>、<code>s3:GetObject</code> のみを許可しておく</li>
 </ul>
 </li>
@@ -255,8 +256,8 @@
 <p>そして、このバケットの前段に配置するCloudFrontを定義します。</p>
 <ol>
 <li><code>default_root_object</code> を定義して <code>https://cloudfrontドメイン</code> へのアクセス時はindex.htmlを表示する</li>
-<li>origin の domain_name は <code>bucket_domain_name</code> ではなく <code>bucket_regional_domain_name</code> を使って、<a href="https://aws.amazon.com/jp/premiumsupport/knowledge-center/s3-http-307-response/">307（一時的なリダイレクト）の発生</a>を回避</li>
-<li>origin のconfigは custom_origin_config として定義し、<code>origin_protocol_policy</code> は（httpのみが利用可能なwebサイトホスティングなので） <code>&quot;http-only&quot;</code> を指定</li>
+<li>origin の <code>domain_name</code> は <code>bucket_domain_name</code> ではなく <code>bucket_regional_domain_name</code> を使って、<a href="https://aws.amazon.com/jp/premiumsupport/knowledge-center/s3-http-307-response/">307（一時的なリダイレクト）の発生</a>を回避</li>
+<li>origin のconfigは <code>custom_origin_config</code> として定義し、<code>origin_protocol_policy</code> は（httpのみが利用可能なwebサイトホスティングなので） <code>&quot;http-only&quot;</code> を指定</li>
 <li><code>custom_error_response</code> により、エラー時にS3が（デフォルトで）返してくるxmlエラーをhtmlに変換するようにしておく</li>
 <li>これら以外は任意で設定
 <ul>
@@ -296,11 +297,12 @@
 </code></pre></td></tr></table>
 </div>
 </div><h3 id="s3非webサイトホスティング--cloudfront">S3(非・webサイトホスティング) × CloudFront</h3>
+<p><em><strong>※<a href="https://github.com/practice-goldeneggg/s3-cloudfront-website-pattern/blob/master/tf/notwebsite.tf">tfファイル</a></strong></em></p>
 <p>S3バケットは、webサイトホスティングとは異なりパブリックアクセスは許可しない前提の内容で定義しておきます。</p>
 <ol>
 <li><code>acl = &quot;private&quot;</code> 設定</li>
 <li><code>website</code> を定義 <strong>しない</strong></li>
-<li>public_access_block は全てtrue</li>
+<li><code>public_access_block</code> は全てtrue</li>
 <li>バケットポリシーは Origin Access Identityに対するAllowと、https以外（＝http）を拒否するDenyを設定
 <ul>
 <li>Allow側ポリシーで許可するAction, Resourceはwebサイトホスティング用と同様</li>
@@ -316,7 +318,7 @@
 <p>そして、CloudFrontをS3 Origin＆Origin Access Identityの組み合わせで定義します。</p>
 <ol>
 <li><strong>Origin Access Identity を定義</strong></li>
-<li>origin のconfigは s3_origin_config として定義し、1 のorigin_access_identityを指定</li>
+<li>origin のconfigは <code>s3_origin_config</code> として定義し、1 の <code>origin_access_identity</code> を指定</li>
 <li>これら以外は任意で設定（webサイトホスティング用と合わせておけばOK）</li>
 </ol>
 <h2 id="検証してみた">検証してみた</h2>
@@ -326,22 +328,22 @@
 <p><img src="https://horizoon.jp/img/s3_website_hosting/01.png" alt="01"></p>
 <p>初回以降のアクセスではCloudFrontでのキャッシュが効いてhttp statusは304になります。</p>
 <h3 id="2-https自動生成ドメイン文字列cloudfrontnet-へのアクセス">2. <code>https://自動生成ドメイン文字列.cloudfront.net/</code> へのアクセス</h3>
-<p>webサイト or 非・webサイトに関わらず、ドメイン名のみのアクセス時はCloudFrontの <code>default_root_object</code> 設定が有効であること、を確認したいという意図でしたが、これも問題ありません。</p>
+<p>webサイト or 非・webサイトに関わらず、ドメイン名のみのアクセス時はCloudFrontの <code>default_root_object</code> 設定が有効であることを確認したい、という意図でしたが、これも想定通りでした。</p>
 <p><img src="https://horizoon.jp/img/s3_website_hosting/02.png" alt="02"></p>
 <h3 id="3-https自動生成ドメイン文字列cloudfrontnet存在しないファイル名-でアクセス">3. <code>https://自動生成ドメイン文字列.cloudfront.net/存在しないファイル名</code> でアクセス</h3>
 <p>存在しないファイルへのアクセスは、バケットポリシーで s3:ListBucket を許可していないと403エラーとなります。
 デフォルトではその結果はhtmlではなくxmlで返ってくるので、CloudFrontの <code>custom_error_response</code> 設定でhtmlを返すよう設定してあります。</p>
-<p>デフォルトの挙動と<code>custom_error_response</code> によるエラーのカスタマイズについては、webサイト or 非・webサイトに関わらず同様です。つまり <strong>存在しないファイルへアクセスされた際のエラー処理もwebサイト or 非・webサイトで同じ機能を実現できる</strong> という事です。</p>
+<p>デフォルトの挙動と<code>custom_error_response</code> によるエラーのカスタマイズについては、webサイト or 非・webサイトに関わらず同様です。つまり <strong>存在しないファイルへアクセスされた際のエラー処理も、webサイトホスティング or 非・webサイトホスティングで同じ機能を実現できる</strong> という事です。</p>
 <p><img src="https://horizoon.jp/img/s3_website_hosting/03.png" alt="03"></p>
 <h4 id="補足-custom_error_response-の設定が無いとエラー表示はどうなるのか">補足: <code>custom_error_response</code> の設定が無いとエラー表示はどうなるのか？</h4>
-<p>webサイトor非・webサイトどちらのケースでも、custom_error_response設定がない場合、s3:ListBucket バケットポリシーの有無でエラー表示の挙動が変わります</p>
+<p>webサイトor非・webサイトどちらのケースでも、<code>custom_error_response</code> 設定がない場合、s3:ListBucket バケットポリシーの有無でエラー表示の挙動が変わります</p>
 <ul>
-<li>custom_error_response設定がない、且つ、バケットポリシーで s3:ListBucket が許可されていない
+<li><code>custom_error_response</code> 設定がない、且つ、バケットポリシーで s3:ListBucket が許可されていない
 <ul>
 <li>「S3がデフォルトで返す、AccessDenied を表すxml」が表示されます。http statusは 403</li>
 </ul>
 </li>
-<li>custom_error_response設定がない、且つ、バケットポリシーで s3:ListBucket が許可されている
+<li><code>custom_error_response</code> 設定がない、且つ、バケットポリシーで s3:ListBucket が許可されている
 <ul>
 <li>「S3がデフォルトで返す、NoSuchKey を表すxml」が表示されます。http statusは 404
 <ul>
@@ -358,99 +360,15 @@
 これにより、ユーザーがオブジェクトをダウンロードするアクセス許可を持っていない場合でも、オブジェクトのメタデータの詳細 (キーやサイズなど) がユーザーに公開されます</p>
 </blockquote>
 <p>と言及されており、オブジェクトの存在を推測されるようなエラー表示を抑止したければ、s3:ListBucket を許可するのはプラクティスとしてはよろしくなく、避けた方が無難です。</p>
-<p>つまり、何らかの事情で「custom_error_response設定が無い」設定を行ったとしても、「バケットポリシーで s3:ListBucket ポリシーが許可されていない」という設定とはセットで行っておいた方が良いです。</p>
-<p>※ちなみに、「custom_error_response設定がある、且つ、バケットポリシーで s3:ListBucket が許可されている」という場合であれば、custom_error_responseで404エラーを独自エラーに変換（して詳細を隠蔽する）という手段も可能と言えば可能です。</p>
+<p>つまり、何らかの事情で「<code>custom_error_response</code> 設定が無い」設定を行ったとしても、「バケットポリシーで s3:ListBucket ポリシーが許可されていない」という設定とはセットで行っておいた方が良いです。</p>
+<p>※ちなみに、「<code>custom_error_response</code> 設定がある、且つ、バケットポリシーで s3:ListBucket が許可されている」という場合であれば、<code>custom_error_response</code> で404エラーを独自エラーに変換（して詳細を隠蔽する）という手段も可能と言えば可能です。</p>
 <h3 id="補足-webサイトエンドポイントで-httpバケットのエンドポイント存在するファイル名-でバケットへの直アクセスを試みるとどうなるか">補足: webサイトエンドポイントで <code>http://バケットのエンドポイント/存在するファイル名</code> でバケットへの直アクセスを試みるとどうなるか？</h3>
 <p>このパターンのアクセスを試してみると、&ldquo;S3がデフォルトで返す、403を表すHTML&rdquo; が表示され、アクセス拒否自体は成功している事が分かります。</p>
 <p><img src="https://horizoon.jp/img/s3_website_hosting/03-hosoku-bucketerror.png" alt="03-hosoku-bucketerror"></p>
 <p>今回構築したwebサイトホスティング用のバケットでも<a href="https://docs.aws.amazon.com/ja_jp/AmazonS3/latest/userguide/CustomErrorDocSupport.html">カスタムエラードキュメントを設定</a>していたものの、<strong>バケットポリシーでCloudFrontからのアクセスだけを許可していると、バケットへの直アクセス時はカスタムエラードキュメントへのアクセスも拒否される事になり、結果としてS3のデフォルトエラー画面が表示される</strong> という挙動になります。</p>
-<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">33
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">34
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">35
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">36
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">37
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">38
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">39
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-hcl" data-lang="hcl"><span style="color:#60a0b0;font-style:italic">#
-</span><span style="color:#60a0b0;font-style:italic"># website の設定と bucket_policy の設定（CloudFrontからのアクセスだけを許可）が競合している
-</span><span style="color:#60a0b0;font-style:italic">#
-</span><span style="color:#60a0b0;font-style:italic"></span>
-<span style="color:#007020;font-weight:bold">resource</span> <span style="color:#4070a0">&#34;aws_s3_bucket&#34; &#34;website&#34;</span> {<span style="color:#60a0b0;font-style:italic">
-</span><span style="color:#60a0b0;font-style:italic">
-</span><span style="color:#60a0b0;font-style:italic"># :
-</span><span style="color:#60a0b0;font-style:italic"></span>
-  <span style="color:#007020;font-weight:bold">website</span> {
-    index_document <span style="color:#666">=</span> <span style="color:#4070a0">&#34;index.html&#34;</span>
-    error_document <span style="color:#666">=</span> <span style="color:#4070a0">&#34;50x.html&#34;</span>
-  }<span style="color:#60a0b0;font-style:italic">
-</span><span style="color:#60a0b0;font-style:italic">
-</span><span style="color:#60a0b0;font-style:italic"># :
-</span><span style="color:#60a0b0;font-style:italic"></span>
-<span style="color:#007020;font-weight:bold">resource</span> <span style="color:#4070a0">&#34;aws_s3_bucket_policy&#34; &#34;website&#34;</span> {
-  bucket <span style="color:#666">=</span> <span style="color:#007020;font-weight:bold">aws_s3_bucket</span>.<span style="color:#007020;font-weight:bold">website</span>.<span style="color:#007020;font-weight:bold">id</span>
-
-  policy <span style="color:#666">=</span> <span style="color:#007020;font-weight:bold">jsonencode</span>({
-    Version <span style="color:#666">=</span> <span style="color:#4070a0">&#34;2012-10-17&#34;</span>
-    Statement <span style="color:#666">=</span> [
-      {
-        Sid       <span style="color:#666">=</span> <span style="color:#4070a0">&#34;AllowCloudFront&#34;</span>
-        Effect    <span style="color:#666">=</span> <span style="color:#4070a0">&#34;Allow&#34;</span>
-        Principal <span style="color:#666">=</span> <span style="color:#4070a0">&#34;*&#34;</span>
-        Action <span style="color:#666">=</span> [
-          <span style="color:#4070a0">&#34;s3:GetObject&#34;</span>,
-        ]
-        Resource <span style="color:#666">=</span> [
-          <span style="color:#4070a0">&#34;${aws_s3_bucket.website.arn}/*&#34;</span>,
-        ]
-        Condition <span style="color:#666">=</span> {
-          StringEquals <span style="color:#666">=</span> {
-            &#34;aws:UserAgent&#34; <span style="color:#666">=</span> <span style="color:#4070a0">&#34;Amazon CloudFront&#34;</span>
-          }
-        }
-      },
-    ]
-  })
-</code></pre></td></tr></table>
-</div>
-</div><h2 id="改めて結論まとめ">改めて結論まとめ</h2>
+<h2 id="改めて結論まとめ">改めて結論まとめ</h2>
 <ul>
-<li>webサイトホスティング or 非・webサイトホスティングどちらを選んでも差が無い
+<li>webサイトホスティング or 非・webサイトホスティングどちらを選んでも差が無い観点
 <ul>
 <li>正常系/異常系問わず、サイトアクセス時の（見た目的な意味での）挙動は、設定次第で揃える事は可能</li>
 <li>S3バケットへの直接アクセスを抑止し、CloudFrontからのみアクセス可能にする
@@ -466,7 +384,7 @@
 </li>
 </ul>
 </li>
-<li>非・webサイトホスティング を <strong>選ばざるを得ない</strong>
+<li>非・webサイトホスティング を <strong>選ばざるを得ない</strong> 観点
 <ul>
 <li><code>CloudFront -&gt; S3</code> 間の通信を、何らかの事情で HTTPS にしなければならない
 <ul>
