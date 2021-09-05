@@ -21,8 +21,8 @@ Summary  Node.jsのLambdaで、レイヤー用のスタックと、それを利�
 Summary  Node.jsのLambdaで、レイヤー用のスタックと、それを利用するFunctionスタックのAWS SAMによる作成を以下の手順で実施  レイヤーのスタックをデプロイ レイヤーを利用するLambda Functionのスタックで、sam local invoke によるローカル実行で動作確認 レイヤーを利用するLambda Functionのスタックをデプロイ   レイヤーのスタックでは、&lt;テンプレートのContentUriで指定したフォルダ&gt;/nodejs/node_modules というフォルダにライブラリがインストールされるようにフォルダを構成する sam deploy を --guided オプション付きで実行するとデプロイ成果物配置用のS3バケットを自動で作成（既にあれば再利用）してくれるが、このバケットは &ldquo;バージョニング有・ライフサイクル未設定&rdquo; で作成されるので、samconfig.tomlによって2回目以降のデプロイ手順を簡略化する事が出来る恩恵とバージョニングの恩恵 vs コスト面の課題 のメリデメを判断して利用する  --guided オプションと --s3-bucket オプションでの固有バケット指定を併用すると、--s3-bucket オプションの内容は無視される    前提条件  Summaryに記載の通り、スタックがレイヤー用とそれを利用するLambda Functionで別々になっている、というケースを想定しています  1 2 3 4 5 6 7 8 9 10 11 12 13 14 15  # aws-cliのバージョン $ aws --version aws-cli/2.1.28 Python/3.9.2 Darwin/19.6.0 source/x86_64 prompt/off # aws-sam-cliのバージョン $ sam --version SAM CLI, version 1." />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://horizoon.jp/post/2021/03/05/lambda_layer_nodejs_2/" /><meta property="article:section" content="post" />
-<meta property="article:published_time" content="2021-03-05T12:03:36&#43;09:00" />
-<meta property="article:modified_time" content="2021-03-05T12:03:36&#43;09:00" />
+<meta property="article:published_time" content="2021-03-05T12:03:36+09:00" />
+<meta property="article:modified_time" content="2021-03-05T12:03:36+09:00" />
 
 
 
@@ -67,7 +67,7 @@ Summary  Node.jsのLambdaで、レイヤー用のスタックと、それを利�
 
     
 
-    <meta name="generator" content="Hugo 0.81.0" />
+    <meta name="generator" content="Hugo 0.87.0" />
   </head>
 
   
@@ -150,7 +150,7 @@ Summary  Node.jsのLambdaで、レイヤー用のスタックと、それを利�
 </ul>
 <div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
@@ -167,7 +167,7 @@ Summary  Node.jsのLambdaで、レイヤー用のスタックと、それを利�
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh"><span style="color:#60a0b0;font-style:italic"># aws-cliのバージョン</span>
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh"><span style="color:#60a0b0;font-style:italic"># aws-cliのバージョン</span>
 $ aws --version
 aws-cli/2.1.28 Python/3.9.2 Darwin/19.6.0 source/x86_64 prompt/off
 
@@ -189,7 +189,7 @@ v12.18.4
 <p>下記構成で用意します。テンプレートファイルと、レイヤーに含めるライブラリ群を配置するフォルダ（例では <code>node-base-layer</code> ）、という構成です。</p>
 <div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
@@ -199,7 +199,7 @@ v12.18.4
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">.
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">.
 ├── .node-version
 ├── node-base-layer
 │   └── nodejs
@@ -213,7 +213,7 @@ v12.18.4
 <p>例えば下記のような内容になります。</p>
 <div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
@@ -260,7 +260,7 @@ v12.18.4
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">45
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#0e84b5;font-weight:bold">---</span><span style="color:#bbb">
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#0e84b5;font-weight:bold">---</span><span style="color:#bbb">
 </span><span style="color:#bbb"></span><span style="color:#062873;font-weight:bold">AWSTemplateFormatVersion</span>:<span style="color:#bbb"> </span>2010-09-09<span style="color:#bbb">
 </span><span style="color:#bbb">
 </span><span style="color:#bbb"></span><span style="color:#062873;font-weight:bold">Description</span>:<span style="color:#bbb"> </span>Lambda Layer for Node.js<span style="color:#bbb">
@@ -311,7 +311,7 @@ v12.18.4
 <p>例えば下記のような内容になります。※ 後ほどの動作確認用にライブラリとして <code>cheerio</code> だけを含めています。</p>
 <div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
@@ -327,7 +327,7 @@ v12.18.4
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">{
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">{
   <span style="color:#062873;font-weight:bold">&#34;name&#34;</span>: <span style="color:#4070a0">&#34;nodejs&#34;</span>,
   <span style="color:#062873;font-weight:bold">&#34;version&#34;</span>: <span style="color:#4070a0">&#34;1.0.0&#34;</span>,
   <span style="color:#062873;font-weight:bold">&#34;description&#34;</span>: <span style="color:#4070a0">&#34;Lambda Layer for Node.js&#34;</span>,
@@ -360,7 +360,7 @@ v12.18.4
 <p>という流れになります。今回はバケット自動作成のお試しも兼ねて <code>--guided</code> オプション付きでデプロイしてみます。</p>
 <div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
@@ -389,7 +389,7 @@ v12.18.4
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh"><span style="color:#60a0b0;font-style:italic"># ライブラリのインストール</span>
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh"><span style="color:#60a0b0;font-style:italic"># ライブラリのインストール</span>
 $ <span style="color:#007020">cd</span> node-base-layer/nodejs
 $ npm install
 
@@ -422,13 +422,13 @@ Deploy this changeset? <span style="color:#666">[</span>y/N<span style="color:#6
 <p>デプロイが正常に完了すれば、AWS::Lambda::LayerVersion リソースと AWS::Lambda::LayerVersionPermission リソースがそれぞれ作成されます。<code>aws lambda list-layer-versions</code> コマンドでそのARNを確認できればOKです。</p>
 <div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh"><span style="color:#60a0b0;font-style:italic"># 出力結果の末尾の数値はバージョン番号なので、バージョンが増える度に表示される結果も増えます</span>
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh"><span style="color:#60a0b0;font-style:italic"># 出力結果の末尾の数値はバージョン番号なので、バージョンが増える度に表示される結果も増えます</span>
 $ aws lambda list-layer-versions --layer-name node-base-layer | jq <span style="color:#4070a0">&#39;.LayerVersions[].LayerVersionArn&#39;</span>
 
 <span style="color:#4070a0">&#34;arn:aws:lambda:ap-northeast-1:&lt;自身のAccountId&gt;:layer:node-base-layer:1&#34;</span>
@@ -438,7 +438,7 @@ $ aws lambda list-layer-versions --layer-name node-base-layer | jq <span style="
 <p>ところで、<code>sam deploy</code> を <code>--guided</code> オプション付きで実行すると <a href="https://docs.aws.amazon.com/ja_jp/serverless-application-model/latest/developerguide/serverless-sam-cli-config.html">samconfig.toml（＝デフォルトのファイル名） というファイル</a> が作成されます。</p>
 <div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
@@ -452,7 +452,7 @@ $ aws lambda list-layer-versions --layer-name node-base-layer | jq <span style="
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-toml" data-lang="toml">version = <span style="color:#40a070">0.1</span>
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-toml" data-lang="toml">version = <span style="color:#40a070">0.1</span>
 [default]
 [default.deploy]
 [default.deploy.parameters]
@@ -470,13 +470,13 @@ capabilities = <span style="color:#4070a0">&#34;CAPABILITY_IAM&#34;</span>
 <p>作成されたバケットには、デプロイされたレイヤーのテンプレートとパッケージングされたライブラリ群の2種類のオブジェクトが存在しています。</p>
 <div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">$ aws s3api list-objects --bucket aws-sam-cli-managed-default-samclisourcebucket-xxxxxxxxxxxx | jq <span style="color:#4070a0">&#39;.Contents[].Key&#39;</span>
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">$ aws s3api list-objects --bucket aws-sam-cli-managed-default-samclisourcebucket-xxxxxxxxxxxx | jq <span style="color:#4070a0">&#39;.Contents[].Key&#39;</span>
 
 <span style="color:#4070a0">&#34;layer-stack/xxxxxxxxxxxxxxx.template&#34;</span>
 <span style="color:#4070a0">&#34;layer-stack/yyyyyyyyyyyyyyyyyyyy&#34;</span>
@@ -489,7 +489,7 @@ capabilities = <span style="color:#4070a0">&#34;CAPABILITY_IAM&#34;</span>
 <p>続いてレイヤーを利用するFunctionを準備します。デプロイ済のレイヤーに含まれているライブラリを参照できるという事だけを確認したいので、とりあえず <code>sam init</code> で単純なプロジェクトを作っておきます。</p>
 <div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
@@ -545,7 +545,7 @@ capabilities = <span style="color:#4070a0">&#34;CAPABILITY_IAM&#34;</span>
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">54
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">$ sam init
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">$ sam init
 
 Which template <span style="color:#007020">source</span> would you like to use?
         <span style="color:#40a070">1</span> - AWS Quick Start Templates
@@ -606,7 +606,7 @@ Template selection: <span style="color:#40a070">1</span>
 <p>「パラメータでレイヤーのARNを指定し、それを対象FunctionのLayersに設定」するように修正しておきます（以下差分）</p>
 <div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
@@ -629,7 +629,7 @@ Template selection: <span style="color:#40a070">1</span>
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-diff" data-lang="diff"><span style="color:#800080;font-weight:bold">@@ -5,6 +5,11 @@
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-diff" data-lang="diff"><span style="color:#800080;font-weight:bold">@@ -5,6 +5,11 @@
 </span><span style="color:#800080;font-weight:bold"></span>
    Sample SAM Template for sam-app
 
@@ -656,7 +656,7 @@ Template selection: <span style="color:#40a070">1</span>
 <p>「レイヤーに含まれているライブラリをrequireする」というコードを追加しておきます。</p>
 <div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
@@ -665,7 +665,7 @@ Template selection: <span style="color:#40a070">1</span>
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-diff" data-lang="diff"><span style="color:#800080;font-weight:bold">@@ -1,5 +1,6 @@
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-diff" data-lang="diff"><span style="color:#800080;font-weight:bold">@@ -1,5 +1,6 @@
 </span><span style="color:#800080;font-weight:bold"></span> // const axios = require(&#39;axios&#39;)
  // const url = &#39;http://checkip.amazonaws.com/&#39;;
 <span style="color:#00a000">+const cheerio = require(&#39;cheerio&#39;)
@@ -678,7 +678,7 @@ Template selection: <span style="color:#40a070">1</span>
 <p><code>npm install</code> → <code>sam build</code> → <code>sam local invoke</code> の順で、正常に実行されるか確認してみます。</p>
 <div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
@@ -704,7 +704,7 @@ Template selection: <span style="color:#40a070">1</span>
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh"><span style="color:#60a0b0;font-style:italic"># sam-app のpackage.jsonにもデフォルトでいくつかライブラリを含んでいるのでそれをインストールしておく</span>
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh"><span style="color:#60a0b0;font-style:italic"># sam-app のpackage.jsonにもデフォルトでいくつかライブラリを含んでいるのでそれをインストールしておく</span>
 $ <span style="color:#007020">cd</span> hello-world
 $ npm install
 
@@ -754,7 +754,7 @@ $ sam <span style="color:#007020">local</span> invoke HelloWorldFunction --templ
 <p>レイヤーの初回デプロイ時と同様に、Functionスタックの初回デプロイも <code>--guided</code> オプション付きで実行してみます。</p>
 <div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
@@ -779,7 +779,7 @@ $ sam <span style="color:#007020">local</span> invoke HelloWorldFunction --templ
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">$ sam deploy --template template.yaml --region &lt;YOUR_REGION&gt; --stack-name sam-app --capabilities CAPABILITY_IAM --guided --parameter-overrides <span style="color:#bb60d5">LayerArnParam</span><span style="color:#666">=</span>&lt;DEPLOYED_LAYER_ARN&gt;
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">$ sam deploy --template template.yaml --region &lt;YOUR_REGION&gt; --stack-name sam-app --capabilities CAPABILITY_IAM --guided --parameter-overrides <span style="color:#bb60d5">LayerArnParam</span><span style="color:#666">=</span>&lt;DEPLOYED_LAYER_ARN&gt;
 
 Configuring SAM <span style="color:#bb60d5">deploy</span>
 <span style="color:#666">======================</span>
@@ -807,11 +807,11 @@ Deploy this changeset? <span style="color:#666">[</span>y/N<span style="color:#6
 </div><p>レイヤーデプロイ時と同様に生成される samconfig.toml の内容を見てみると、レイヤーデプロイ時に自動作成されたバケットが（特に実行時に指定したわけでも無いのに）再利用されている事が分かります。</p>
 <div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-toml" data-lang="toml"><span style="color:#60a0b0;font-style:italic"># レイヤーデプロイ時に作成されたバケット</span>
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-toml" data-lang="toml"><span style="color:#60a0b0;font-style:italic"># レイヤーデプロイ時に作成されたバケット</span>
 s3_bucket = <span style="color:#4070a0">&#34;aws-sam-cli-managed-default-samclisourcebucket-xxxxxxxxxxxx&#34;</span>
 </code></pre></td></tr></table>
 </div>
@@ -884,7 +884,6 @@ if (!doNotTrack) {
 	ga('send', 'pageview');
 }
 </script>
-
 
     
 

@@ -18,8 +18,8 @@
 <meta property="og:description" content="Summary  ver 5.7.12 で追加された「3つのX」。ver 8.0からGA  X Protocol X DevAPI X Plugin   X Protocol  アプリケーションがX Pluginと通信するために使われる新プロトコル。MySQLへの（これまで通りの）SQLインターフェース ＋ NoSQLインタフェースの両方をサポートしている   X DevAPI  MySQL用のNoSQLソリューションを開発したり、Document StoreとしてMySQLを使用したりすることを可能にするAPI Connectors  X DevAPIをサポートしている、言語別クライアント C&#43;&#43;, Java, Node.js, .NET, Python の各言語向けライブラリが公式に提供されている   MySQL Shell  MySQLサーバへの新しい対話型インタフェースで、Connector同様にX DevAPIをサポートしている 以前からのmysqlコマンドと同じSQLインタフェースに加えて、JavaScript, Pythonでもコンソール上での各種操作が可能。 JSやPythonでmysqlコンソールを操作できる     X Plugin  X Protocolをサーバー側で有効にして、X Protocolを使ってクライアントとの通信を可能にする為のプラグイン Document StoreとしてMySQLを使用する為にはX Pluginが有効化されていなければならない  ver 8.0.11以降はデフォルトで有効化されている     Document Store  「3つのX」を使って、JSON DocumentをNoSQL/DocumentDB likeに取り扱う仕組み     X Protocol 公式 - MySQL :: MySQL Internals Manual :: 15 X Protocol" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://horizoon.jp/post/2019/03/06/mysql8_3x/" /><meta property="article:section" content="post" />
-<meta property="article:published_time" content="2019-03-06T12:15:00&#43;09:00" />
-<meta property="article:modified_time" content="2019-03-06T12:15:00&#43;09:00" />
+<meta property="article:published_time" content="2019-03-06T12:15:00+09:00" />
+<meta property="article:modified_time" content="2019-03-06T12:15:00+09:00" />
 
 
 
@@ -64,7 +64,7 @@
 
     
 
-    <meta name="generator" content="Hugo 0.81.0" />
+    <meta name="generator" content="Hugo 0.87.0" />
   </head>
 
   
@@ -171,8 +171,7 @@
 </ul>
 </li>
 </ul>
-<figure class="center">
-    <img src="https://horizoon.jp/img/mysql8_doc/1.png"/> 
+<figure class="center"><img src="https://horizoon.jp/img/mysql8_doc/1.png"/>
 </figure>
 
 <h2 id="x-protocol">X Protocol</h2>
@@ -205,21 +204,18 @@
 </ul>
 <p>X DevAPIでは <a href="https://dev.mysql.com/doc/x-devapi-userguide/en/connecting-to-a-single-mysqld-node-setup.html">mysqlx というモジュールを使って Session と呼ばれるX Protocol接続オブジェクトを取得し</a>、mysqlサーバに接続します。これにより、JSONデータをDocument Storeとして取り扱うクラスやメソッド群が使用可能になります。逆にX Pluginが有効ではない（古い）プロトコルでの接続は Classic Session と呼ばれるオブジェクトで管理されます。各言語のConnectorでは、共通して<code>mysqlx</code>と呼ばれるモジュールにより、従来の機能（API）とは独立した形でX DevAPIの機能が提供されています。</p>
 <p>接続を司るSessionオブジェクトも含め、X DevAPIを実装している各クライアント（のmysqlxモジュール）は下記構成で機能が提供されています。</p>
-<figure class="center">
-    <img src="https://horizoon.jp/img/mysql8_doc/2.png"/> <figcaption>
+<figure class="center"><img src="https://horizoon.jp/img/mysql8_doc/2.png"/><figcaption>
             <h4>（mysqlxモジュールの構成図）</h4>
         </figcaption>
 </figure>
 
 <p>現状では先程のリストに挙がっていない言語、例えばRubyやGoでは公式にConnectorは提供されていませんが、各言語のconnector APIリファレンス（例：<a href="https://dev.mysql.com/doc/dev/connector-nodejs/8.0/">Node.jsのもの</a>）や、拡張BNF（<a href="https://dev.mysql.com/doc/x-devapi-userguide/en/mysql-x-crud-ebnf-definitions.html">CRUD関連</a> 、 <a href="https://dev.mysql.com/doc/x-devapi-userguide/en/mysql-x-expressions-ebnf-definitions.html">式関連</a> ）が公開されており、これらを参考に独自実装する事も不可能では無さそうです。</p>
-<figure class="center">
-    <img src="https://horizoon.jp/img/mysql8_doc/3.png"/> <figcaption>
+<figure class="center"><img src="https://horizoon.jp/img/mysql8_doc/3.png"/><figcaption>
             <h4>（Databaseオブジェクトのクラス図）</h4>
         </figcaption>
 </figure>
 
-<figure class="center">
-    <img src="https://horizoon.jp/img/mysql8_doc/4.png"/> <figcaption>
+<figure class="center"><img src="https://horizoon.jp/img/mysql8_doc/4.png"/><figcaption>
             <h4>（Resultオブジェクトのクラス図）</h4>
         </figcaption>
 </figure>
@@ -248,7 +244,7 @@
 <p>Macなどでサクッとver8のMySQLを立ち上げて試したければ、<a href="https://hub.docker.com/_/mysql?tab=tags">8系のDockerfileが公開されているので</a>これを使うのが良いでしょう。</p>
 <div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
@@ -263,7 +259,7 @@
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yml" data-lang="yml"><span style="color:#60a0b0;font-style:italic"># docker-compose.yml</span><span style="color:#bbb">
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yml" data-lang="yml"><span style="color:#60a0b0;font-style:italic"># docker-compose.yml</span><span style="color:#bbb">
 </span><span style="color:#bbb">
 </span><span style="color:#bbb"></span><span style="color:#062873;font-weight:bold">version</span>:<span style="color:#bbb"> </span><span style="color:#4070a0">&#39;3&#39;</span><span style="color:#bbb">
 </span><span style="color:#bbb"></span><span style="color:#062873;font-weight:bold">services</span>:<span style="color:#bbb">
@@ -280,25 +276,25 @@
 </div>
 </div><div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">$ docker-compose up
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">$ docker-compose up
 </code></pre></td></tr></table>
 </div>
 </div><p>Mac向けのMySQL Shellは<a href="https://dev.mysql.com/downloads/shell/">dmgで公開されている</a>のでこれをインストールし、SQLモードでshellを立ち上げてみるとプロンプトがシャレオツなmysqlコンソールが立ち上がります。ポート番号は後述のX Pluginが接続を待ち受ける番号を指定します（デフォルトが33060）</p>
 <p><code>--sql</code> とSQLモードで立ち上げたMySQL Shellは、過去バージョンのmysqlコマンドで利用可能な機能が全てそのまま使えます。</p>
 <div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">$ mysqlsh -u root -proot -h localhost -P33060 --sql
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">$ mysqlsh -u root -proot -h localhost -P33060 --sql
 </code></pre></td></tr></table>
 </div>
 </div><div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
@@ -310,22 +306,22 @@
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql">:
-
-Creating a <span style="color:#007020;font-weight:bold">session</span> <span style="color:#007020;font-weight:bold">to</span> <span style="color:#4070a0">&#39;root@localhost:33060&#39;</span>
-Fetching <span style="color:#007020;font-weight:bold">schema</span> <span style="color:#007020;font-weight:bold">names</span> <span style="color:#007020;font-weight:bold">for</span> autocompletion... Press <span style="color:#666">^</span><span style="color:#007020;font-weight:bold">C</span> <span style="color:#007020;font-weight:bold">to</span> stop.
-Your MySQL <span style="color:#007020;font-weight:bold">connection</span> id <span style="color:#007020;font-weight:bold">is</span> <span style="color:#40a070">1</span> (X protocol)
-
-:
-:
-
-MySQL  localhost:<span style="color:#40a070">33060</span><span style="color:#666">+</span> ssl  <span style="color:#007020;font-weight:bold">SQL</span> <span style="color:#666">&gt;</span>
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql">:<span style="color:#bbb">
+</span><span style="color:#bbb">
+</span><span style="color:#bbb"></span>Creating<span style="color:#bbb"> </span>a<span style="color:#bbb"> </span><span style="color:#007020;font-weight:bold">session</span><span style="color:#bbb"> </span><span style="color:#007020;font-weight:bold">to</span><span style="color:#bbb"> </span><span style="color:#4070a0">&#39;root@localhost:33060&#39;</span><span style="color:#bbb">
+</span><span style="color:#bbb"></span>Fetching<span style="color:#bbb"> </span><span style="color:#007020;font-weight:bold">schema</span><span style="color:#bbb"> </span><span style="color:#007020;font-weight:bold">names</span><span style="color:#bbb"> </span><span style="color:#007020;font-weight:bold">for</span><span style="color:#bbb"> </span>autocompletion...<span style="color:#bbb"> </span>Press<span style="color:#bbb"> </span><span style="color:#666">^</span><span style="color:#007020;font-weight:bold">C</span><span style="color:#bbb"> </span><span style="color:#007020;font-weight:bold">to</span><span style="color:#bbb"> </span>stop.<span style="color:#bbb">
+</span><span style="color:#bbb"></span>Your<span style="color:#bbb"> </span>MySQL<span style="color:#bbb"> </span><span style="color:#007020;font-weight:bold">connection</span><span style="color:#bbb"> </span>id<span style="color:#bbb"> </span><span style="color:#007020;font-weight:bold">is</span><span style="color:#bbb"> </span><span style="color:#40a070">1</span><span style="color:#bbb"> </span>(X<span style="color:#bbb"> </span>protocol)<span style="color:#bbb">
+</span><span style="color:#bbb">
+</span><span style="color:#bbb"></span>:<span style="color:#bbb">
+</span><span style="color:#bbb"></span>:<span style="color:#bbb">
+</span><span style="color:#bbb">
+</span><span style="color:#bbb"></span>MySQL<span style="color:#bbb">  </span>localhost:<span style="color:#40a070">33060</span><span style="color:#666">+</span><span style="color:#bbb"> </span>ssl<span style="color:#bbb">  </span><span style="color:#007020;font-weight:bold">SQL</span><span style="color:#bbb"> </span><span style="color:#666">&gt;</span><span style="color:#bbb">
+</span></code></pre></td></tr></table>
 </div>
 </div><p><code>\js</code>と入力するとJavaScriptモードに、<code>\py</code>と入力するとPythonモードに切り替わります</p>
 <div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
@@ -334,14 +330,14 @@ MySQL  localhost:<span style="color:#40a070">33060</span><span style="color:#666
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql">MySQL  localhost:<span style="color:#40a070">33060</span><span style="color:#666">+</span> ssl  <span style="color:#007020;font-weight:bold">SQL</span> <span style="color:#666">&gt;</span> <span style="">\</span>js
-Switching <span style="color:#007020;font-weight:bold">to</span> JavaScript <span style="color:#007020;font-weight:bold">mode</span>...
-
-MySQL  localhost:<span style="color:#40a070">33060</span><span style="color:#666">+</span> ssl  JS <span style="color:#666">&gt;</span> <span style="">\</span>py
-Switching <span style="color:#007020;font-weight:bold">to</span> Python <span style="color:#007020;font-weight:bold">mode</span>...
-
-MySQL  localhost:<span style="color:#40a070">33060</span><span style="color:#666">+</span> ssl  Py <span style="color:#666">&gt;</span>
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql">MySQL<span style="color:#bbb">  </span>localhost:<span style="color:#40a070">33060</span><span style="color:#666">+</span><span style="color:#bbb"> </span>ssl<span style="color:#bbb">  </span><span style="color:#007020;font-weight:bold">SQL</span><span style="color:#bbb"> </span><span style="color:#666">&gt;</span><span style="color:#bbb"> </span><span style="">\</span>js<span style="color:#bbb">
+</span><span style="color:#bbb"></span>Switching<span style="color:#bbb"> </span><span style="color:#007020;font-weight:bold">to</span><span style="color:#bbb"> </span>JavaScript<span style="color:#bbb"> </span><span style="color:#007020;font-weight:bold">mode</span>...<span style="color:#bbb">
+</span><span style="color:#bbb">
+</span><span style="color:#bbb"></span>MySQL<span style="color:#bbb">  </span>localhost:<span style="color:#40a070">33060</span><span style="color:#666">+</span><span style="color:#bbb"> </span>ssl<span style="color:#bbb">  </span>JS<span style="color:#bbb"> </span><span style="color:#666">&gt;</span><span style="color:#bbb"> </span><span style="">\</span>py<span style="color:#bbb">
+</span><span style="color:#bbb"></span>Switching<span style="color:#bbb"> </span><span style="color:#007020;font-weight:bold">to</span><span style="color:#bbb"> </span>Python<span style="color:#bbb"> </span><span style="color:#007020;font-weight:bold">mode</span>...<span style="color:#bbb">
+</span><span style="color:#bbb">
+</span><span style="color:#bbb"></span>MySQL<span style="color:#bbb">  </span>localhost:<span style="color:#40a070">33060</span><span style="color:#666">+</span><span style="color:#bbb"> </span>ssl<span style="color:#bbb">  </span>Py<span style="color:#bbb"> </span><span style="color:#666">&gt;</span><span style="color:#bbb">
+</span></code></pre></td></tr></table>
 </div>
 </div><p>mysqlshコマンドで、従来のmysqlコマンド（C/Sプロトコル）による接続を行う事も可能です。その場合portにはサーバが使用している待受ポートを指定し、合わせて<code>--classic</code>というオプションを指定します。X Protocolで接続した場合と異なり、</p>
 <ul>
@@ -351,15 +347,15 @@ MySQL  localhost:<span style="color:#40a070">33060</span><span style="color:#666
 <p>という違いがあります。</p>
 <div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">$ mysqlsh -u root -proot -h localhost -P3306 --sql --classic
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">$ mysqlsh -u root -proot -h localhost -P3306 --sql --classic
 </code></pre></td></tr></table>
 </div>
 </div><div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
@@ -371,17 +367,17 @@ MySQL  localhost:<span style="color:#40a070">33060</span><span style="color:#666
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql">:
-
-Creating a Classic <span style="color:#007020;font-weight:bold">session</span> <span style="color:#007020;font-weight:bold">to</span> <span style="color:#4070a0">&#39;root@localhost:3306&#39;</span>
-Fetching <span style="color:#007020;font-weight:bold">schema</span> <span style="color:#007020;font-weight:bold">names</span> <span style="color:#007020;font-weight:bold">for</span> autocompletion... Press <span style="color:#666">^</span><span style="color:#007020;font-weight:bold">C</span> <span style="color:#007020;font-weight:bold">to</span> stop.
-Your MySQL <span style="color:#007020;font-weight:bold">connection</span> id <span style="color:#007020;font-weight:bold">is</span> <span style="color:#40a070">2</span>
-
-:
-:
-
-MySQL  localhost:<span style="color:#40a070">3306</span> ssl  <span style="color:#007020;font-weight:bold">SQL</span> <span style="color:#666">&gt;</span>
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql">:<span style="color:#bbb">
+</span><span style="color:#bbb">
+</span><span style="color:#bbb"></span>Creating<span style="color:#bbb"> </span>a<span style="color:#bbb"> </span>Classic<span style="color:#bbb"> </span><span style="color:#007020;font-weight:bold">session</span><span style="color:#bbb"> </span><span style="color:#007020;font-weight:bold">to</span><span style="color:#bbb"> </span><span style="color:#4070a0">&#39;root@localhost:3306&#39;</span><span style="color:#bbb">
+</span><span style="color:#bbb"></span>Fetching<span style="color:#bbb"> </span><span style="color:#007020;font-weight:bold">schema</span><span style="color:#bbb"> </span><span style="color:#007020;font-weight:bold">names</span><span style="color:#bbb"> </span><span style="color:#007020;font-weight:bold">for</span><span style="color:#bbb"> </span>autocompletion...<span style="color:#bbb"> </span>Press<span style="color:#bbb"> </span><span style="color:#666">^</span><span style="color:#007020;font-weight:bold">C</span><span style="color:#bbb"> </span><span style="color:#007020;font-weight:bold">to</span><span style="color:#bbb"> </span>stop.<span style="color:#bbb">
+</span><span style="color:#bbb"></span>Your<span style="color:#bbb"> </span>MySQL<span style="color:#bbb"> </span><span style="color:#007020;font-weight:bold">connection</span><span style="color:#bbb"> </span>id<span style="color:#bbb"> </span><span style="color:#007020;font-weight:bold">is</span><span style="color:#bbb"> </span><span style="color:#40a070">2</span><span style="color:#bbb">
+</span><span style="color:#bbb">
+</span><span style="color:#bbb"></span>:<span style="color:#bbb">
+</span><span style="color:#bbb"></span>:<span style="color:#bbb">
+</span><span style="color:#bbb">
+</span><span style="color:#bbb"></span>MySQL<span style="color:#bbb">  </span>localhost:<span style="color:#40a070">3306</span><span style="color:#bbb"> </span>ssl<span style="color:#bbb">  </span><span style="color:#007020;font-weight:bold">SQL</span><span style="color:#bbb"> </span><span style="color:#666">&gt;</span><span style="color:#bbb">
+</span></code></pre></td></tr></table>
 </div>
 </div><h2 id="x-plugin">X Plugin</h2>
 <p><a href="https://dev.mysql.com/doc/refman/8.0/en/x-plugin.html">公式 - MySQL :: MySQL 8.0 Reference Manual :: 20.5 X Plugin</a></p>
@@ -407,7 +403,7 @@ MySQL  localhost:<span style="color:#40a070">3306</span> ssl  <span style="color
 <p>X Pluginの特徴の1つとして、クライアント/サーバ間の通信で使っているSSL証明書と別のSSL証明書を使って（プラグインへの）接続を行う事が可能という点が挙げられます。下記がmy.cnfの設定例ですが、<code>mysqld</code> セクションのSSL関連の設定パラメータに <code>mysqlx_</code> というprefixを付けたパラメータで、サーバで使っているSSL証明書と別の証明書を指定する事ができます。</p>
 <div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
@@ -417,7 +413,7 @@ MySQL  localhost:<span style="color:#40a070">3306</span> ssl  <span style="color
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">[mysqld]
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">[mysqld]
 ssl-ca = /path/to/ca_server.pem
 ssl-cert = /path/to/server-cert.pem
 ssl-key = /path/to/server-key.pem
@@ -430,18 +426,18 @@ mysqlx-ssl-key = /path/to/xplugin-key.pem
 </div><p>X PluginはMySQLサーバとは別のポート＝デフォルトで33060番ポートを使って通信を行います。先述のMySQL Shellを使ってX Pluginと対話型インタフェースで接続するには下記コマンドで接続します。</p>
 <div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh"><span style="color:#60a0b0;font-style:italic"># ポート番号として33060を指定</span>
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh"><span style="color:#60a0b0;font-style:italic"># ポート番号として33060を指定</span>
 $ mysqlsh -u root -proot -h localhost -P33060 --sql
 </code></pre></td></tr></table>
 </div>
 </div><p>ver 8.0からX Pluginがデフォルトで有効化されている事は、下記の通り<code>show plugin</code>文を実行すると確認する事ができます。例えばこの記事執筆時点で公開されてるver8系の公式Docker imageは8.0.15が使われていますが、このimageを使っても確認可能です。</p>
 <div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
@@ -449,13 +445,13 @@ $ mysqlsh -u root -proot -h localhost -P33060 --sql
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#666">&gt;</span> <span style="color:#007020;font-weight:bold">show</span> plugins;
-
-<span style="color:#666">+</span><span style="color:#60a0b0;font-style:italic">---------------------------------+----------+--------------------+---------+---------+
-</span><span style="color:#60a0b0;font-style:italic"></span><span style="color:#666">|</span> Name                            <span style="color:#666">|</span> Status   <span style="color:#666">|</span> <span style="color:#007020;font-weight:bold">Type</span>               <span style="color:#666">|</span> Library <span style="color:#666">|</span> License <span style="color:#666">|</span>
-<span style="color:#666">+</span><span style="color:#60a0b0;font-style:italic">---------------------------------+----------+--------------------+---------+---------+
-</span><span style="color:#60a0b0;font-style:italic"></span><span style="color:#666">|</span> mysqlx                          <span style="color:#666">|</span> ACTIVE   <span style="color:#666">|</span> DAEMON             <span style="color:#666">|</span> <span style="color:#007020;font-weight:bold">NULL</span>    <span style="color:#666">|</span> GPL     <span style="color:#666">|</span>
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#666">&gt;</span><span style="color:#bbb"> </span><span style="color:#007020;font-weight:bold">show</span><span style="color:#bbb"> </span>plugins;<span style="color:#bbb">
+</span><span style="color:#bbb">
+</span><span style="color:#bbb"></span><span style="color:#666">+</span><span style="color:#60a0b0;font-style:italic">---------------------------------+----------+--------------------+---------+---------+
+</span><span style="color:#60a0b0;font-style:italic"></span><span style="color:#666">|</span><span style="color:#bbb"> </span>Name<span style="color:#bbb">                            </span><span style="color:#666">|</span><span style="color:#bbb"> </span>Status<span style="color:#bbb">   </span><span style="color:#666">|</span><span style="color:#bbb"> </span><span style="color:#007020;font-weight:bold">Type</span><span style="color:#bbb">               </span><span style="color:#666">|</span><span style="color:#bbb"> </span>Library<span style="color:#bbb"> </span><span style="color:#666">|</span><span style="color:#bbb"> </span>License<span style="color:#bbb"> </span><span style="color:#666">|</span><span style="color:#bbb">
+</span><span style="color:#bbb"></span><span style="color:#666">+</span><span style="color:#60a0b0;font-style:italic">---------------------------------+----------+--------------------+---------+---------+
+</span><span style="color:#60a0b0;font-style:italic"></span><span style="color:#666">|</span><span style="color:#bbb"> </span>mysqlx<span style="color:#bbb">                          </span><span style="color:#666">|</span><span style="color:#bbb"> </span>ACTIVE<span style="color:#bbb">   </span><span style="color:#666">|</span><span style="color:#bbb"> </span>DAEMON<span style="color:#bbb">             </span><span style="color:#666">|</span><span style="color:#bbb"> </span><span style="color:#007020;font-weight:bold">NULL</span><span style="color:#bbb">    </span><span style="color:#666">|</span><span style="color:#bbb"> </span>GPL<span style="color:#bbb">     </span><span style="color:#666">|</span><span style="color:#bbb">
+</span></code></pre></td></tr></table>
 </div>
 </div><h2 id="ブックマーク">ブックマーク</h2>
 <ul>
@@ -531,7 +527,6 @@ if (!doNotTrack) {
 	ga('send', 'pageview');
 }
 </script>
-
 
     
 

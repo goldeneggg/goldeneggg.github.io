@@ -6,13 +6,49 @@
     <description>Recent content in Categories on horizoon</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Fri, 05 Mar 2021 12:03:36 +0900</lastBuildDate><atom:link href="https://horizoon.jp/categories/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sun, 05 Sep 2021 15:47:00 +0900</lastBuildDate><atom:link href="https://horizoon.jp/categories/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>aws</title>
       <link>https://horizoon.jp/categories/aws/</link>
-      <pubDate>Fri, 05 Mar 2021 12:03:36 +0900</pubDate>
+      <pubDate>Sun, 05 Sep 2021 15:47:00 +0900</pubDate>
       
       <guid>https://horizoon.jp/categories/aws/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>cloudfront</title>
+      <link>https://horizoon.jp/categories/cloudfront/</link>
+      <pubDate>Sun, 05 Sep 2021 15:47:00 +0900</pubDate>
+      
+      <guid>https://horizoon.jp/categories/cloudfront/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>hosting</title>
+      <link>https://horizoon.jp/categories/hosting/</link>
+      <pubDate>Sun, 05 Sep 2021 15:47:00 +0900</pubDate>
+      
+      <guid>https://horizoon.jp/categories/hosting/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>s3</title>
+      <link>https://horizoon.jp/categories/s3/</link>
+      <pubDate>Sun, 05 Sep 2021 15:47:00 +0900</pubDate>
+      
+      <guid>https://horizoon.jp/categories/s3/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>terraform</title>
+      <link>https://horizoon.jp/categories/terraform/</link>
+      <pubDate>Sun, 05 Sep 2021 15:47:00 +0900</pubDate>
+      
+      <guid>https://horizoon.jp/categories/terraform/</guid>
       <description></description>
     </item>
     

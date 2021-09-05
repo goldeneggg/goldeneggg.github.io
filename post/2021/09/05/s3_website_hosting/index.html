@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Language" content="en">
+
+    <meta name="author" content="Fuminori Sakamoto">
+    <meta name="description" content="公式のナレッジセンターの記事「CloudFront を使用して Amazon S3 でホストされた静的ウェブサイトを公開する」 で紹介されているwebサイト公開手法、 複数あるけど結局どれを採用すれば良いのか？という判断基準を整理したく、纏めてみました。
+外部・viewer -&gt; CloudFront -&gt; S3 バケット（公開物はここに配置） という通信経路を想定しています。
+論点  S3 × CloudFront という組み合わせでwebサイトを公開する場合の、バケットの作成方法の選択肢2通り  webサイトホスティング  エンドポイント = webサイトエンドポイント   非・webサイトホスティング  エンドポイント = REST API エンドポイント 参考: webサイトエンドポイントとREST APIエンドポイントの主な違い     上記2通りのバケット作成方法のメリット・デメリットと、方法選択時の判断基準は何なのか？  機能要件的な観点＝外部・viewerからサイトにアクセスするユーザー観点では、上記2通りでどんな違いが生じうるのか？ 非機能要件的な観点では、上記2通りでどんな違いが生じうるのか？ webサイト公開が目的でも「非・webサイトホスティング を選ぶべき場合」があるなら、それはどういう場合なのか？    先に結論まとめ  外部・viewerからサイトにアクセスするユーザー観点  webサイトホスティングでも非・webサイトホスティングでも同様の事が実現できる   非機能要件的な観点  例えば構築するシステムや開発組織のセキュリティ対応の為、非・webサイトホスティング を選ばざるを得ないケース がある  例: CloudFront -&gt; S3 間の通信を、何らかの事情で HTTPS にしなければならない  webサイトホスティングのバケットへの通信を HTTPS にする事はできないので、非・webサイトホスティング一択となる   例: 何らかの事情でバケットにパブリックアクセスを許可する事が出来ない  webサイトホスティングのバケットはパブリックアクセスの許可が前提となるので、非・webサイトホスティング一択となる     etc    検証内容と前提条件  構築＆検証用の環境のパターンは以下の通り  S3(webサイトホスティング) × CloudFront S3(非・webサイトホスティング) × CloudFront ※ S3バケットのみ というパターンはこの記事では触れない   http methodは参照系のみを想定  つまり、POST, PUT, DELETE 等の更新系methodは想定しない   CloudFrontでは、独自ドメインは利用しない  ユーザーがアクセスするURLは https://自動生成ドメイン文字列.">
+    <meta name="keywords" content="blog,developer,backpacker,personal">
+
+    <meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="S3 × CloudFrontでwebサイトを公開する際の構築パターンと判断基準まとめ"/>
+<meta name="twitter:description" content="公式のナレッジセンターの記事「CloudFront を使用して Amazon S3 でホストされた静的ウェブサイトを公開する」 で紹介されているwebサイト公開手法、 複数あるけど結局どれを採用すれば良いのか？という判断基準を整理したく、纏めてみました。
+外部・viewer -&gt; CloudFront -&gt; S3 バケット（公開物はここに配置） という通信経路を想定しています。
+論点  S3 × CloudFront という組み合わせでwebサイトを公開する場合の、バケットの作成方法の選択肢2通り  webサイトホスティング  エンドポイント = webサイトエンドポイント   非・webサイトホスティング  エンドポイント = REST API エンドポイント 参考: webサイトエンドポイントとREST APIエンドポイントの主な違い     上記2通りのバケット作成方法のメリット・デメリットと、方法選択時の判断基準は何なのか？  機能要件的な観点＝外部・viewerからサイトにアクセスするユーザー観点では、上記2通りでどんな違いが生じうるのか？ 非機能要件的な観点では、上記2通りでどんな違いが生じうるのか？ webサイト公開が目的でも「非・webサイトホスティング を選ぶべき場合」があるなら、それはどういう場合なのか？    先に結論まとめ  外部・viewerからサイトにアクセスするユーザー観点  webサイトホスティングでも非・webサイトホスティングでも同様の事が実現できる   非機能要件的な観点  例えば構築するシステムや開発組織のセキュリティ対応の為、非・webサイトホスティング を選ばざるを得ないケース がある  例: CloudFront -&gt; S3 間の通信を、何らかの事情で HTTPS にしなければならない  webサイトホスティングのバケットへの通信を HTTPS にする事はできないので、非・webサイトホスティング一択となる   例: 何らかの事情でバケットにパブリックアクセスを許可する事が出来ない  webサイトホスティングのバケットはパブリックアクセスの許可が前提となるので、非・webサイトホスティング一択となる     etc    検証内容と前提条件  構築＆検証用の環境のパターンは以下の通り  S3(webサイトホスティング) × CloudFront S3(非・webサイトホスティング) × CloudFront ※ S3バケットのみ というパターンはこの記事では触れない   http methodは参照系のみを想定  つまり、POST, PUT, DELETE 等の更新系methodは想定しない   CloudFrontでは、独自ドメインは利用しない  ユーザーがアクセスするURLは https://自動生成ドメイン文字列."/>
+
+    <meta property="og:title" content="S3 × CloudFrontでwebサイトを公開する際の構築パターンと判断基準まとめ" />
+<meta property="og:description" content="公式のナレッジセンターの記事「CloudFront を使用して Amazon S3 でホストされた静的ウェブサイトを公開する」 で紹介されているwebサイト公開手法、 複数あるけど結局どれを採用すれば良いのか？という判断基準を整理したく、纏めてみました。
+外部・viewer -&gt; CloudFront -&gt; S3 バケット（公開物はここに配置） という通信経路を想定しています。
+論点  S3 × CloudFront という組み合わせでwebサイトを公開する場合の、バケットの作成方法の選択肢2通り  webサイトホスティング  エンドポイント = webサイトエンドポイント   非・webサイトホスティング  エンドポイント = REST API エンドポイント 参考: webサイトエンドポイントとREST APIエンドポイントの主な違い     上記2通りのバケット作成方法のメリット・デメリットと、方法選択時の判断基準は何なのか？  機能要件的な観点＝外部・viewerからサイトにアクセスするユーザー観点では、上記2通りでどんな違いが生じうるのか？ 非機能要件的な観点では、上記2通りでどんな違いが生じうるのか？ webサイト公開が目的でも「非・webサイトホスティング を選ぶべき場合」があるなら、それはどういう場合なのか？    先に結論まとめ  外部・viewerからサイトにアクセスするユーザー観点  webサイトホスティングでも非・webサイトホスティングでも同様の事が実現できる   非機能要件的な観点  例えば構築するシステムや開発組織のセキュリティ対応の為、非・webサイトホスティング を選ばざるを得ないケース がある  例: CloudFront -&gt; S3 間の通信を、何らかの事情で HTTPS にしなければならない  webサイトホスティングのバケットへの通信を HTTPS にする事はできないので、非・webサイトホスティング一択となる   例: 何らかの事情でバケットにパブリックアクセスを許可する事が出来ない  webサイトホスティングのバケットはパブリックアクセスの許可が前提となるので、非・webサイトホスティング一択となる     etc    検証内容と前提条件  構築＆検証用の環境のパターンは以下の通り  S3(webサイトホスティング) × CloudFront S3(非・webサイトホスティング) × CloudFront ※ S3バケットのみ というパターンはこの記事では触れない   http methodは参照系のみを想定  つまり、POST, PUT, DELETE 等の更新系methodは想定しない   CloudFrontでは、独自ドメインは利用しない  ユーザーがアクセスするURLは https://自動生成ドメイン文字列." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://horizoon.jp/post/2021/09/05/s3_website_hosting/" /><meta property="article:section" content="post" />
+<meta property="article:published_time" content="2021-09-05T15:47:00+09:00" />
+<meta property="article:modified_time" content="2021-09-05T15:47:00+09:00" />
+
+
+
+    <title>
+  S3 × CloudFrontでwebサイトを公開する際の構築パターンと判断基準まとめ · horizoon
+</title>
+
+    
+      <link rel="canonical" href="https://horizoon.jp/post/2021/09/05/s3_website_hosting/">
+    
+
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css?family=Lato:400,700%7CMerriweather:300,700%7CSource+Code+Pro:400,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fork-awesome@1.1.7/css/fork-awesome.min.css"
+      integrity="sha256-gsmEoJAws/Kd3CjuOQzLie5Q3yshhvmo7YNtBG7aaEY=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/normalize.css@8/normalize.min.css">
+    
+      
+      
+      <link rel="stylesheet" href="https://horizoon.jp/css/coder.min.f01c647a0d25b40da992a37c3376291185eed8a50ced8c26cc2c0bcfe38c97df.css" integrity="sha256-8Bxkeg0ltA2pkqN8M3YpEYXu2KUM7YwmzCwLz&#43;OMl98=" crossorigin="anonymous" media="screen" />
+    
+
+    
+
+    
+      
+        
+        
+        <link rel="stylesheet" href="https://horizoon.jp/css/coder-dark.min.126ad3988d46bdae6217a11105b53c9662bca05f39d42d3c0fb366919d334620.css" integrity="sha256-EmrTmI1Gva5iF6ERBbU8lmK8oF851C08D7NmkZ0zRiA=" crossorigin="anonymous" media="screen" />
+      
+    
+
+    
+
+    
+
+    <link rel="icon" type="image/png" href="https://horizoon.jp/favicon-32x32.png" sizes="32x32">
+    <link rel="icon" type="image/png" href="https://horizoon.jp/favicon-16x16.png" sizes="16x16">
+
+    <link rel="apple-touch-icon" href="https://horizoon.jp/images/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="https://horizoon.jp/images/apple-touch-icon.png">
+
+    
+
+    <meta name="generator" content="Hugo 0.87.0" />
+  </head>
+
+  
+  
+    
+  
+  <body class="colorscheme-auto"
+        onload=""
+  >
+    
+<div class="float-container">
+    <a id="dark-mode-toggle" class="colorscheme-toggle">
+        <i class="fa fa-adjust fa-fw" aria-hidden="true"></i>
+    </a>
+</div>
+
+
+    <main class="wrapper">
+      <nav class="navigation">
+  <section class="container">
+    <a class="navigation-title" href="https://horizoon.jp/">
+      horizoon
+    </a>
+    
+      <input type="checkbox" id="menu-toggle" />
+      <label class="menu-button float-right" for="menu-toggle">
+        <i class="fa fa-bars fa-fw" aria-hidden="true"></i>
+      </label>
+      <ul class="navigation-list">
+        
+          
+            <li class="navigation-item">
+              <a class="navigation-link" href="https://horizoon.jp/post/">Blog</a>
+            </li>
+          
+            <li class="navigation-item">
+              <a class="navigation-link" href="https://horizoon.jp/projects/">Projects</a>
+            </li>
+          
+            <li class="navigation-item">
+              <a class="navigation-link" href="https://horizoon.jp/about/">About</a>
+            </li>
+          
+        
+        
+      </ul>
+    
+  </section>
+</nav>
+
+
+      <div class="content">
+        
+  <section class="container page">
+  <article>
+    <header>
+      <h1>S3 × CloudFrontでwebサイトを公開する際の構築パターンと判断基準まとめ</h1>
+    </header>
+
+    <p>公式のナレッジセンターの記事「<a href="https://aws.amazon.com/jp/premiumsupport/knowledge-center/cloudfront-serve-static-website/">CloudFront を使用して Amazon S3 でホストされた静的ウェブサイトを公開する</a>」 で紹介されているwebサイト公開手法、
+複数あるけど結局どれを採用すれば良いのか？という判断基準を整理したく、纏めてみました。</p>
+<p><code>外部・viewer -&gt; CloudFront -&gt; S3 バケット（公開物はここに配置）</code> という通信経路を想定しています。</p>
+<h2 id="論点">論点</h2>
+<ul>
+<li>S3 × CloudFront という組み合わせでwebサイトを公開する場合の、バケットの作成方法の選択肢2通り
+<ol>
+<li><a href="https://docs.aws.amazon.com/ja_jp/AmazonS3/latest/userguide/WebsiteHosting.html">webサイトホスティング</a>
+<ul>
+<li>エンドポイント = <a href="https://docs.aws.amazon.com/ja_jp/AmazonS3/latest/userguide/WebsiteEndpoints.html">webサイトエンドポイント</a></li>
+</ul>
+</li>
+<li>非・webサイトホスティング
+<ul>
+<li>エンドポイント = REST API エンドポイント</li>
+<li>参考: <a href="https://docs.aws.amazon.com/ja_jp/AmazonS3/latest/userguide/WebsiteEndpoints.html#WebsiteRestEndpointDiff">webサイトエンドポイントとREST APIエンドポイントの主な違い</a></li>
+</ul>
+</li>
+</ol>
+</li>
+<li>上記2通りのバケット作成方法のメリット・デメリットと、方法選択時の判断基準は何なのか？
+<ul>
+<li>機能要件的な観点＝外部・viewerからサイトにアクセスするユーザー観点では、上記2通りでどんな違いが生じうるのか？</li>
+<li>非機能要件的な観点では、上記2通りでどんな違いが生じうるのか？</li>
+<li>webサイト公開が目的でも「非・webサイトホスティング を選ぶべき場合」があるなら、それはどういう場合なのか？</li>
+</ul>
+</li>
+</ul>
+<h2 id="先に結論まとめ">先に結論まとめ</h2>
+<ul>
+<li>外部・viewerからサイトにアクセスするユーザー観点
+<ul>
+<li>webサイトホスティングでも非・webサイトホスティングでも同様の事が実現できる</li>
+</ul>
+</li>
+<li>非機能要件的な観点
+<ul>
+<li>例えば構築するシステムや開発組織のセキュリティ対応の為、<strong>非・webサイトホスティング を選ばざるを得ないケース</strong> がある
+<ul>
+<li>例: <code>CloudFront -&gt; S3</code> 間の通信を、何らかの事情で HTTPS にしなければならない
+<ul>
+<li>webサイトホスティングのバケットへの通信を HTTPS にする事はできないので、非・webサイトホスティング一択となる</li>
+</ul>
+</li>
+<li>例: 何らかの事情でバケットにパブリックアクセスを許可する事が出来ない
+<ul>
+<li>webサイトホスティングのバケットはパブリックアクセスの許可が前提となるので、非・webサイトホスティング一択となる</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>etc</li>
+</ul>
+</li>
+</ul>
+<h2 id="検証内容と前提条件">検証内容と前提条件</h2>
+<ul>
+<li>構築＆検証用の環境のパターンは以下の通り
+<ol>
+<li>S3(webサイトホスティング) × CloudFront</li>
+<li>S3(非・webサイトホスティング) × CloudFront</li>
+<li>※ S3バケットのみ というパターンはこの記事では触れない</li>
+</ol>
+</li>
+<li>http methodは参照系のみを想定
+<ul>
+<li>つまり、POST, PUT, DELETE 等の更新系methodは想定しない</li>
+</ul>
+</li>
+<li>CloudFrontでは、独自ドメインは利用しない
+<ul>
+<li>ユーザーがアクセスするURLは <code>https://自動生成ドメイン文字列.cloudfront.net</code></li>
+</ul>
+</li>
+<li><code>外部・viewer -&gt; CloudFront</code> 間の通信は、（<a href="https://aws.amazon.com/jp/premiumsupport/knowledge-center/cloudfront-serve-static-website/#Using_a_REST_API_endpoint_as_the_origin.2C_with_access_restricted_by_an_OAI">公式のサポートサイトでも触れられている</a>が）当然 <a href="https://docs.aws.amazon.com/ja_jp/AmazonCloudFront/latest/DeveloperGuide/using-https-viewers-to-cloudfront.html">HTTPS を必須とする</a>
+<ul>
+<li>S3がwebサイトエンドポイントだと<a href="https://docs.aws.amazon.com/ja_jp/AmazonS3/latest/userguide/WebsiteEndpoints.html#website-endpoint-examples">そのS3自身はHTTP <strong>しか使えない</strong></a>ので、<a href="https://docs.aws.amazon.com/ja_jp/AmazonS3/latest/userguide/WebsiteEndpoints.html">webサイトエンドポイントを使っていて且つ外部からのアクセスで HTTPS を必須にしたければ、必ずその前段にCloudFrontを <strong>使用しなければならない</strong></a></li>
+<li>※逆に言うと、非・webサイトエンドポイントであれば「S3単独使用で且つ HTTPS アクセス必須化」もやろうと思えば可能ということ</li>
+</ul>
+</li>
+<li><code>CloudFront -&gt; S3バケット</code> 間の通信を HTTP とするか HTTPS とするかは、バケットの制約に準拠する
+<ul>
+<li>webサイトエンドポイント = <a href="https://docs.aws.amazon.com/ja_jp/AmazonS3/latest/userguide/WebsiteEndpoints.html#website-endpoint-examples">HTTP <strong>しか使えない</strong></a></li>
+<li>非・webサイトエンドポイント = <a href="https://docs.aws.amazon.com/ja_jp/AmazonCloudFront/latest/DeveloperGuide/using-https-cloudfront-to-s3-origin.html">バケットを S3オリジン として扱い、HTTPS を必須化</a></li>
+</ul>
+</li>
+<li>動作確認で使用するアプリ
+<ul>
+<li><a href="https://vitejs.dev/guide/#scaffolding-your-first-vite-project">Vite &amp; Vue 3 の雛形</a> にエラー画面用htmlを追加しただけのもの</li>
+<li>これをビルド → S3に展開する</li>
+</ul>
+</li>
+</ul>
+<h2 id="検証環境の構成">検証環境の構成</h2>
+<p>検証環境構築にはterraformを利用しました。※動作確認アプリ＆検証環境構築用terraformは<a href="https://github.com/practice-goldeneggg/s3-cloudfront-website-pattern">こちらのリポジトリ</a>にupしておきました。</p>
+<h3 id="s3webサイトホスティング--cloudfront-の設定">S3(webサイトホスティング) × CloudFront の設定</h3>
+<p>S3は下記の通りwebサイトホスティング前提の内容でbucket、public_access_block、bucket_policyを定義しておきます。</p>
+<ol>
+<li><code>acl = &quot;public-read&quot;</code> 設定</li>
+<li><code>website</code> を定義
+<ul>
+<li>※定義はするものの、バケットの前段にCloudFrontを配置する構成だとバケット直アクセスは想定しなくなり、この設定が実際に利用される場面はなくなる</li>
+</ul>
+</li>
+<li>public_access_block は <a href="https://dev.classmethod.jp/articles/cfn-s3-webhosting-cloudfront/#toc-2">クラスメソッドさんのこちらの記事</a>を参考に、ACLに対して設定</li>
+<li>バケットポリシーは <code>&quot;aws:UserAgent&quot; = &quot;Amazon CloudFront&quot;</code> に対するAllowを設定
+<ul>
+<li>逆に「`&ldquo;aws:UserAgent&rdquo; = &ldquo;Amazon CloudFront&rdquo; 以外を Deny」する設定は行わない。これを設定すると「&ldquo;Amazon CloudFront&rdquo; 以外」に該当する範囲全て（それこそ普段AWSコンソールにログインしているIAMユーザーなど）にも影響が波及し、作業に支障をきたす恐れがある為</li>
+<li>webサイトホスティング = パブリックアクセスを許可するバケットで <a href="https://aws.amazon.com/jp/premiumsupport/knowledge-center/s3-website-cloudfront-error-403/"><code>s3:ListBucket</code> Actionを許可するのはセキュリティ上のベストプラクティスでは無いと公式でも言及されており</a>、<code>s3:GetObject</code> のみを許可しておく</li>
+</ul>
+</li>
+<li><code>server_side_encryption_configuration</code> で <code>AES256</code> な<a href="https://docs.aws.amazon.com/ja_jp/AmazonS3/latest/userguide/serv-side-encryption.html">サーバー側暗号化</a>を有効にしておく
+<ul>
+<li>※<a href="https://dev.classmethod.jp/articles/behavior-when-s3-cannot-be-decrypted/#toc-11">サーバーサイド暗号化したS3をwebサイトホスティングで公開すると400エラーになる と言及されている記事</a> がありますが、上記内容でサーバーサイド暗号化したバケット＆オブジェクトに <code>Principal: &quot;*&quot;</code> に <code>s3:GetObject</code> を許可するバケットポリシーを設定した上で <code>http://該当バケットのwebサイトエンドポイント/存在するhtmlファイル</code> というURLでアクセスしても、手元ではエラーにはならず正常表示されました（記事はKMS暗号化前提で記載されている？）</li>
+</ul>
+</li>
+<li>これら以外は任意で設定
+<ul>
+<li>CORS設定、アクセスログ設定、etc</li>
+</ul>
+</li>
+</ol>
+<p>そして、このバケットの前段に配置するCloudFrontを定義します。</p>
+<ol>
+<li><code>default_root_object</code> を定義して <code>https://cloudfrontドメイン</code> へのアクセス時はindex.htmlを表示する</li>
+<li>origin の domain_name は <code>bucket_domain_name</code> ではなく <code>bucket_regional_domain_name</code> を使って、<a href="https://aws.amazon.com/jp/premiumsupport/knowledge-center/s3-http-307-response/">307（一時的なリダイレクト）の発生</a>を回避</li>
+<li>origin のconfigは custom_origin_config として定義し、<code>origin_protocol_policy</code> は（httpのみが利用可能なwebサイトホスティングなので） <code>&quot;http-only&quot;</code> を指定</li>
+<li><code>custom_error_response</code> により、エラー時にS3が（デフォルトで）返してくるxmlエラーをhtmlに変換するようにしておく</li>
+<li>これら以外は任意で設定
+<ul>
+<li>cache behavior</li>
+<li>証明書</li>
+<li>地域制限設定</li>
+<li>アクセスログ設定</li>
+<li>etc</li>
+</ul>
+</li>
+</ol>
+<p>そして対象バケット（の直下）に以下を配置しておきます。</p>
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">.
+├── 404.html
+├── 50x.html
+├── assets
+│   ├── index.xxxxxxxx.css
+│   ├── index.xxxxxxxx.js
+│   ├── logo.xxxxxxxx.png
+│   └── vendor.xxxxxxxx.js
+├── favicon.ico
+└── index.html
+</code></pre></td></tr></table>
+</div>
+</div><h3 id="s3非webサイトホスティング--cloudfront">S3(非・webサイトホスティング) × CloudFront</h3>
+<p>S3バケットは、webサイトホスティングとは異なりパブリックアクセスは許可しない前提の内容で定義しておきます。</p>
+<ol>
+<li><code>acl = &quot;private&quot;</code> 設定</li>
+<li><code>website</code> を定義 <strong>しない</strong></li>
+<li>public_access_block は全てtrue</li>
+<li>バケットポリシーは Origin Access Identityに対するAllowと、https以外（＝http）を拒否するDenyを設定
+<ul>
+<li>Allow側ポリシーで許可するAction, Resourceはwebサイトホスティング用と同様</li>
+</ul>
+</li>
+<li><code>server_side_encryption_configuration</code> で<a href="https://docs.aws.amazon.com/ja_jp/AmazonS3/latest/userguide/serv-side-encryption.html">サーバー側暗号化</a>を有効にしておく
+<ul>
+<li>webサイトホスティング用と同様</li>
+</ul>
+</li>
+<li>これら以外は任意で設定（webサイトホスティング用と合わせておけばOK）</li>
+</ol>
+<p>そして、CloudFrontをS3 Origin＆Origin Access Identityの組み合わせで定義します。</p>
+<ol>
+<li><strong>Origin Access Identity を定義</strong></li>
+<li>origin のconfigは s3_origin_config として定義し、1 のorigin_access_identityを指定</li>
+<li>これら以外は任意で設定（webサイトホスティング用と合わせておけばOK）</li>
+</ol>
+<h2 id="検証してみた">検証してみた</h2>
+<p>正常系 or 異常系でアクセス時の挙動が揃っているか？揃っていない場合はそれは何か？を検証します。</p>
+<h3 id="1-https自動生成ドメイン文字列cloudfrontnet存在するファイル-へのアクセス">1. <code>https://自動生成ドメイン文字列.cloudfront.net/存在するファイル</code> へのアクセス</h3>
+<p>これは（当然ですが）webサイト or 非・webサイト共に同じ結果が表示されます。</p>
+<p><img src="https://horizoon.jp/img/s3_website_hosting/01.png" alt="01"></p>
+<p>初回以降のアクセスではCloudFrontでのキャッシュが効いてhttp statusは304になります。</p>
+<h3 id="2-https自動生成ドメイン文字列cloudfrontnet-へのアクセス">2. <code>https://自動生成ドメイン文字列.cloudfront.net/</code> へのアクセス</h3>
+<p>webサイト or 非・webサイトに関わらず、ドメイン名のみのアクセス時はCloudFrontの <code>default_root_object</code> 設定が有効であること、を確認したいという意図でしたが、これも問題ありません。</p>
+<p><img src="https://horizoon.jp/img/s3_website_hosting/02.png" alt="02"></p>
+<h3 id="3-https自動生成ドメイン文字列cloudfrontnet存在しないファイル名-でアクセス">3. <code>https://自動生成ドメイン文字列.cloudfront.net/存在しないファイル名</code> でアクセス</h3>
+<p>存在しないファイルへのアクセスは、バケットポリシーで s3:ListBucket を許可していないと403エラーとなります。
+デフォルトではその結果はhtmlではなくxmlで返ってくるので、CloudFrontの <code>custom_error_response</code> 設定でhtmlを返すよう設定してあります。</p>
+<p>デフォルトの挙動と<code>custom_error_response</code> によるエラーのカスタマイズについては、webサイト or 非・webサイトに関わらず同様です。つまり <strong>存在しないファイルへアクセスされた際のエラー処理もwebサイト or 非・webサイトで同じ機能を実現できる</strong> という事です。</p>
+<p><img src="https://horizoon.jp/img/s3_website_hosting/03.png" alt="03"></p>
+<h4 id="補足-custom_error_response-の設定が無いとエラー表示はどうなるのか">補足: <code>custom_error_response</code> の設定が無いとエラー表示はどうなるのか？</h4>
+<p>webサイトor非・webサイトどちらのケースでも、custom_error_response設定がない場合、s3:ListBucket バケットポリシーの有無でエラー表示の挙動が変わります</p>
+<ul>
+<li>custom_error_response設定がない、且つ、バケットポリシーで s3:ListBucket が許可されていない
+<ul>
+<li>「S3がデフォルトで返す、AccessDenied を表すxml」が表示されます。http statusは 403</li>
+</ul>
+</li>
+<li>custom_error_response設定がない、且つ、バケットポリシーで s3:ListBucket が許可されている
+<ul>
+<li>「S3がデフォルトで返す、NoSuchKey を表すxml」が表示されます。http statusは 404
+<ul>
+<li>つまり、エラーの内容から「ファイルが無い」という事に気付く事が出来る</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p><a href="https://aws.amazon.com/jp/premiumsupport/knowledge-center/s3-website-cloudfront-error-403/">公式</a>では、</p>
+<blockquote>
+<p>パブリック s3:ListBucket アクセスを有効にすることは、セキュリティ上のベストプラクティスではありません。
+パブリック s3:ListBucket アクセスを有効にすると、ユーザーはバケット内のすべてのオブジェクトを表示およびリスト化できます。
+これにより、ユーザーがオブジェクトをダウンロードするアクセス許可を持っていない場合でも、オブジェクトのメタデータの詳細 (キーやサイズなど) がユーザーに公開されます</p>
+</blockquote>
+<p>と言及されており、オブジェクトの存在を推測されるようなエラー表示を抑止したければ、s3:ListBucket を許可するのはプラクティスとしてはよろしくなく、避けた方が無難です。</p>
+<p>つまり、何らかの事情で「custom_error_response設定が無い」設定を行ったとしても、「バケットポリシーで s3:ListBucket ポリシーが許可されていない」という設定とはセットで行っておいた方が良いです。</p>
+<p>※ちなみに、「custom_error_response設定がある、且つ、バケットポリシーで s3:ListBucket が許可されている」という場合であれば、custom_error_responseで404エラーを独自エラーに変換（して詳細を隠蔽する）という手段も可能と言えば可能です。</p>
+<h3 id="補足-webサイトエンドポイントで-httpバケットのエンドポイント存在するファイル名-でバケットへの直アクセスを試みるとどうなるか">補足: webサイトエンドポイントで <code>http://バケットのエンドポイント/存在するファイル名</code> でバケットへの直アクセスを試みるとどうなるか？</h3>
+<p>このパターンのアクセスを試してみると、&ldquo;S3がデフォルトで返す、403を表すHTML&rdquo; が表示され、アクセス拒否自体は成功している事が分かります。</p>
+<p><img src="https://horizoon.jp/img/s3_website_hosting/03-hosoku-bucketerror.png" alt="03-hosoku-bucketerror"></p>
+<p>今回構築したwebサイトホスティング用のバケットでも<a href="https://docs.aws.amazon.com/ja_jp/AmazonS3/latest/userguide/CustomErrorDocSupport.html">カスタムエラードキュメントを設定</a>していたものの、<strong>バケットポリシーでCloudFrontからのアクセスだけを許可していると、バケットへの直アクセス時はカスタムエラードキュメントへのアクセスも拒否される事になり、結果としてS3のデフォルトエラー画面が表示される</strong> という挙動になります。</p>
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">33
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">34
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">35
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">36
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">37
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">38
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">39
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-hcl" data-lang="hcl"><span style="color:#60a0b0;font-style:italic">#
+</span><span style="color:#60a0b0;font-style:italic"># website の設定と bucket_policy の設定（CloudFrontからのアクセスだけを許可）が競合している
+</span><span style="color:#60a0b0;font-style:italic">#
+</span><span style="color:#60a0b0;font-style:italic"></span>
+<span style="color:#007020;font-weight:bold">resource</span> <span style="color:#4070a0">&#34;aws_s3_bucket&#34; &#34;website&#34;</span> {<span style="color:#60a0b0;font-style:italic">
+</span><span style="color:#60a0b0;font-style:italic">
+</span><span style="color:#60a0b0;font-style:italic"># :
+</span><span style="color:#60a0b0;font-style:italic"></span>
+  <span style="color:#007020;font-weight:bold">website</span> {
+    index_document <span style="color:#666">=</span> <span style="color:#4070a0">&#34;index.html&#34;</span>
+    error_document <span style="color:#666">=</span> <span style="color:#4070a0">&#34;50x.html&#34;</span>
+  }<span style="color:#60a0b0;font-style:italic">
+</span><span style="color:#60a0b0;font-style:italic">
+</span><span style="color:#60a0b0;font-style:italic"># :
+</span><span style="color:#60a0b0;font-style:italic"></span>
+<span style="color:#007020;font-weight:bold">resource</span> <span style="color:#4070a0">&#34;aws_s3_bucket_policy&#34; &#34;website&#34;</span> {
+  bucket <span style="color:#666">=</span> <span style="color:#007020;font-weight:bold">aws_s3_bucket</span>.<span style="color:#007020;font-weight:bold">website</span>.<span style="color:#007020;font-weight:bold">id</span>
+
+  policy <span style="color:#666">=</span> <span style="color:#007020;font-weight:bold">jsonencode</span>({
+    Version <span style="color:#666">=</span> <span style="color:#4070a0">&#34;2012-10-17&#34;</span>
+    Statement <span style="color:#666">=</span> [
+      {
+        Sid       <span style="color:#666">=</span> <span style="color:#4070a0">&#34;AllowCloudFront&#34;</span>
+        Effect    <span style="color:#666">=</span> <span style="color:#4070a0">&#34;Allow&#34;</span>
+        Principal <span style="color:#666">=</span> <span style="color:#4070a0">&#34;*&#34;</span>
+        Action <span style="color:#666">=</span> [
+          <span style="color:#4070a0">&#34;s3:GetObject&#34;</span>,
+        ]
+        Resource <span style="color:#666">=</span> [
+          <span style="color:#4070a0">&#34;${aws_s3_bucket.website.arn}/*&#34;</span>,
+        ]
+        Condition <span style="color:#666">=</span> {
+          StringEquals <span style="color:#666">=</span> {
+            &#34;aws:UserAgent&#34; <span style="color:#666">=</span> <span style="color:#4070a0">&#34;Amazon CloudFront&#34;</span>
+          }
+        }
+      },
+    ]
+  })
+</code></pre></td></tr></table>
+</div>
+</div><h2 id="改めて結論まとめ">改めて結論まとめ</h2>
+<ul>
+<li>webサイトホスティング or 非・webサイトホスティングどちらを選んでも差が無い
+<ul>
+<li>正常系/異常系問わず、サイトアクセス時の（見た目的な意味での）挙動は、設定次第で揃える事は可能</li>
+<li>S3バケットへの直接アクセスを抑止し、CloudFrontからのみアクセス可能にする
+<ul>
+<li>webサイトホスティング：User-AgentがCloudFrontの場合だけAllowするバケットポリシーを設定</li>
+<li>非・webサイトホスティング： Origin Access Identityの活用</li>
+</ul>
+</li>
+<li><code>外部（viewer） -&gt; CloudFront</code> 間の通信で HTTPS を必須化
+<ul>
+<li>webサイトホスティング or 非・webサイトホスティングに関わらず、<a href="https://docs.aws.amazon.com/ja_jp/AmazonCloudFront/latest/DeveloperGuide/using-https-viewers-to-cloudfront.html">同じ手順で設定可能</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>非・webサイトホスティング を <strong>選ばざるを得ない</strong>
+<ul>
+<li><code>CloudFront -&gt; S3</code> 間の通信を、何らかの事情で HTTPS にしなければならない
+<ul>
+<li>webサイトホスティングのバケットへの通信を HTTPS にする事はできないので、非・webサイトホスティング一択となる</li>
+<li>「何らかの事情」とは、例えば組織のセキュリティポリシー等</li>
+</ul>
+</li>
+<li>何らかの事情でバケットにパブリックアクセスを許可する事が出来ない
+<ul>
+<li>webサイトホスティングのバケットはパブリックアクセスの許可が前提となるので、非・webサイトホスティング一択となる</li>
+</ul>
+</li>
+<li>publicに公開したくないコンテンツが含まれている
+<ul>
+<li>（これは言わずもがなですが、一応書いておきました）</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p><strong>セキュリティをより強固にしたいという観点では、非・webサイトエンドポイントの方が有利</strong> と言えるので、webサイト or 非・webサイトどちらを選ぶか決め手に欠ける&hellip;というシーンでは非・webサイトを選んでおく、という判断基準もアリかも知れません。</p>
+<h2 id="ブックマーク">ブックマーク</h2>
+<ul>
+<li><a href="https://dev.classmethod.jp/articles/cloudfront-with-s3-hosting/">Amazon S3 + Amazon CloudFrontでWebサイトを構築する際にS3静的Webサイトホスティングを採用する理由 | DevelopersIO</a></li>
+<li><a href="https://dev.classmethod.jp/articles/difference-between-cf-origin/">CloudFrontのオリジンサーバによる機能の違い | DevelopersIO</a></li>
+<li><a href="https://dev.classmethod.jp/articles/s3-cloudfront-with-oai-by-cloudformation/">CloudFormation で OAI を使った CloudFront + S3 の静的コンテンツ配信インフラを作る | DevelopersIO</a></li>
+<li><a href="https://qiita.com/sakuraya/items/add2cb7ced954215fb03">CloudFront×S3で403 Access Deniedが出るときに確認すべきこと - Qiita</a></li>
+<li><a href="https://medium.com/@joecrobak/production-deploy-of-a-single-page-app-using-s3-and-cloudfront-d4aa2d170aa3">Production deploy of a Single Page App using S3, CloudFront, and CloudFormation | by Joe Crobak | Medium</a></li>
+</ul>
+
+  </article>
+</section>
+
+  
+
+      </div>
+
+      
+  <footer class="footer">
+    <section class="container">
+      
+      
+        ©
+        
+          2017 -
+        
+        2021
+         Fuminori Sakamoto 
+      
+      
+         · 
+        Powered by <a href="https://gohugo.io/">Hugo</a> & <a href="https://github.com/luizdepra/hugo-coder/">Coder</a>.
+      
+      
+    </section>
+  </footer>
+
+
+    </main>
+
+    
+      
+        
+        <script src="https://horizoon.jp/js/dark-mode.min.aee9c8a464eb7b3534c7110f7c5e169e7039e2fd92710e0626d451d6725af137.js"></script>
+      
+    
+
+    
+
+    
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+	ga('create', 'UA-129776715-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+
+    
+
+    
+
+    
+
+    
+  </body>
+
+</html>

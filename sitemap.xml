@@ -3,7 +3,31 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://horizoon.jp/categories/aws/</loc>
-    <lastmod>2021-03-05T12:03:36+09:00</lastmod>
+    <lastmod>2021-09-05T15:47:00+09:00</lastmod>
+  </url><url>
+    <loc>https://horizoon.jp/categories/</loc>
+    <lastmod>2021-09-05T15:47:00+09:00</lastmod>
+  </url><url>
+    <loc>https://horizoon.jp/categories/cloudfront/</loc>
+    <lastmod>2021-09-05T15:47:00+09:00</lastmod>
+  </url><url>
+    <loc>https://horizoon.jp/</loc>
+    <lastmod>2021-09-05T15:47:00+09:00</lastmod>
+  </url><url>
+    <loc>https://horizoon.jp/categories/hosting/</loc>
+    <lastmod>2021-09-05T15:47:00+09:00</lastmod>
+  </url><url>
+    <loc>https://horizoon.jp/post/</loc>
+    <lastmod>2021-09-05T15:47:00+09:00</lastmod>
+  </url><url>
+    <loc>https://horizoon.jp/categories/s3/</loc>
+    <lastmod>2021-09-05T15:47:00+09:00</lastmod>
+  </url><url>
+    <loc>https://horizoon.jp/post/2021/09/05/s3_website_hosting/</loc>
+    <lastmod>2021-09-05T15:47:00+09:00</lastmod>
+  </url><url>
+    <loc>https://horizoon.jp/categories/terraform/</loc>
+    <lastmod>2021-09-05T15:47:00+09:00</lastmod>
   </url><url>
     <loc>https://horizoon.jp/categories/aws-lambda/</loc>
     <lastmod>2021-03-05T12:03:36+09:00</lastmod>
@@ -14,19 +38,10 @@
     <loc>https://horizoon.jp/post/2021/03/05/lambda_layer_nodejs_2/</loc>
     <lastmod>2021-03-05T12:03:36+09:00</lastmod>
   </url><url>
-    <loc>https://horizoon.jp/categories/</loc>
-    <lastmod>2021-03-05T12:03:36+09:00</lastmod>
-  </url><url>
-    <loc>https://horizoon.jp/</loc>
-    <lastmod>2021-03-05T12:03:36+09:00</lastmod>
-  </url><url>
     <loc>https://horizoon.jp/categories/javascript/</loc>
     <lastmod>2021-03-05T12:03:36+09:00</lastmod>
   </url><url>
     <loc>https://horizoon.jp/categories/node.js/</loc>
-    <lastmod>2021-03-05T12:03:36+09:00</lastmod>
-  </url><url>
-    <loc>https://horizoon.jp/post/</loc>
     <lastmod>2021-03-05T12:03:36+09:00</lastmod>
   </url><url>
     <loc>https://horizoon.jp/categories/serverless/</loc>

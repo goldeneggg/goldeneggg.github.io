@@ -24,8 +24,8 @@
 前提条件  Ruby 2.7.1 Rails 6.0.3 (API mode) Docker (Docker for Mac)  Engine 19.03.8 Compose 1.25.5   MySQL 8.0.20 開発環境は全てDocker（Dockerfile/docker-compose.yml）で構築＆管理  bundle install や rails s や rspec などのコマンドは全てdocker-compose {run,exec} を介してコンテナ内で実行   Dockerfileはmulti-stage構成にはしない（今回の例ではひとまず開発用の設定だけが記述されている前提とする） リモートdocker registryは利用しない GitHub Actionsは現時点で公式にDocker layer cachingをサポートしていない 参考1, 参考2  これについては このissue で最新状況が追えそう しばらく対応され無さそう だけど、対応して欲しい&hellip;    TL;DR  dockerイメージのサイズを小さくしたい  イメージ自体でファイルを抱え込むような処理をDockerfileに書かない  ≒ Dockerfileに変更が無くてもビルドイメージに変更が発生し得るようなDockerfile にはしない   実行したいコマンドはコンテナ起動時に都度コマンドとして付与し、成果物を保存・永続化したければvolumesを活用する   CI時も開発環境と同じ Dockerfile/docker-compose." />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://horizoon.jp/post/2020/05/28/rails6api_docker_github_actions/" /><meta property="article:section" content="post" />
-<meta property="article:published_time" content="2020-05-28T20:05:36&#43;09:00" />
-<meta property="article:modified_time" content="2020-05-28T20:05:36&#43;09:00" />
+<meta property="article:published_time" content="2020-05-28T20:05:36+09:00" />
+<meta property="article:modified_time" content="2020-05-28T20:05:36+09:00" />
 
 
 
@@ -70,7 +70,7 @@
 
     
 
-    <meta name="generator" content="Hugo 0.81.0" />
+    <meta name="generator" content="Hugo 0.87.0" />
   </head>
 
   
@@ -204,12 +204,12 @@
 <h3 id="ufoscoutdocker-compose-wait-でdb起動を待つ">ufoscout/docker-compose-wait でDB起動を待つ</h3>
 <div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-Dockerfile" data-lang="Dockerfile"><span style="color:#007020;font-weight:bold">ARG</span> <span style="color:#bb60d5">ARG_COMPOSE_WAIT_VER</span><span style="color:#666">=</span><span style="color:#40a070">2</span>.7.3<span style="">
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-Dockerfile" data-lang="Dockerfile"><span style="color:#007020;font-weight:bold">ARG</span> <span style="color:#bb60d5">ARG_COMPOSE_WAIT_VER</span><span style="color:#666">=</span><span style="color:#40a070">2</span>.7.3<span style="">
 </span><span style=""></span><span style="color:#007020;font-weight:bold">RUN</span> curl -SL https://github.com/ufoscout/docker-compose-wait/releases/download/<span style="color:#70a0d0;font-style:italic">${</span><span style="color:#bb60d5">ARG_COMPOSE_WAIT_VER</span><span style="color:#70a0d0;font-style:italic">}</span>/wait -o /wait<span style="">
 </span><span style=""></span><span style="color:#007020;font-weight:bold">RUN</span> chmod +x /wait<span style="">
 </span></code></pre></td></tr></table>
@@ -221,7 +221,7 @@
 <h3 id="1つのdockerfileでdocker-composeの複数サービスを定義する">1つのDockerfileでdocker-composeの複数サービスを定義する</h3>
 <div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
@@ -232,7 +232,7 @@
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">9
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yml" data-lang="yml"><span style="color:#bbb">  </span><span style="color:#062873;font-weight:bold">base</span>:<span style="color:#bbb"> </span><span style="color:#007020">&amp;base</span><span style="color:#bbb">
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yml" data-lang="yml"><span style="color:#bbb">  </span><span style="color:#062873;font-weight:bold">base</span>:<span style="color:#bbb"> </span><span style="color:#007020">&amp;base</span><span style="color:#bbb">
 </span><span style="color:#bbb">    </span><span style="color:#062873;font-weight:bold">build</span>:<span style="color:#bbb">
 </span><span style="color:#bbb">      </span><span style="color:#062873;font-weight:bold">context</span>:<span style="color:#bbb"> </span>.<span style="color:#bbb">
 </span><span style="color:#bbb">      </span><span style="color:#062873;font-weight:bold">dockerfile</span>:<span style="color:#bbb"> </span>./Dockerfile<span style="color:#bbb">
@@ -248,7 +248,7 @@
 <p><code>base</code>サービスのポイントは<code>cache_from</code>で<code>rails6api-development-cache</code>を指定している事です。この設定は開発作業時ではなくCI時での利用を想定したものです。詳細は後述します。</p>
 <div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
@@ -257,7 +257,7 @@
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yml" data-lang="yml"><span style="color:#bbb">  </span><span style="color:#062873;font-weight:bold">wait-middleware</span>:<span style="color:#bbb"> </span><span style="color:#007020">&amp;wait-middleware</span><span style="color:#bbb">
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yml" data-lang="yml"><span style="color:#bbb">  </span><span style="color:#062873;font-weight:bold">wait-middleware</span>:<span style="color:#bbb"> </span><span style="color:#007020">&amp;wait-middleware</span><span style="color:#bbb">
 </span><span style="color:#bbb">    </span><span style="color:#062873;font-weight:bold">&lt;&lt;</span>:<span style="color:#bbb"> </span><span style="color:#007020">*base</span><span style="color:#bbb">
 </span><span style="color:#bbb">    </span><span style="color:#062873;font-weight:bold">environment</span>:<span style="color:#bbb">
 </span><span style="color:#bbb">      </span><span style="color:#062873;font-weight:bold">WAIT_HOSTS</span>:<span style="color:#bbb"> </span>db:3306<span style="color:#bbb">
@@ -269,7 +269,7 @@
 </div><p>このサービス定義が、Dockerfileの最後でインストールした<a href="https://github.com/ufoscout/docker-compose-wait">ufoscout/docker-compose-wait</a>を使って<code>db</code>サービスの起動を待つ為のサービスです。ymlの定義方法は公式を参照ください。先に定義した<code>base</code>サービスをmergeし、docker-compose-waitで必要な設定とdbサービスとの関連を定義しています。単独で実行したい場合は<code>docker-compose run</code>すればOKです。</p>
 <div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
@@ -291,7 +291,7 @@
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">$ docker-compose run --rm wait-middleware
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">$ docker-compose run --rm wait-middleware
 
 Creating network <span style="color:#4070a0">&#34;rails6api_default&#34;</span> with the default driver
 Creating rails6api_db_1    ... <span style="color:#007020;font-weight:bold">done</span>
@@ -316,7 +316,7 @@ docker-compose-wait - Everything<span style="">&#39;</span>s fine, the applicati
 </div><p>上記実行例は筆者のMacでのもので、ほとんど待ちが発生せずdbが立ち上がります。この速さなら<a href="https://docs.docker.com/compose/compose-file/#depends_on">depends_on</a> で起動順さえ意識しておけば「DBが立ち上がっていない状態でアプリが動きそうになってエラー」という状況はほぼ発生しないのですが、GitHub ActionsのCI環境ではこの速さでは起動してくれず、<code>wait-middleware</code>の効果が大きくなります。これについても後述します。</p>
 <div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
@@ -345,7 +345,7 @@ docker-compose-wait - Everything<span style="">&#39;</span>s fine, the applicati
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yml" data-lang="yml"><span style="color:#bbb">  </span><span style="color:#062873;font-weight:bold">backend</span>:<span style="color:#bbb"> </span><span style="color:#007020">&amp;backend</span><span style="color:#bbb">
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yml" data-lang="yml"><span style="color:#bbb">  </span><span style="color:#062873;font-weight:bold">backend</span>:<span style="color:#bbb"> </span><span style="color:#007020">&amp;backend</span><span style="color:#bbb">
 </span><span style="color:#bbb">    </span><span style="color:#062873;font-weight:bold">&lt;&lt;</span>:<span style="color:#bbb"> </span><span style="color:#007020">*base</span><span style="color:#bbb">
 </span><span style="color:#bbb">    </span><span style="color:#062873;font-weight:bold">stdin_open</span>:<span style="color:#bbb"> </span><span style="color:#007020;font-weight:bold">true</span><span style="color:#bbb">
 </span><span style="color:#bbb">    </span><span style="color:#062873;font-weight:bold">tty</span>:<span style="color:#bbb"> </span><span style="color:#007020;font-weight:bold">true</span><span style="color:#bbb">
@@ -379,7 +379,7 @@ docker-compose-wait - Everything<span style="">&#39;</span>s fine, the applicati
 <h2 id="env">.env</h2>
 <div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
@@ -387,7 +387,7 @@ docker-compose-wait - Everything<span style="">&#39;</span>s fine, the applicati
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-env:./.env" data-lang="env:./.env"><span style="color:#bb60d5">MYSQL_ROOT_PASSWORD</span><span style="color:#666">=</span>root
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-env:./.env" data-lang="env:./.env"><span style="color:#bb60d5">MYSQL_ROOT_PASSWORD</span><span style="color:#666">=</span>root
 <span style="color:#bb60d5">MYSQL_ALLOW_EMPTY_PASSWORD</span><span style="color:#666">=</span><span style="color:#40a070">1</span>
 <span style="color:#bb60d5">DB_HOST</span><span style="color:#666">=</span>db
 
@@ -401,12 +401,12 @@ docker-compose-wait - Everything<span style="">&#39;</span>s fine, the applicati
 <h3 id="buildkitでビルドをちょっと高速化">BuildKitでビルドをちょっと高速化</h3>
 <div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yml" data-lang="yml"><span style="color:#062873;font-weight:bold">env</span>:<span style="color:#bbb">
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yml" data-lang="yml"><span style="color:#062873;font-weight:bold">env</span>:<span style="color:#bbb">
 </span><span style="color:#bbb">  </span><span style="color:#062873;font-weight:bold">DOCKER_BUILDKIT</span>:<span style="color:#bbb"> </span><span style="color:#40a070">1</span><span style="color:#bbb">
 </span><span style="color:#bbb">  </span><span style="color:#062873;font-weight:bold">COMPOSE_DOCKER_CLI_BUILD</span>:<span style="color:#bbb"> </span><span style="color:#40a070">1</span><span style="color:#bbb">
 </span></code></pre></td></tr></table>
@@ -415,7 +415,7 @@ docker-compose-wait - Everything<span style="">&#39;</span>s fine, the applicati
 <h3 id="先にイメージのキャッシュリストアを実行しこのキャッシュで後続ジョブを並列に動かす">先にイメージのキャッシュ・リストアを実行し、このキャッシュで後続ジョブを並列に動かす</h3>
 <div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
@@ -428,7 +428,7 @@ docker-compose-wait - Everything<span style="">&#39;</span>s fine, the applicati
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yml" data-lang="yml"><span style="color:#062873;font-weight:bold">jobs</span>:<span style="color:#bbb">
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yml" data-lang="yml"><span style="color:#062873;font-weight:bold">jobs</span>:<span style="color:#bbb">
 </span><span style="color:#bbb">  </span><span style="color:#60a0b0;font-style:italic"># Dockerイメージのキャッシュ・リストア</span><span style="color:#bbb">
 </span><span style="color:#bbb">  </span><span style="color:#062873;font-weight:bold">image-cache-or-build</span>:<span style="color:#bbb">
 </span><span style="color:#bbb">
@@ -445,7 +445,7 @@ docker-compose-wait - Everything<span style="">&#39;</span>s fine, the applicati
 <h3 id="docker-image-save-docker-image-load-cache_from-with-buildkit-でイメージのキャッシュリストアとビルド">docker image save, docker image load, cache_from with BuildKit でイメージのキャッシュ・リストアとビルド</h3>
 <div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
@@ -470,7 +470,7 @@ docker-compose-wait - Everything<span style="">&#39;</span>s fine, the applicati
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yml" data-lang="yml"><span style="color:#062873;font-weight:bold">jobs</span>:<span style="color:#bbb">
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yml" data-lang="yml"><span style="color:#062873;font-weight:bold">jobs</span>:<span style="color:#bbb">
 </span><span style="color:#bbb">  </span><span style="color:#062873;font-weight:bold">image-cache-or-build</span>:<span style="color:#bbb">
 </span><span style="color:#bbb">    </span><span style="color:#062873;font-weight:bold">strategy</span>:<span style="color:#bbb">
 </span><span style="color:#bbb">      </span><span style="color:#062873;font-weight:bold">matrix</span>:<span style="color:#bbb">
@@ -501,7 +501,7 @@ docker-compose-wait - Everything<span style="">&#39;</span>s fine, the applicati
 <p>なお、<a href="https://github.com/actions/cache#cache-limits">actions/cache を使ったキャッシュの上限はリポジトリ単位で5GB</a> です。今回のように「alpineベースでrailsが動くイメージを、<code>COPY</code>や<code>ADD</code>を排除した最小構成で構築」したイメージなら1GBにも満たないはずなのでまず心配は無用ですが、一応の留意はしておくと良さそうです。</p>
 <div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
@@ -526,7 +526,7 @@ docker-compose-wait - Everything<span style="">&#39;</span>s fine, the applicati
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yml" data-lang="yml"><span style="color:#062873;font-weight:bold">env</span>:<span style="color:#bbb">
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yml" data-lang="yml"><span style="color:#062873;font-weight:bold">env</span>:<span style="color:#bbb">
 </span><span style="color:#bbb">  </span><span style="color:#062873;font-weight:bold">DOCKER_BUILDKIT</span>:<span style="color:#bbb"> </span><span style="color:#40a070">1</span><span style="color:#bbb">
 </span><span style="color:#bbb">  </span><span style="color:#062873;font-weight:bold">COMPOSE_DOCKER_CLI_BUILD</span>:<span style="color:#bbb"> </span><span style="color:#40a070">1</span><span style="color:#bbb">
 </span><span style="color:#bbb">  </span><span style="color:#062873;font-weight:bold">APP_IMAGE_TAG</span>:<span style="color:#bbb"> </span>rails6api-development:0.1.0<span style="color:#bbb">
@@ -586,7 +586,7 @@ docker-compose-wait - Everything<span style="">&#39;</span>s fine, the applicati
 <h3 id="キャッシュリストアしたイメージを使って高速ci">キャッシュ・リストアしたイメージを使って高速CI</h3>
 <div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
@@ -622,7 +622,7 @@ docker-compose-wait - Everything<span style="">&#39;</span>s fine, the applicati
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">34
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yml" data-lang="yml"><span style="color:#062873;font-weight:bold">env</span>:<span style="color:#bbb">
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yml" data-lang="yml"><span style="color:#062873;font-weight:bold">env</span>:<span style="color:#bbb">
 </span><span style="color:#bbb">  </span><span style="color:#062873;font-weight:bold">DOCKER_BUILDKIT</span>:<span style="color:#bbb"> </span><span style="color:#40a070">1</span><span style="color:#bbb">
 </span><span style="color:#bbb">  </span><span style="color:#062873;font-weight:bold">COMPOSE_DOCKER_CLI_BUILD</span>:<span style="color:#bbb"> </span><span style="color:#40a070">1</span><span style="color:#bbb">
 </span><span style="color:#bbb">  </span><span style="color:#062873;font-weight:bold">APP_IMAGE_TAG</span>:<span style="color:#bbb"> </span>rails6api-development:0.1.0<span style="color:#bbb">
@@ -662,7 +662,7 @@ docker-compose-wait - Everything<span style="">&#39;</span>s fine, the applicati
 <h3 id="ufoscoutdocker-compose-wait-でmysqlコンテナの起動を待つ">ufoscout/docker-compose-wait でMySQLコンテナの起動を待つ</h3>
 <div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
@@ -671,7 +671,7 @@ docker-compose-wait - Everything<span style="">&#39;</span>s fine, the applicati
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yml" data-lang="yml"><span style="color:#bbb">    </span>- <span style="color:#062873;font-weight:bold">name</span>:<span style="color:#bbb"> </span>Wait middleware services<span style="color:#bbb">
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yml" data-lang="yml"><span style="color:#bbb">    </span>- <span style="color:#062873;font-weight:bold">name</span>:<span style="color:#bbb"> </span>Wait middleware services<span style="color:#bbb">
 </span><span style="color:#bbb">      </span><span style="color:#062873;font-weight:bold">id</span>:<span style="color:#bbb"> </span>wait-middleware<span style="color:#bbb">
 </span><span style="color:#bbb">      </span><span style="color:#062873;font-weight:bold">run</span>:<span style="color:#bbb"> </span>docker-compose run --rm wait-middleware<span style="color:#bbb">
 </span><span style="color:#bbb">
@@ -683,7 +683,7 @@ docker-compose-wait - Everything<span style="">&#39;</span>s fine, the applicati
 </div><p>Dockerfileの最後でインストールしてある<a href="https://github.com/ufoscout/docker-compose-wait">ufoscout/docker-compose-wait</a>を使って<code>db</code>サービスの起動を待ちます。</p>
 <div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
@@ -709,7 +709,7 @@ docker-compose-wait - Everything<span style="">&#39;</span>s fine, the applicati
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">Starting with configuration:
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">Starting with configuration:
  - Hosts to be waiting for: [db:3306]
  - Timeout before failure: 30 seconds 
  - TCP connection timeout before retry: 5 seconds 
@@ -739,7 +739,7 @@ docker-compose-wait - Everything&#39;s fine, the application can now start!
 <h4 id="余談-mysqlコンテナの起動プロセスと処理時間">余談: MySQLコンテナの起動プロセスと処理時間</h4>
 <div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
@@ -782,7 +782,7 @@ docker-compose-wait - Everything&#39;s fine, the application can now start!
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">41
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">db_1               | 2020-05-25 16:36:40+00:00 [Note] [Entrypoint]: Entrypoint script for MySQL Server 8.0.20-1debian10 started.
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">db_1               | 2020-05-25 16:36:40+00:00 [Note] [Entrypoint]: Entrypoint script for MySQL Server 8.0.20-1debian10 started.
 db_1               | 2020-05-25 16:36:40+00:00 [Note] [Entrypoint]: Switching to dedicated user &#39;mysql&#39;
 db_1               | 2020-05-25 16:36:40+00:00 [Note] [Entrypoint]: Entrypoint script for MySQL Server 8.0.20-1debian10 started.
 db_1               | 2020-05-25 16:36:40+00:00 [Note] [Entrypoint]: Initializing database files
@@ -834,7 +834,7 @@ db_1               | 2020-05-25T16:36:52.363785Z 0 [System] [MY-010931] [Server]
 <h3 id="依存gemのvolumeマウントはnamed-volumeではなく書き込み可能なディレクトリを使う">依存gemのvolumeマウントはnamed volumeではなく書き込み可能なディレクトリを使う</h3>
 <div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
@@ -851,7 +851,7 @@ db_1               | 2020-05-25T16:36:52.363785Z 0 [System] [MY-010931] [Server]
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yml" data-lang="yml"><span style="color:#bbb">    </span><span style="color:#062873;font-weight:bold">env</span>:<span style="color:#bbb">
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yml" data-lang="yml"><span style="color:#bbb">    </span><span style="color:#062873;font-weight:bold">env</span>:<span style="color:#bbb">
 </span><span style="color:#bbb">      </span><span style="color:#062873;font-weight:bold">ARG_RUBY_VERSION</span>:<span style="color:#bbb"> </span>${{ matrix.ruby }}<span style="color:#bbb">
 </span><span style="color:#bbb">      </span><span style="color:#062873;font-weight:bold">GEMS_CACHE_DIR</span>:<span style="color:#bbb"> </span>/tmp/cache/bundle<span style="color:#bbb">
 </span><span style="color:#bbb">      </span><span style="color:#062873;font-weight:bold">GEMS_CACHE_KEY</span>:<span style="color:#bbb"> </span>cache-gems<span style="color:#bbb">
@@ -871,7 +871,7 @@ db_1               | 2020-05-25T16:36:52.363785Z 0 [System] [MY-010931] [Server]
 </div><p>依存Gemのキャッシュリストアも、公式のキャッシュ処理用actionである<a href="https://github.com/actions/cache">actions/cache</a>で行います。キャッシュのキーに <code>${{ hashFiles('Gemfile.lock') }}</code> を含めているのは、Gemfile.lock（Gemfile）に変更があった際にキャッシュHITさせないようにする事を意図したものです。</p>
 <div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
@@ -888,7 +888,7 @@ db_1               | 2020-05-25T16:36:52.363785Z 0 [System] [MY-010931] [Server]
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yml:./docker-compose.yml" data-lang="yml:./docker-compose.yml"><span style="color:#bbb">  </span><span style="color:#062873;font-weight:bold">backend</span>:<span style="color:#bbb"> </span><span style="color:#007020">&amp;backend</span><span style="color:#bbb">
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yml:./docker-compose.yml" data-lang="yml:./docker-compose.yml"><span style="color:#bbb">  </span><span style="color:#062873;font-weight:bold">backend</span>:<span style="color:#bbb"> </span><span style="color:#007020">&amp;backend</span><span style="color:#bbb">
 </span><span style="color:#bbb">
 </span><span style="color:#bbb">    </span><span style="color:#60a0b0;font-style:italic"># 略</span><span style="color:#bbb">
 </span><span style="color:#bbb">
@@ -912,12 +912,12 @@ db_1               | 2020-05-25T16:36:52.363785Z 0 [System] [MY-010931] [Server]
 <h3 id="アプリのセットアップテストもdockerコンテナ内で実行">アプリのセットアップ＆テストもDockerコンテナ内で実行</h3>
 <div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yml" data-lang="yml"><span style="color:#bbb">    </span>- <span style="color:#062873;font-weight:bold">name</span>:<span style="color:#bbb"> </span>Setup and Run test<span style="color:#bbb">
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yml" data-lang="yml"><span style="color:#bbb">    </span>- <span style="color:#062873;font-weight:bold">name</span>:<span style="color:#bbb"> </span>Setup and Run test<span style="color:#bbb">
 </span><span style="color:#bbb">      </span><span style="color:#062873;font-weight:bold">id</span>:<span style="color:#bbb"> </span>setup-and-run-test<span style="color:#bbb">
 </span><span style="color:#bbb">      </span><span style="color:#062873;font-weight:bold">run</span>:<span style="color:#bbb"> </span>docker-compose run --rm console bash -c &#34;bundle install &amp;&amp; rails db:prepare &amp;&amp; rspec&#34;<span style="color:#bbb">
 </span></code></pre></td></tr></table>
@@ -926,7 +926,7 @@ db_1               | 2020-05-25T16:36:52.363785Z 0 [System] [MY-010931] [Server]
 <h3 id="アプリのテストと並列でdockerイメージの脆弱性スキャンも実行">アプリのテストと並列でDockerイメージの脆弱性スキャンも実行</h3>
 <div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
@@ -976,7 +976,7 @@ db_1               | 2020-05-25T16:36:52.363785Z 0 [System] [MY-010931] [Server]
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">48
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yml" data-lang="yml"><span style="color:#062873;font-weight:bold">env</span>:<span style="color:#bbb">
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yml" data-lang="yml"><span style="color:#062873;font-weight:bold">env</span>:<span style="color:#bbb">
 </span><span style="color:#bbb">  </span><span style="color:#062873;font-weight:bold">DOCKER_BUILDKIT</span>:<span style="color:#bbb"> </span><span style="color:#40a070">1</span><span style="color:#bbb">
 </span><span style="color:#bbb">  </span><span style="color:#062873;font-weight:bold">COMPOSE_DOCKER_CLI_BUILD</span>:<span style="color:#bbb"> </span><span style="color:#40a070">1</span><span style="color:#bbb">
 </span><span style="color:#bbb">  </span><span style="color:#062873;font-weight:bold">APP_IMAGE_TAG</span>:<span style="color:#bbb"> </span>rails6api-development:0.1.0<span style="color:#bbb">
@@ -1033,7 +1033,7 @@ db_1               | 2020-05-25T16:36:52.363785Z 0 [System] [MY-010931] [Server]
 <h3 id="新規参画エンジニアの環境構築手順は">新規参画エンジニアの環境構築手順は？</h3>
 <div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
@@ -1043,7 +1043,7 @@ db_1               | 2020-05-25T16:36:52.363785Z 0 [System] [MY-010931] [Server]
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh"><span style="color:#60a0b0;font-style:italic"># ビルド</span>
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh"><span style="color:#60a0b0;font-style:italic"># ビルド</span>
 docker-compose build base
 
 <span style="color:#60a0b0;font-style:italic"># セットアップ</span>
@@ -1056,22 +1056,22 @@ docker-compose up -d server
 </div><h3 id="railsを起動したい時は">railsを起動したい時は？</h3>
 <div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">docker-compose up -d server
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">docker-compose up -d server
 </code></pre></td></tr></table>
 </div>
 </div><h3 id="起動中のrailsログをコンソールに流しておきたい時は">起動中のRailsログをコンソールに流しておきたい時は？</h3>
 <div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh"><span style="color:#60a0b0;font-style:italic"># 下記コマンドでattachすれば、server コンテナの標準出力をtail風に確認可能</span>
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh"><span style="color:#60a0b0;font-style:italic"># 下記コマンドでattachすれば、server コンテナの標準出力をtail風に確認可能</span>
 docker attach <span style="color:#4070a0">`</span>docker-compose ps -q server<span style="color:#4070a0">`</span>
 
 <span style="color:#60a0b0;font-style:italic"># attach状態を終了したければ Ctrl+P =&gt; Ctrl+Q する</span>
@@ -1081,36 +1081,36 @@ docker attach <span style="color:#4070a0">`</span>docker-compose ps -q server<sp
 <p>起動中のserverサービスで</p>
 <div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">docker-compose <span style="color:#007020">exec</span> server rspec <span style="color:#666">[</span>SPEC_FILES<span style="color:#666">]</span>
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">docker-compose <span style="color:#007020">exec</span> server rspec <span style="color:#666">[</span>SPEC_FILES<span style="color:#666">]</span>
 </code></pre></td></tr></table>
 </div>
 </div><p>consoleサービスで</p>
 <div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">docker-compose run --rm console rspec <span style="color:#666">[</span>SPEC_FILES<span style="color:#666">]</span>
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">docker-compose run --rm console rspec <span style="color:#666">[</span>SPEC_FILES<span style="color:#666">]</span>
 </code></pre></td></tr></table>
 </div>
 </div><h3 id="rails-consoleに接続したい時は">Rails consoleに接続したい時は？</h3>
 <p>起動中のserverサービスで</p>
 <div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">docker-compose <span style="color:#007020">exec</span> server rails c
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">docker-compose <span style="color:#007020">exec</span> server rails c
 </code></pre></td></tr></table>
 </div>
 </div><h3 id="マイグレーションを追加修正適用したい時は">マイグレーションを追加・修正・適用したい時は？</h3>
 <p>起動中のserverサービスで</p>
 <div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
@@ -1121,7 +1121,7 @@ docker attach <span style="color:#4070a0">`</span>docker-compose ps -q server<sp
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">9
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh"><span style="color:#60a0b0;font-style:italic"># マイグレーション新規生成</span>
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh"><span style="color:#60a0b0;font-style:italic"># マイグレーション新規生成</span>
 docker-compose <span style="color:#007020">exec</span> server rails g migration MIGRATION_NAME
 
 <span style="color:#60a0b0;font-style:italic"># :</span>
@@ -1186,7 +1186,6 @@ if (!doNotTrack) {
 	ga('send', 'pageview');
 }
 </script>
-
 
     
 

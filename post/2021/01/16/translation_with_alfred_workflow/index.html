@@ -45,8 +45,8 @@ https://github.com/goldeneggg/alfred-workflow-selected-text-translator
  そしてRun Script Action で、このファイルをcatした結果を tr コマンドをかまして改行除去します。Run Script Actionから後続アクションに渡される内容は「スクリプトで標準出力に出力した内容」になりますので、特にAlfredワークフローだからと言って何かを意識せず、普段bashでスクリプトを書く時と同様に書けばOKです。" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://horizoon.jp/post/2021/01/16/translation_with_alfred_workflow/" /><meta property="article:section" content="post" />
-<meta property="article:published_time" content="2021-01-16T13:05:00&#43;09:00" />
-<meta property="article:modified_time" content="2021-01-16T13:05:00&#43;09:00" />
+<meta property="article:published_time" content="2021-01-16T13:05:00+09:00" />
+<meta property="article:modified_time" content="2021-01-16T13:05:00+09:00" />
 
 
 
@@ -91,7 +91,7 @@ https://github.com/goldeneggg/alfred-workflow-selected-text-translator
 
     
 
-    <meta name="generator" content="Hugo 0.81.0" />
+    <meta name="generator" content="Hugo 0.87.0" />
   </head>
 
   
@@ -165,8 +165,7 @@ https://github.com/goldeneggg/alfred-workflow-selected-text-translator
 </ul>
 <h2 id="pdfからコピペした文章の翻訳を選択したテキストが翻訳されるという体験で実現したい">PDFからコピペした文章の翻訳を、「選択したテキストが翻訳される」という体験で実現したい</h2>
 <p>「PDFをコピペしたい時に改行が含まれて翻訳結果が変になる問題」って何？というイメージがこちらです。文章途中で改行が混ざった結果、翻訳結果が変になる、という事象です。同じ経験をされた方も多いのではないかと思います。</p>
-<figure class="center">
-    <img src="https://horizoon.jp/img/translation_with_alfred_workflow/1.gif"/> 
+<figure class="center"><img src="https://horizoon.jp/img/translation_with_alfred_workflow/1.gif"/>
 </figure>
 
 <p><code>PDF 翻訳 改行</code> 等でググると様々な解決策がHITしますが、<strong>普段ChromeのGoogle翻訳拡張に慣れている筆者としては、やはり「ドラッグして選択したテキストが翻訳される」という体験をPDF（等のE-Books）翻訳でも再現したいな</strong> と考え、「選択したテキストに対して何かをする事が出来ると言えば <a href="https://www.alfredapp.com/help/workflows/triggers/hotkey/">AlfredワークフローのHotkeyトリガー</a> だ」と雑に思いついて作ってみたワークフローがこちらです。</p>
@@ -178,45 +177,37 @@ https://github.com/goldeneggg/alfred-workflow-selected-text-translator
 <li>ブラウザで　<strong>改行が混ざっていない文章の翻訳結果が</strong> Google翻訳で表示される</li>
 </ol>
 <p>ようになります。</p>
-<figure class="center">
-    <img src="https://horizoon.jp/img/translation_with_alfred_workflow/result.gif"/> 
+<figure class="center"><img src="https://horizoon.jp/img/translation_with_alfred_workflow/result.gif"/>
 </figure>
 
 <p>インストール手順は <a href="https://github.com/goldeneggg/alfred-workflow-selected-text-translator#install-this-workflow">上記reposのREADME</a> を参照ください。</p>
 <h2 id="ワークフローの構成紹介">ワークフローの構成紹介</h2>
 <p>ワークフロー全体のイメージはこんな感じです。</p>
-<figure class="center">
-    <img src="https://horizoon.jp/img/translation_with_alfred_workflow/2.png"/> 
+<figure class="center"><img src="https://horizoon.jp/img/translation_with_alfred_workflow/2.png"/>
 </figure>
 
 <p>まず <a href="https://www.alfredapp.com/help/workflows/triggers/hotkey/">AlfredワークフローのHotkeyトリガー</a> を下記のように設定します。<code>Argument</code> を <code>Selection in macOS</code> にすることで、ドラッグして選択しているテキストの内容を後続のアクションに渡す事が出来ます。</p>
-<figure class="center">
-    <img src="https://horizoon.jp/img/translation_with_alfred_workflow/3.png"/> 
+<figure class="center"><img src="https://horizoon.jp/img/translation_with_alfred_workflow/3.png"/>
 </figure>
 
 <p>次にHotkeyトリガーから渡されてきたテキストを <a href="https://www.alfredapp.com/help/workflows/outputs/write-file/">Write File Output</a> に渡してtemporaryなテキストファイルに出力しておきます。</p>
-<figure class="center">
-    <img src="https://horizoon.jp/img/translation_with_alfred_workflow/4.png"/> 
+<figure class="center"><img src="https://horizoon.jp/img/translation_with_alfred_workflow/4.png"/>
 </figure>
 
 <p>そして<a href="https://www.alfredapp.com/help/workflows/actions/run-script/">Run Script Action</a> で、このファイルをcatした結果を <code>tr</code> コマンドをかまして改行除去します。Run Script Actionから後続アクションに渡される内容は「スクリプトで標準出力に出力した内容」になりますので、特にAlfredワークフローだからと言って何かを意識せず、普段bashでスクリプトを書く時と同様に書けばOKです。</p>
-<figure class="center">
-    <img src="https://horizoon.jp/img/translation_with_alfred_workflow/5.png"/> 
+<figure class="center"><img src="https://horizoon.jp/img/translation_with_alfred_workflow/5.png"/>
 </figure>
 
 <p>次に<a href="https://www.alfredapp.com/help/workflows/utilities/conditional/">Conditional Utility</a> でGoogle翻訳かDeepLを使うか？で分岐します。この機能は完全におまけで用意したもので、ワークフローの環境変数 <code>USE_DEEPL</code> に 1 をセットする事でDeepLを使います（デフォルトは 0 = Google翻訳）</p>
-<figure class="center">
-    <img src="https://horizoon.jp/img/translation_with_alfred_workflow/6.png"/> 
+<figure class="center"><img src="https://horizoon.jp/img/translation_with_alfred_workflow/6.png"/>
 </figure>
 
 <p>最後に、渡されてきた内容 = <code>{query}</code> というプレースホルダー をGoogle翻訳のURLにセットし、そのURLを<a href="https://www.alfredapp.com/help/workflows/actions/open-url/">Open URL Action</a> のURLにセットすれば、普段使いのブラウザでGoogle翻訳の結果が開きます。</p>
-<figure class="center">
-    <img src="https://horizoon.jp/img/translation_with_alfred_workflow/7.png"/> 
+<figure class="center"><img src="https://horizoon.jp/img/translation_with_alfred_workflow/7.png"/>
 </figure>
 
 <p>DeepLの場合の設定はこうなっています。</p>
-<figure class="center">
-    <img src="https://horizoon.jp/img/translation_with_alfred_workflow/8.png"/> 
+<figure class="center"><img src="https://horizoon.jp/img/translation_with_alfred_workflow/8.png"/>
 </figure>
 
 
@@ -272,7 +263,6 @@ if (!doNotTrack) {
 	ga('send', 'pageview');
 }
 </script>
-
 
     
 
