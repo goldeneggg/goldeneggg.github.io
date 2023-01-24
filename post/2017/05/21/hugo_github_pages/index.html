@@ -9,30 +9,29 @@
     <meta name="author" content="Fuminori Sakamoto">
     <meta name="description" content="ブログサービスを使わずブログを公開するというのが初めての作業だったので、備忘も兼ねてメモしておく。
 Github Pages用のリポジトリを作成 Github Pages にブログを公開するに辺り、まずは こちらの公式の記事を参考に
- pages というリポジトリ - 記事のソースファイル置き場 ACCOUNT名.github.io というリポジトリ - Github Pages 公開用リポジトリ  私の場合 ACCOUNT名 は goldeneggg になる。    という2つのリポジトリを作成した。pagesリポジトリで作成したコンテンツのビルド成果物を goldeneggg.github.io リポジトリに出力→pushして公開する、という流れを想定している。
+pages というリポジトリ - 記事のソースファイル置き場 ACCOUNT名.github.io というリポジトリ - Github Pages 公開用リポジトリ 私の場合 ACCOUNT名 は goldeneggg になる。 という2つのリポジトリを作成した。pagesリポジトリで作成したコンテンツのビルド成果物を goldeneggg.github.io リポジトリに出力→pushして公開する、という流れを想定している。
 Hugoの導入 サイトジェネレータの選定だが、Go製の hugo が生成処理が速いという評判だったのと、個人的にGoが好き という理由であまり深くは考えずHugoを使う事にした。
-1 2 3 4 5 6 7  # brew か go get でインストール $ brew install hugo ## Or $ go get -u -v github.com/spf13/hugo   Hugoの初期設定  最初に作成した 記事のソースファイル置き場 用のリポジトリを git clone する cloneしたディレクトリにcdし、hugo new site .">
+1 2 3 4 5 6 7 # brew か go get でインストール $ brew install hugo ## Or $ go get -u -v github.com/spf13/hugo Hugoの初期設定 最初に作成した 記事のソースファイル置き場 用のリポジトリを git clone する cloneしたディレクトリにcdし、hugo new site . する。これで雛形となるディレクトリ群が生成される 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 $ git clone git@github.">
     <meta name="keywords" content="blog,developer,backpacker,personal">
 
     <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Github Pages &amp; Hugo でブログ公開するまで"/>
 <meta name="twitter:description" content="ブログサービスを使わずブログを公開するというのが初めての作業だったので、備忘も兼ねてメモしておく。
 Github Pages用のリポジトリを作成 Github Pages にブログを公開するに辺り、まずは こちらの公式の記事を参考に
- pages というリポジトリ - 記事のソースファイル置き場 ACCOUNT名.github.io というリポジトリ - Github Pages 公開用リポジトリ  私の場合 ACCOUNT名 は goldeneggg になる。    という2つのリポジトリを作成した。pagesリポジトリで作成したコンテンツのビルド成果物を goldeneggg.github.io リポジトリに出力→pushして公開する、という流れを想定している。
+pages というリポジトリ - 記事のソースファイル置き場 ACCOUNT名.github.io というリポジトリ - Github Pages 公開用リポジトリ 私の場合 ACCOUNT名 は goldeneggg になる。 という2つのリポジトリを作成した。pagesリポジトリで作成したコンテンツのビルド成果物を goldeneggg.github.io リポジトリに出力→pushして公開する、という流れを想定している。
 Hugoの導入 サイトジェネレータの選定だが、Go製の hugo が生成処理が速いという評判だったのと、個人的にGoが好き という理由であまり深くは考えずHugoを使う事にした。
-1 2 3 4 5 6 7  # brew か go get でインストール $ brew install hugo ## Or $ go get -u -v github.com/spf13/hugo   Hugoの初期設定  最初に作成した 記事のソースファイル置き場 用のリポジトリを git clone する cloneしたディレクトリにcdし、hugo new site ."/>
+1 2 3 4 5 6 7 # brew か go get でインストール $ brew install hugo ## Or $ go get -u -v github.com/spf13/hugo Hugoの初期設定 最初に作成した 記事のソースファイル置き場 用のリポジトリを git clone する cloneしたディレクトリにcdし、hugo new site . する。これで雛形となるディレクトリ群が生成される 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 $ git clone git@github."/>
 
     <meta property="og:title" content="Github Pages &amp; Hugo でブログ公開するまで" />
 <meta property="og:description" content="ブログサービスを使わずブログを公開するというのが初めての作業だったので、備忘も兼ねてメモしておく。
 Github Pages用のリポジトリを作成 Github Pages にブログを公開するに辺り、まずは こちらの公式の記事を参考に
- pages というリポジトリ - 記事のソースファイル置き場 ACCOUNT名.github.io というリポジトリ - Github Pages 公開用リポジトリ  私の場合 ACCOUNT名 は goldeneggg になる。    という2つのリポジトリを作成した。pagesリポジトリで作成したコンテンツのビルド成果物を goldeneggg.github.io リポジトリに出力→pushして公開する、という流れを想定している。
+pages というリポジトリ - 記事のソースファイル置き場 ACCOUNT名.github.io というリポジトリ - Github Pages 公開用リポジトリ 私の場合 ACCOUNT名 は goldeneggg になる。 という2つのリポジトリを作成した。pagesリポジトリで作成したコンテンツのビルド成果物を goldeneggg.github.io リポジトリに出力→pushして公開する、という流れを想定している。
 Hugoの導入 サイトジェネレータの選定だが、Go製の hugo が生成処理が速いという評判だったのと、個人的にGoが好き という理由であまり深くは考えずHugoを使う事にした。
-1 2 3 4 5 6 7  # brew か go get でインストール $ brew install hugo ## Or $ go get -u -v github.com/spf13/hugo   Hugoの初期設定  最初に作成した 記事のソースファイル置き場 用のリポジトリを git clone する cloneしたディレクトリにcdし、hugo new site ." />
+1 2 3 4 5 6 7 # brew か go get でインストール $ brew install hugo ## Or $ go get -u -v github.com/spf13/hugo Hugoの初期設定 最初に作成した 記事のソースファイル置き場 用のリポジトリを git clone する cloneしたディレクトリにcdし、hugo new site . する。これで雛形となるディレクトリ群が生成される 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 $ git clone git@github." />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://horizoon.jp/post/2017/05/21/hugo_github_pages/" /><meta property="article:section" content="post" />
 <meta property="article:published_time" content="2017-05-21T12:54:19+09:00" />
 <meta property="article:modified_time" content="2017-05-21T12:54:19+09:00" />
-
 
 
     <title>
@@ -76,7 +75,7 @@ Hugoの導入 サイトジェネレータの選定だが、Go製の hugo が生�
 
     
 
-    <meta name="generator" content="Hugo 0.88.1" />
+    <meta name="generator" content="Hugo 0.110.0">
   </head>
 
   
@@ -113,10 +112,6 @@ Hugoの導入 サイトジェネレータの選定だが、Go製の hugo が生�
             </li>
           
             <li class="navigation-item">
-              <a class="navigation-link" href="https://horizoon.jp/projects/">Projects</a>
-            </li>
-          
-            <li class="navigation-item">
               <a class="navigation-link" href="https://horizoon.jp/about/">About</a>
             </li>
           
@@ -150,66 +145,66 @@ Hugoの導入 サイトジェネレータの選定だが、Go製の hugo が生�
 <p>という2つのリポジトリを作成した。pagesリポジトリで作成したコンテンツのビルド成果物を goldeneggg.github.io リポジトリに出力→pushして公開する、という流れを想定している。</p>
 <h2 id="hugoの導入">Hugoの導入</h2>
 <p>サイトジェネレータの選定だが、Go製の <a href="https://github.com/spf13/hugo">hugo</a> が<a href="http://deeeet.com/writing/2014/12/25/hugo/" title="deeeetさんの記事">生成処理が速い</a>という評判だったのと、個人的にGoが好き という理由であまり深くは考えずHugoを使う事にした。</p>
-<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh"><span style="color:#60a0b0;font-style:italic"># brew か go get でインストール</span>
-
-$ brew install hugo
-
-<span style="color:#60a0b0;font-style:italic">## Or</span>
-
-$ go get -u -v github.com/spf13/hugo
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span><span style="color:#60a0b0;font-style:italic"># brew か go get でインストール</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>$ brew install hugo
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#60a0b0;font-style:italic">## Or</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>$ go get -u -v github.com/spf13/hugo
+</span></span></code></pre></td></tr></table>
 </div>
 </div><h2 id="hugoの初期設定">Hugoの初期設定</h2>
 <ol>
 <li>最初に作成した 記事のソースファイル置き場 用のリポジトリを <code>git clone</code> する</li>
 <li>cloneしたディレクトリに<code>cd</code>し、<code>hugo new site .</code> する。これで雛形となるディレクトリ群が生成される</li>
 </ol>
-<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">$ git clone git@github.com:goldeneggg/pages.git
-
-$ <span style="color:#007020">cd</span> pages
-$ hugo new site .
-
-<span style="color:#60a0b0;font-style:italic"># 確認</span>
-$ tree
-.
-├── archetypes
-├── config.toml
-├── content
-├── data
-├── layouts
-├── static
-└── themes
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>$ git clone git@github.com:goldeneggg/pages.git
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>$ <span style="color:#007020">cd</span> pages
+</span></span><span style="display:flex;"><span>$ hugo new site .
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#60a0b0;font-style:italic"># 確認</span>
+</span></span><span style="display:flex;"><span>$ tree
+</span></span><span style="display:flex;"><span>.
+</span></span><span style="display:flex;"><span>├── archetypes
+</span></span><span style="display:flex;"><span>├── config.toml
+</span></span><span style="display:flex;"><span>├── content
+</span></span><span style="display:flex;"><span>├── data
+</span></span><span style="display:flex;"><span>├── layouts
+</span></span><span style="display:flex;"><span>├── static
+</span></span><span style="display:flex;"><span>└── themes
+</span></span></code></pre></td></tr></table>
 </div>
 </div><h2 id="configtoml-の設定"><code>config.toml</code> の設定</h2>
 <p>自分の場合はこんな感じ</p>
@@ -217,82 +212,80 @@ $ tree
 <li>googleAnalytics は導入したくなったら修正</li>
 <li>baseurl Github Pages公開の際のドメインを指定。 <strong>末尾の <code>/</code> を忘れずに</strong></li>
 </ul>
-<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-toml" data-lang="toml">languageCode = <span style="color:#4070a0">&#34;ja-jp&#34;</span>
-title = <span style="color:#4070a0">&#34;@goldeneggg&#34;</span>
-baseurl = <span style="color:#4070a0">&#34;https://goldeneggg.github.io/&#34;</span>
-theme = <span style="color:#4070a0">&#34;ghostwriter&#34;</span>
-copyright = <span style="color:#4070a0">&#34;Fuminori Sakamoto&#34;</span>
-<span style="color:#60a0b0;font-style:italic">#googleAnalytics = &#34;XXX&#34;</span>
-
-[Author]
-    name = <span style="color:#4070a0">&#34;@golden_eggg&#34;</span>
-
-[Taxonomies]
-    tag = <span style="color:#4070a0">&#34;tags&#34;</span>
-
-[Params]
-    intro = <span style="color:#007020;font-weight:bold">true</span>
-    headline = <span style="color:#4070a0">&#34;@goldeneggg&#34;</span>
-    github = <span style="color:#4070a0">&#34;https://github.com/goldeneggg&#34;</span>
-    twitter = <span style="color:#4070a0">&#34;https://twitter.com/golden_eggg&#34;</span>
-    email = <span style="color:#4070a0">&#34;jpshadowapps@gmail.com&#34;</span>
-    opengraph = <span style="color:#007020;font-weight:bold">true</span>
-
-[Permalinks]
-    post = <span style="color:#4070a0">&#34;/:year/:month/:day/:slug/&#34;</span>
-
-[[menu.main]]
-    name = <span style="color:#4070a0">&#34;Post&#34;</span>
-    url = <span style="color:#4070a0">&#34;/&#34;</span>
-    weight = <span style="color:#40a070">1</span>
-
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-toml" data-lang="toml"><span style="display:flex;"><span>languageCode = <span style="color:#4070a0">&#34;ja-jp&#34;</span>
+</span></span><span style="display:flex;"><span>title = <span style="color:#4070a0">&#34;@goldeneggg&#34;</span>
+</span></span><span style="display:flex;"><span>baseurl = <span style="color:#4070a0">&#34;https://goldeneggg.github.io/&#34;</span>
+</span></span><span style="display:flex;"><span>theme = <span style="color:#4070a0">&#34;ghostwriter&#34;</span>
+</span></span><span style="display:flex;"><span>copyright = <span style="color:#4070a0">&#34;Fuminori Sakamoto&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#60a0b0;font-style:italic">#googleAnalytics = &#34;XXX&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>[Author]
+</span></span><span style="display:flex;"><span>    name = <span style="color:#4070a0">&#34;@golden_eggg&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>[Taxonomies]
+</span></span><span style="display:flex;"><span>    tag = <span style="color:#4070a0">&#34;tags&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>[Params]
+</span></span><span style="display:flex;"><span>    intro = <span style="color:#007020;font-weight:bold">true</span>
+</span></span><span style="display:flex;"><span>    headline = <span style="color:#4070a0">&#34;@goldeneggg&#34;</span>
+</span></span><span style="display:flex;"><span>    github = <span style="color:#4070a0">&#34;https://github.com/goldeneggg&#34;</span>
+</span></span><span style="display:flex;"><span>    twitter = <span style="color:#4070a0">&#34;https://twitter.com/golden_eggg&#34;</span>
+</span></span><span style="display:flex;"><span>    email = <span style="color:#4070a0">&#34;jpshadowapps@gmail.com&#34;</span>
+</span></span><span style="display:flex;"><span>    opengraph = <span style="color:#007020;font-weight:bold">true</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>[Permalinks]
+</span></span><span style="display:flex;"><span>    post = <span style="color:#4070a0">&#34;/:year/:month/:day/:slug/&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>[[menu.main]]
+</span></span><span style="display:flex;"><span>    name = <span style="color:#4070a0">&#34;Post&#34;</span>
+</span></span><span style="display:flex;"><span>    url = <span style="color:#4070a0">&#34;/&#34;</span>
+</span></span><span style="display:flex;"><span>    weight = <span style="color:#40a070">1</span>
+</span></span></code></pre></td></tr></table>
 </div>
 </div><h2 id="記事用のmarkdown作成">記事用のmarkdown作成</h2>
 <ol>
 <li>記事のmarkdownファイルを <code>hugo new &lt;markdownファイル名&gt;</code> で生成する</li>
 <li><code>hugo new</code> で生成したmarkdownを適宜編集</li>
 </ol>
-<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">$ hugo new post/YYYY-MM-DD_PAGENAME.md
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>$ hugo new post/YYYY-MM-DD_PAGENAME.md
+</span></span></code></pre></td></tr></table>
 </div>
 </div><h3 id="記事用のmarkdownの書き方">記事用のmarkdownの書き方</h3>
 <ul>
@@ -304,93 +297,93 @@ copyright = <span style="color:#4070a0">&#34;Fuminori Sakamoto&#34;</span>
 </ul>
 </li>
 </ul>
-<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-markdown" data-lang="markdown">+++
-date = &#34;2017-01-15T23:29:55+09:00&#34;
-title = &#34;テスト&#34;
-draft = true
-slug = &#34;hoge&#34;
-tags = [&#34;test&#34;]
-
-+++
-
-SOME CONTENTS
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-markdown" data-lang="markdown"><span style="display:flex;"><span>+++
+</span></span><span style="display:flex;"><span>date = &#34;2017-01-15T23:29:55+09:00&#34;
+</span></span><span style="display:flex;"><span>title = &#34;テスト&#34;
+</span></span><span style="display:flex;"><span>draft = true
+</span></span><span style="display:flex;"><span>slug = &#34;hoge&#34;
+</span></span><span style="display:flex;"><span>tags = [&#34;test&#34;]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>+++
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>SOME CONTENTS
+</span></span></code></pre></td></tr></table>
 </div>
 </div><h2 id="ローカルで内容確認">ローカルで内容確認</h2>
-<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">$ hugo server -D -w
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>$ hugo server -D -w
+</span></span></code></pre></td></tr></table>
 </div>
 </div><p>↑して、 http://localhost:1313 にアクセス</p>
 <h2 id="テーマの導入">テーマの導入</h2>
-<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">$ git submodule add &lt;THEME_REPOS&gt; themes/&lt;THEME_NAME&gt;
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>$ git submodule add &lt;THEME_REPOS&gt; themes/&lt;THEME_NAME&gt;
+</span></span></code></pre></td></tr></table>
 </div>
 </div><p>このページでは<a href="https://github.com/jbub/ghostwriter">jbub/ghostwriter: A port of ghostwriter theme to Hugo.</a>を使っている</p>
 <h2 id="コードハイライト">コードハイライト</h2>
 <p>特に固有の設定などは不要で、問題無くハイライトできていそう</p>
-<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-ruby" data-lang="ruby"><span style="color:#007020;font-weight:bold">module</span> <span style="color:#0e84b5;font-weight:bold">Hoge</span>
-  <span style="color:#007020;font-weight:bold">def</span> <span style="color:#06287e">hoge</span>
-    <span style="color:#4070a0">&#34;hogehoge&#34;</span>
-  <span style="color:#007020;font-weight:bold">end</span>
-<span style="color:#007020;font-weight:bold">end</span>
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-ruby" data-lang="ruby"><span style="display:flex;"><span><span style="color:#007020;font-weight:bold">module</span> <span style="color:#0e84b5;font-weight:bold">Hoge</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#007020;font-weight:bold">def</span> <span style="color:#06287e">hoge</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#4070a0">&#34;hogehoge&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#007020;font-weight:bold">end</span>
+</span></span><span style="display:flex;"><span><span style="color:#007020;font-weight:bold">end</span>
+</span></span></code></pre></td></tr></table>
 </div>
 </div><h2 id="ビルド">ビルド</h2>
 <p>ここでは記事公開用に作成している goldeneggg.github.io リポジトリのローカルrootディレクトリに成果物をビルド・出力する</p>
-<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh"><span style="color:#60a0b0;font-style:italic"># 同じディレクトリ階層に公開用リポジトリDIRが存在する という前提で</span>
-$ hugo -d ../goldeneggg.github.io -v
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span><span style="color:#60a0b0;font-style:italic"># 同じディレクトリ階層に公開用リポジトリDIRが存在する という前提で</span>
+</span></span><span style="display:flex;"><span>$ hugo -d ../goldeneggg.github.io -v
+</span></span></code></pre></td></tr></table>
 </div>
 </div><h2 id="githubにpush公開">githubにpush・公開</h2>
 <p>公開用リポジトリのmasterブランチへのpushを行うだけで公開される</p>
-<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">$ <span style="color:#007020">cd</span> ../goldeneggg.github.io
-$ git push origin master
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>$ <span style="color:#007020">cd</span> ../goldeneggg.github.io
+</span></span><span style="display:flex;"><span>$ git push origin master
+</span></span></code></pre></td></tr></table>
 </div>
 </div><h2 id="所感">所感</h2>
 <p>Hugo + Github Pages で自分が行った作業手順を纏めてみたが、Github Pagesがwatchしていない内に随分と進化していてほとんどつまづく事無く公開まで辿り着けた。公開手順はもっと簡略化の余地がありそうだが、今日は一旦ここまで。</p>
@@ -411,7 +404,7 @@ $ git push origin master
         
           2017 -
         
-        2021
+        2023
          Fuminori Sakamoto 
       
       
@@ -428,7 +421,7 @@ $ git push origin master
     
       
         
-        <script src="https://horizoon.jp/js/dark-mode.min.aee9c8a464eb7b3534c7110f7c5e169e7039e2fd92710e0626d451d6725af137.js"></script>
+        <script src="https://horizoon.jp/js/dark-mode.min.c2d8a1f8f2660e4a46d776277c72695a1e0ca65939d79f754441d47551604af5.js"></script>
       
     
 

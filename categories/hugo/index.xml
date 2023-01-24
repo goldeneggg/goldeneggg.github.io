@@ -15,9 +15,9 @@
       <guid>https://horizoon.jp/post/2017/05/21/hugo_github_pages/</guid>
       <description>ブログサービスを使わずブログを公開するというのが初めての作業だったので、備忘も兼ねてメモしておく。
 Github Pages用のリポジトリを作成 Github Pages にブログを公開するに辺り、まずは こちらの公式の記事を参考に
- pages というリポジトリ - 記事のソースファイル置き場 ACCOUNT名.github.io というリポジトリ - Github Pages 公開用リポジトリ  私の場合 ACCOUNT名 は goldeneggg になる。    という2つのリポジトリを作成した。pagesリポジトリで作成したコンテンツのビルド成果物を goldeneggg.github.io リポジトリに出力→pushして公開する、という流れを想定している。
+pages というリポジトリ - 記事のソースファイル置き場 ACCOUNT名.github.io というリポジトリ - Github Pages 公開用リポジトリ 私の場合 ACCOUNT名 は goldeneggg になる。 という2つのリポジトリを作成した。pagesリポジトリで作成したコンテンツのビルド成果物を goldeneggg.github.io リポジトリに出力→pushして公開する、という流れを想定している。
 Hugoの導入 サイトジェネレータの選定だが、Go製の hugo が生成処理が速いという評判だったのと、個人的にGoが好き という理由であまり深くは考えずHugoを使う事にした。
-1 2 3 4 5 6 7  # brew か go get でインストール $ brew install hugo ## Or $ go get -u -v github.com/spf13/hugo   Hugoの初期設定  最初に作成した 記事のソースファイル置き場 用のリポジトリを git clone する cloneしたディレクトリにcdし、hugo new site .</description>
+1 2 3 4 5 6 7 # brew か go get でインストール $ brew install hugo ## Or $ go get -u -v github.com/spf13/hugo Hugoの初期設定 最初に作成した 記事のソースファイル置き場 用のリポジトリを git clone する cloneしたディレクトリにcdし、hugo new site . する。これで雛形となるディレクトリ群が生成される 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 $ git clone git@github.</description>
     </item>
     
   </channel>

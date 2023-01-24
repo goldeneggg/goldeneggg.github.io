@@ -8,34 +8,39 @@
 
     <meta name="author" content="Fuminori Sakamoto">
     <meta name="description" content="Summary Go1.13がリリースされてGo Modulesのmodule modeがデフォルトになってからの、go modコマンドを駆使した依存ライブラリ管理、及び第三者のOSSプロジェクトへのcontributionの方法＆手順について
- Module-awareモードに最適化した手順を把握・実践する  ライブラリの追加手順 ライブラリのバージョン更新手順（個別 or 全ライブラリ一括） ライブラリの削除手順   Happy Contributing!! 参考リンク（参考というか、答えは下記リンク先に全て書いてあります）  公式ブログ（和訳） 公式Wiki    前提条件 1 2 3 4 5  $ go version go version go1.12.4 darwin/amd64 # GO111MODULE=on して、常にModule-awareモードとなる状態で検証 $ export GO111MODULE=on   はじめに Githubの&quot;contributing ドキュメントについて githubにプロジェクトを公開する際に、
- ルート docs .github  の3つの内いずれかのディレクトリに contributing* というパターン名（大文字でも可）が付いたファイルを置いておくと、pull-request作成時に「ここにガイドラインがあるよ」と通知してくれるようになります。慣例としてこのファイルは CONTRIBUTING.md という名前で用意されている事が多いです。
+Module-awareモードに最適化した手順を把握・実践する ライブラリの追加手順 ライブラリのバージョン更新手順（個別 or 全ライブラリ一括） ライブラリの削除手順 Happy Contributing!! 参考リンク（参考というか、答えは下記リンク先に全て書いてあります） 公式ブログ（和訳） 公式Wiki 前提条件 1 2 3 4 5 $ go version go version go1.12.4 darwin/amd64 # GO111MODULE=on して、常にModule-awareモードとなる状態で検証 $ export GO111MODULE=on はじめに Githubの&quot;contributing ドキュメントについて githubにプロジェクトを公開する際に、
+ルート docs .github の3つの内いずれかのディレクトリに contributing* というパターン名（大文字でも可）が付いたファイルを置いておくと、pull-request作成時に「ここにガイドラインがあるよ」と通知してくれるようになります。慣例としてこのファイルは CONTRIBUTING.md という名前で用意されている事が多いです。
 このファイルには主に環境構築・テストの実行方法・pull-requestの送り方 などを記載しますが、Goプロジェクトでは「最初に $GOPATH 下にソースを持ってくる」事が前提になっている手順をよく見かけます（自作プロジェクトでもそうしていました）。
 GoプロジェクトにおけるCONTRIBUTING.mdはどうあるべきか？ Go ModulesのModule-awareモードがデフォルト挙動になるGo1.13以降では、ソースをcloneしてくるディレクトリは何処でも良い＝必ずしも$GOPATH下にソースを持ってくる必要は無くなりますし、依存ライブラリの追加・削除・バージョン変更を行いたい時の流れも変わります。なので、 CONTRIBUTING.mdに書く内容もそれに合わせておくとcontributorに親切なガイドラインを提示できそうです。
-引き続き$GOPATHベースでの開発を推奨するプロジェクトもあるかも知れませんし、内容や粒度はプロジェクトの運営方針や想定読者レベルによっても変わるとは思いますが、この記事ではModule-awareモードのレールに乗る前提で、CONTRIBUTING.mdに書くべき内容と、合わせてmodule modeでのGoプロジェクトにおけるライブラリ管理プラクティスを整理してみます。">
+引き続き$GOPATHベースでの開発を推奨するプロジェクトもあるかも知れませんし、内容や粒度はプロジェクトの運営方針や想定読者レベルによっても変わるとは思いますが、この記事ではModule-awareモードのレールに乗る前提で、CONTRIBUTING.mdに書くべき内容と、合わせてmodule modeでのGoプロジェクトにおけるライブラリ管理プラクティスを整理してみます。
+1. module modeでのGo製プロジェクトの初期環境構築 想定手順
+cd 任意のディレクトリ git clone foo cd foo make CONTRIBUTING.mdの冒頭は「自分のorganizationにforkしてgit clone」と書かれている事が多いですが、clone先のディレクトリは$GOPATHに拘らず何処でも良くなりましたよという事が伝われば、それこそ git clone 任意のディレクトリ と明記しておくだけでも良いと思います。">
     <meta name="keywords" content="blog,developer,backpacker,personal">
 
     <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Go: module modeでのgo.mod, go.sumファイルを用いた依存ライブラリ管理、及びcontributionの方法＆手順"/>
 <meta name="twitter:description" content="Summary Go1.13がリリースされてGo Modulesのmodule modeがデフォルトになってからの、go modコマンドを駆使した依存ライブラリ管理、及び第三者のOSSプロジェクトへのcontributionの方法＆手順について
- Module-awareモードに最適化した手順を把握・実践する  ライブラリの追加手順 ライブラリのバージョン更新手順（個別 or 全ライブラリ一括） ライブラリの削除手順   Happy Contributing!! 参考リンク（参考というか、答えは下記リンク先に全て書いてあります）  公式ブログ（和訳） 公式Wiki    前提条件 1 2 3 4 5  $ go version go version go1.12.4 darwin/amd64 # GO111MODULE=on して、常にModule-awareモードとなる状態で検証 $ export GO111MODULE=on   はじめに Githubの&quot;contributing ドキュメントについて githubにプロジェクトを公開する際に、
- ルート docs .github  の3つの内いずれかのディレクトリに contributing* というパターン名（大文字でも可）が付いたファイルを置いておくと、pull-request作成時に「ここにガイドラインがあるよ」と通知してくれるようになります。慣例としてこのファイルは CONTRIBUTING.md という名前で用意されている事が多いです。
+Module-awareモードに最適化した手順を把握・実践する ライブラリの追加手順 ライブラリのバージョン更新手順（個別 or 全ライブラリ一括） ライブラリの削除手順 Happy Contributing!! 参考リンク（参考というか、答えは下記リンク先に全て書いてあります） 公式ブログ（和訳） 公式Wiki 前提条件 1 2 3 4 5 $ go version go version go1.12.4 darwin/amd64 # GO111MODULE=on して、常にModule-awareモードとなる状態で検証 $ export GO111MODULE=on はじめに Githubの&quot;contributing ドキュメントについて githubにプロジェクトを公開する際に、
+ルート docs .github の3つの内いずれかのディレクトリに contributing* というパターン名（大文字でも可）が付いたファイルを置いておくと、pull-request作成時に「ここにガイドラインがあるよ」と通知してくれるようになります。慣例としてこのファイルは CONTRIBUTING.md という名前で用意されている事が多いです。
 このファイルには主に環境構築・テストの実行方法・pull-requestの送り方 などを記載しますが、Goプロジェクトでは「最初に $GOPATH 下にソースを持ってくる」事が前提になっている手順をよく見かけます（自作プロジェクトでもそうしていました）。
 GoプロジェクトにおけるCONTRIBUTING.mdはどうあるべきか？ Go ModulesのModule-awareモードがデフォルト挙動になるGo1.13以降では、ソースをcloneしてくるディレクトリは何処でも良い＝必ずしも$GOPATH下にソースを持ってくる必要は無くなりますし、依存ライブラリの追加・削除・バージョン変更を行いたい時の流れも変わります。なので、 CONTRIBUTING.mdに書く内容もそれに合わせておくとcontributorに親切なガイドラインを提示できそうです。
-引き続き$GOPATHベースでの開発を推奨するプロジェクトもあるかも知れませんし、内容や粒度はプロジェクトの運営方針や想定読者レベルによっても変わるとは思いますが、この記事ではModule-awareモードのレールに乗る前提で、CONTRIBUTING.mdに書くべき内容と、合わせてmodule modeでのGoプロジェクトにおけるライブラリ管理プラクティスを整理してみます。"/>
+引き続き$GOPATHベースでの開発を推奨するプロジェクトもあるかも知れませんし、内容や粒度はプロジェクトの運営方針や想定読者レベルによっても変わるとは思いますが、この記事ではModule-awareモードのレールに乗る前提で、CONTRIBUTING.mdに書くべき内容と、合わせてmodule modeでのGoプロジェクトにおけるライブラリ管理プラクティスを整理してみます。
+1. module modeでのGo製プロジェクトの初期環境構築 想定手順
+cd 任意のディレクトリ git clone foo cd foo make CONTRIBUTING.mdの冒頭は「自分のorganizationにforkしてgit clone」と書かれている事が多いですが、clone先のディレクトリは$GOPATHに拘らず何処でも良くなりましたよという事が伝われば、それこそ git clone 任意のディレクトリ と明記しておくだけでも良いと思います。"/>
 
     <meta property="og:title" content="Go: module modeでのgo.mod, go.sumファイルを用いた依存ライブラリ管理、及びcontributionの方法＆手順" />
 <meta property="og:description" content="Summary Go1.13がリリースされてGo Modulesのmodule modeがデフォルトになってからの、go modコマンドを駆使した依存ライブラリ管理、及び第三者のOSSプロジェクトへのcontributionの方法＆手順について
- Module-awareモードに最適化した手順を把握・実践する  ライブラリの追加手順 ライブラリのバージョン更新手順（個別 or 全ライブラリ一括） ライブラリの削除手順   Happy Contributing!! 参考リンク（参考というか、答えは下記リンク先に全て書いてあります）  公式ブログ（和訳） 公式Wiki    前提条件 1 2 3 4 5  $ go version go version go1.12.4 darwin/amd64 # GO111MODULE=on して、常にModule-awareモードとなる状態で検証 $ export GO111MODULE=on   はじめに Githubの&quot;contributing ドキュメントについて githubにプロジェクトを公開する際に、
- ルート docs .github  の3つの内いずれかのディレクトリに contributing* というパターン名（大文字でも可）が付いたファイルを置いておくと、pull-request作成時に「ここにガイドラインがあるよ」と通知してくれるようになります。慣例としてこのファイルは CONTRIBUTING.md という名前で用意されている事が多いです。
+Module-awareモードに最適化した手順を把握・実践する ライブラリの追加手順 ライブラリのバージョン更新手順（個別 or 全ライブラリ一括） ライブラリの削除手順 Happy Contributing!! 参考リンク（参考というか、答えは下記リンク先に全て書いてあります） 公式ブログ（和訳） 公式Wiki 前提条件 1 2 3 4 5 $ go version go version go1.12.4 darwin/amd64 # GO111MODULE=on して、常にModule-awareモードとなる状態で検証 $ export GO111MODULE=on はじめに Githubの&quot;contributing ドキュメントについて githubにプロジェクトを公開する際に、
+ルート docs .github の3つの内いずれかのディレクトリに contributing* というパターン名（大文字でも可）が付いたファイルを置いておくと、pull-request作成時に「ここにガイドラインがあるよ」と通知してくれるようになります。慣例としてこのファイルは CONTRIBUTING.md という名前で用意されている事が多いです。
 このファイルには主に環境構築・テストの実行方法・pull-requestの送り方 などを記載しますが、Goプロジェクトでは「最初に $GOPATH 下にソースを持ってくる」事が前提になっている手順をよく見かけます（自作プロジェクトでもそうしていました）。
 GoプロジェクトにおけるCONTRIBUTING.mdはどうあるべきか？ Go ModulesのModule-awareモードがデフォルト挙動になるGo1.13以降では、ソースをcloneしてくるディレクトリは何処でも良い＝必ずしも$GOPATH下にソースを持ってくる必要は無くなりますし、依存ライブラリの追加・削除・バージョン変更を行いたい時の流れも変わります。なので、 CONTRIBUTING.mdに書く内容もそれに合わせておくとcontributorに親切なガイドラインを提示できそうです。
-引き続き$GOPATHベースでの開発を推奨するプロジェクトもあるかも知れませんし、内容や粒度はプロジェクトの運営方針や想定読者レベルによっても変わるとは思いますが、この記事ではModule-awareモードのレールに乗る前提で、CONTRIBUTING.mdに書くべき内容と、合わせてmodule modeでのGoプロジェクトにおけるライブラリ管理プラクティスを整理してみます。" />
+引き続き$GOPATHベースでの開発を推奨するプロジェクトもあるかも知れませんし、内容や粒度はプロジェクトの運営方針や想定読者レベルによっても変わるとは思いますが、この記事ではModule-awareモードのレールに乗る前提で、CONTRIBUTING.mdに書くべき内容と、合わせてmodule modeでのGoプロジェクトにおけるライブラリ管理プラクティスを整理してみます。
+1. module modeでのGo製プロジェクトの初期環境構築 想定手順
+cd 任意のディレクトリ git clone foo cd foo make CONTRIBUTING.mdの冒頭は「自分のorganizationにforkしてgit clone」と書かれている事が多いですが、clone先のディレクトリは$GOPATHに拘らず何処でも良くなりましたよという事が伝われば、それこそ git clone 任意のディレクトリ と明記しておくだけでも良いと思います。" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://horizoon.jp/post/2019/04/18/contributing_with_gomodules/" /><meta property="article:section" content="post" />
 <meta property="article:published_time" content="2019-04-18T09:43:00+09:00" />
 <meta property="article:modified_time" content="2019-04-18T09:43:00+09:00" />
-
 
 
     <title>
@@ -79,7 +84,7 @@ GoプロジェクトにおけるCONTRIBUTING.mdはどうあるべきか？ Go Mo
 
     
 
-    <meta name="generator" content="Hugo 0.88.1" />
+    <meta name="generator" content="Hugo 0.110.0">
   </head>
 
   
@@ -113,10 +118,6 @@ GoプロジェクトにおけるCONTRIBUTING.mdはどうあるべきか？ Go Mo
           
             <li class="navigation-item">
               <a class="navigation-link" href="https://horizoon.jp/post/">Blog</a>
-            </li>
-          
-            <li class="navigation-item">
-              <a class="navigation-link" href="https://horizoon.jp/projects/">Projects</a>
             </li>
           
             <li class="navigation-item">
@@ -158,21 +159,21 @@ GoプロジェクトにおけるCONTRIBUTING.mdはどうあるべきか？ Go Mo
 </li>
 </ul>
 <h2 id="前提条件">前提条件</h2>
-<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">$ go version
-go version go1.12.4 darwin/amd64
-
-<span style="color:#60a0b0;font-style:italic"># GO111MODULE=on して、常にModule-awareモードとなる状態で検証</span>
-$ <span style="color:#007020">export</span> <span style="color:#bb60d5">GO111MODULE</span><span style="color:#666">=</span>on
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>$ go version
+</span></span><span style="display:flex;"><span>go version go1.12.4 darwin/amd64
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#60a0b0;font-style:italic"># GO111MODULE=on して、常にModule-awareモードとなる状態で検証</span>
+</span></span><span style="display:flex;"><span>$ <span style="color:#007020">export</span> <span style="color:#bb60d5">GO111MODULE</span><span style="color:#666">=</span>on
+</span></span></code></pre></td></tr></table>
 </div>
 </div><h2 id="はじめに">はじめに</h2>
 <h3 id="githubのcontributing-ドキュメントについて">Githubの&quot;contributing ドキュメントについて</h3>
@@ -197,37 +198,37 @@ $ <span style="color:#007020">export</span> <span style="color:#bb60d5">GO111MOD
 </ol>
 <p>CONTRIBUTING.mdの冒頭は「自分のorganizationにforkしてgit clone」と書かれている事が多いですが、clone先のディレクトリは<code>$GOPATH</code>に拘らず何処でも良くなりましたよという事が伝われば、それこそ <code>git clone 任意のディレクトリ</code> と明記しておくだけでも良いと思います。</p>
 <p>git clone後に<code>make</code>（或いは <code>make setup</code> のような名前のターゲット）を叩けば依存ライブラリを取り込んでくれるようなmakeターゲットを用意しておくと初期の敷居を下げられそうです。</p>
-<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">$ git clone foo
-$ <span style="color:#007020">cd</span> foo
-
-<span style="color:#60a0b0;font-style:italic"># makeを叩く =&gt; go.sum の内容に則った依存ライブラリ取得実行</span>
-$ make  <span style="color:#60a0b0;font-style:italic"># 例えば go build</span>
-go: finding github.com/urfave/cli v1.20.0
-go: finding github.com/aws/aws-sdk-go v1.17.14
-:
-go: downloading github.com/urfave/cli v1.20.0
-go: downloading github.com/aws/aws-sdk-go v1.17.14
-:
-go: extracting github.com/urfave/cli v1.20.0
-go: extracting github.com/aws/aws-sdk-go v1.17.14
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>$ git clone foo
+</span></span><span style="display:flex;"><span>$ <span style="color:#007020">cd</span> foo
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#60a0b0;font-style:italic"># makeを叩く =&gt; go.sum の内容に則った依存ライブラリ取得実行</span>
+</span></span><span style="display:flex;"><span>$ make  <span style="color:#60a0b0;font-style:italic"># 例えば go build</span>
+</span></span><span style="display:flex;"><span>go: finding github.com/urfave/cli v1.20.0
+</span></span><span style="display:flex;"><span>go: finding github.com/aws/aws-sdk-go v1.17.14
+</span></span><span style="display:flex;"><span>:
+</span></span><span style="display:flex;"><span>go: downloading github.com/urfave/cli v1.20.0
+</span></span><span style="display:flex;"><span>go: downloading github.com/aws/aws-sdk-go v1.17.14
+</span></span><span style="display:flex;"><span>:
+</span></span><span style="display:flex;"><span>go: extracting github.com/urfave/cli v1.20.0
+</span></span><span style="display:flex;"><span>go: extracting github.com/aws/aws-sdk-go v1.17.14
+</span></span></code></pre></td></tr></table>
 </div>
 </div><p>例えば  <a href="https://github.com/golang/go/wiki/Modules#daily-workflow"><code>go build</code> でもgo.modファイルの内容を元にした依存ライブラリの取り込みが動いてくれる</a>ので、<code>go build</code> をmakeのデフォルトターゲットとして用意しておくのも良さそうです。</p>
 <h2 id="2-module-modeで依存ライブラリを追加したい時の手順">2. module modeで依存ライブラリを追加したい時の手順</h2>
@@ -237,57 +238,57 @@ go: extracting github.com/aws/aws-sdk-go v1.17.14
 <li><code>go build</code> or <code>go run</code> or <code>go test</code> を実行する（これでgo.mod, go.sumも最新化される）</li>
 </ol>
 <p>Go Modulesでは、import文を追加・保存して<a href="https://github.com/golang/go/wiki/Modules#daily-workflow"><code>go build</code>すればそのタイミングで必要なライブラリ取得＆go.modの更新が実行されます</a>。「コードを書いてbuildを動かすという流れの中で（lazyに）依存ライブラリ取得が走ってくれる」というGo Modulesの配慮が伺える設計になっています。</p>
-<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#60a0b0;font-style:italic">// importを追加
-</span><span style="color:#60a0b0;font-style:italic"></span><span style="color:#007020;font-weight:bold">import</span> <span style="color:#4070a0">&#34;github.com/k0kubun/pp&#34;</span>
-
-  <span style="color:#60a0b0;font-style:italic">// 使用コードを追加
-</span><span style="color:#60a0b0;font-style:italic"></span>  pp.<span style="color:#06287e">Println</span>(c)
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#60a0b0;font-style:italic">// importを追加
+</span></span></span><span style="display:flex;"><span><span style="color:#60a0b0;font-style:italic"></span><span style="color:#007020;font-weight:bold">import</span> <span style="color:#4070a0">&#34;github.com/k0kubun/pp&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#60a0b0;font-style:italic">// 使用コードを追加
+</span></span></span><span style="display:flex;"><span><span style="color:#60a0b0;font-style:italic"></span>  pp.<span style="color:#06287e">Println</span>(c)
+</span></span></code></pre></td></tr></table>
 </div>
-</div><div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</div><div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh"><span style="color:#60a0b0;font-style:italic"># go.mod, go.sum もこのタイミングで更新される</span>
-$ go build
-
-<span style="color:#60a0b0;font-style:italic"># moduleの更新内容を確認</span>
-$ vim go.mod
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span><span style="color:#60a0b0;font-style:italic"># go.mod, go.sum もこのタイミングで更新される</span>
+</span></span><span style="display:flex;"><span>$ go build
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#60a0b0;font-style:italic"># moduleの更新内容を確認</span>
+</span></span><span style="display:flex;"><span>$ vim go.mod
+</span></span></code></pre></td></tr></table>
 </div>
-</div><div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</div><div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">module foo
-
-require (
-  :
-  github.com/k0kubun/pp v3.0.1+incompatible
-  :
-)
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-v" data-lang="v"><span style="display:flex;"><span><span style="color:#007020;font-weight:bold">module</span> <span style="color:#bb60d5">foo</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#bb60d5">require</span> (
+</span></span><span style="display:flex;"><span>  :
+</span></span><span style="display:flex;"><span>  <span style="color:#bb60d5">github</span>.<span style="color:#bb60d5">com</span><span style="color:#666">/</span><span style="color:#bb60d5">k0kubun</span><span style="color:#666">/</span><span style="color:#bb60d5">pp</span> <span style="color:#bb60d5">v3</span><span style="color:#40a070">.0.1</span><span style="color:#666">+</span><span style="color:#bb60d5">incompatible</span>
+</span></span><span style="display:flex;"><span>  :
+</span></span><span style="display:flex;"><span>)
+</span></span></code></pre></td></tr></table>
 </div>
 </div><h3 id="incompatible-と出力されるのはどういう時か"><code>+incompatible</code> と出力されるのはどういう時か？</h3>
 <p>たまたま今回使わせてもらったppで <code>+incompatible</code> というsuffixがgo.modに出力されましたが、これは <a href="https://github.com/golang/go/wiki/Modules#semantic-import-versioning">「ライブラリがGo Modulesに未対応で、且つMAJORバージョンが2以上」の場合に発生</a>します（が、開発への悪影響がある訳ではありません）</p>
@@ -312,41 +313,41 @@ require (
 </ol>
 <p><code>go get</code>に代わるもう1つの手段として「go.mod のバージョン指定を直接編集する」事も可能なのですが、go.modに記述できるバージョン形式は<a href="https://tip.golang.org/cmd/go/#hdr-Pseudo_versions">Pseudo-versions</a>形式であり、<code>go get foo@'&lt;v1.6.2'</code> のような<a href="https://golang.org/cmd/go/#hdr-Module_queries">モジュールクエリ</a>の形式で書く事は出来ません。</p>
 <p>モジュールクエリ形式でバージョンを指定して<code>go get</code>を実行すると、条件にマッチして選択されたバージョンそのものがgo.modに反映されます。</p>
-<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh"><span style="color:#60a0b0;font-style:italic">## 実施例</span>
-
-<span style="color:#60a0b0;font-style:italic"># v1.19.12 という最新バージョンが存在している事が分かる</span>
-$ go list -u -m github.com/aws/aws-sdk-go
-github.com/aws/aws-sdk-go v1.17.14 <span style="color:#666">[</span>v1.19.12<span style="color:#666">]</span>
-
-<span style="color:#60a0b0;font-style:italic"># v1.18.x にマッチする最新バージョン、に更新してみる</span>
-$ go get github.com/aws/aws-sdk-go@<span style="color:#4070a0">&#39;&lt;v1.19&#39;</span>
-go: finding github.com/aws/aws-sdk-go v1.18.6
-go: downloading github.com/aws/aws-sdk-go v1.18.6
-go: extracting github.com/aws/aws-sdk-go v1.18.6
-
-<span style="color:#60a0b0;font-style:italic"># go.modの更新内容を確認</span>
-$ cat go.mod | grep aws-sdk-go
-        github.com/aws/aws-sdk-go v1.18.6
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span><span style="color:#60a0b0;font-style:italic">## 実施例</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#60a0b0;font-style:italic"># v1.19.12 という最新バージョンが存在している事が分かる</span>
+</span></span><span style="display:flex;"><span>$ go list -u -m github.com/aws/aws-sdk-go
+</span></span><span style="display:flex;"><span>github.com/aws/aws-sdk-go v1.17.14 <span style="color:#666">[</span>v1.19.12<span style="color:#666">]</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#60a0b0;font-style:italic"># v1.18.x にマッチする最新バージョン、に更新してみる</span>
+</span></span><span style="display:flex;"><span>$ go get github.com/aws/aws-sdk-go@<span style="color:#4070a0">&#39;&lt;v1.19&#39;</span>
+</span></span><span style="display:flex;"><span>go: finding github.com/aws/aws-sdk-go v1.18.6
+</span></span><span style="display:flex;"><span>go: downloading github.com/aws/aws-sdk-go v1.18.6
+</span></span><span style="display:flex;"><span>go: extracting github.com/aws/aws-sdk-go v1.18.6
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#60a0b0;font-style:italic"># go.modの更新内容を確認</span>
+</span></span><span style="display:flex;"><span>$ cat go.mod | grep aws-sdk-go
+</span></span><span style="display:flex;"><span>        github.com/aws/aws-sdk-go v1.18.6
+</span></span></code></pre></td></tr></table>
 </div>
 </div><h2 id="4-全てのライブラリを最新versionに更新する手順">4. 全てのライブラリを最新versionに更新する手順</h2>
 <p>想定手順</p>
@@ -356,45 +357,45 @@ $ cat go.mod | grep aws-sdk-go
 <li><code>go build</code> or <code>go run</code> or <code>go test</code> を実行する（これでgo.mod, go.sumも最新化される）</li>
 </ol>
 <p>contributorがこれを行うケースはあまり無さそうではありますが、<a href="https://github.com/golang/go/wiki/Modules#daily-workflow">公式Wikiの Daily Workflow</a> にも書かれている通りパッケージ指定なしで<code>go get -u</code>を実行すると全依存ライブラリの最新のminor versionが、<code>go get -u=patch</code>を実行すると全依存ライブラリの最新のpatch versionが取得されます。</p>
-<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+<div class="highlight"><div style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">$ go get -u
-<span style="color:#60a0b0;font-style:italic"># 既に最新状態のライブラリは latest と表示される</span>
-go: finding golang.org/x/sys latest
-<span style="color:#60a0b0;font-style:italic"># 最新バージョンが別途存在したら、そのバージョンが表示される</span>
-go: finding github.com/aws/aws-sdk-go v1.19.11
-:
-:
-
-<span style="color:#60a0b0;font-style:italic"># go get -u が完了すると、go.mod, go.sum がそれぞれ更新される（が、ライブラリの取得はまだ未実施状態）</span>
-<span style="color:#60a0b0;font-style:italic"># 取得はその後の go build や go test の際に行われる</span>
-$ go build
-
-<span style="color:#60a0b0;font-style:italic"># 最新バージョンが別途存在したライブラリの取得処理が走る</span>
-go: downloading github.com/aws/aws-sdk-go v1.19.11
-go: extracting github.com/aws/aws-sdk-go v1.19.11
-:
-:
-</code></pre></td></tr></table>
+<pre tabindex="0" style="background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>$ go get -u
+</span></span><span style="display:flex;"><span><span style="color:#60a0b0;font-style:italic"># 既に最新状態のライブラリは latest と表示される</span>
+</span></span><span style="display:flex;"><span>go: finding golang.org/x/sys latest
+</span></span><span style="display:flex;"><span><span style="color:#60a0b0;font-style:italic"># 最新バージョンが別途存在したら、そのバージョンが表示される</span>
+</span></span><span style="display:flex;"><span>go: finding github.com/aws/aws-sdk-go v1.19.11
+</span></span><span style="display:flex;"><span>:
+</span></span><span style="display:flex;"><span>:
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#60a0b0;font-style:italic"># go get -u が完了すると、go.mod, go.sum がそれぞれ更新される（が、ライブラリの取得はまだ未実施状態）</span>
+</span></span><span style="display:flex;"><span><span style="color:#60a0b0;font-style:italic"># 取得はその後の go build や go test の際に行われる</span>
+</span></span><span style="display:flex;"><span>$ go build
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#60a0b0;font-style:italic"># 最新バージョンが別途存在したライブラリの取得処理が走る</span>
+</span></span><span style="display:flex;"><span>go: downloading github.com/aws/aws-sdk-go v1.19.11
+</span></span><span style="display:flex;"><span>go: extracting github.com/aws/aws-sdk-go v1.19.11
+</span></span><span style="display:flex;"><span>:
+</span></span><span style="display:flex;"><span>:
+</span></span></code></pre></td></tr></table>
 </div>
 </div><h2 id="5-使わなくなったライブラリを削除する手順を書く">5. 使わなくなったライブラリを削除する手順を書く</h2>
 <p>想定手順</p>
@@ -431,7 +432,7 @@ go: extracting github.com/aws/aws-sdk-go v1.19.11
         
           2017 -
         
-        2021
+        2023
          Fuminori Sakamoto 
       
       
@@ -448,7 +449,7 @@ go: extracting github.com/aws/aws-sdk-go v1.19.11
     
       
         
-        <script src="https://horizoon.jp/js/dark-mode.min.aee9c8a464eb7b3534c7110f7c5e169e7039e2fd92710e0626d451d6725af137.js"></script>
+        <script src="https://horizoon.jp/js/dark-mode.min.c2d8a1f8f2660e4a46d776277c72695a1e0ca65939d79f754441d47551604af5.js"></script>
       
     
 
